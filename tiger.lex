@@ -50,10 +50,11 @@ array  => (Tokens.ARRAY(yypos,yypos+5));
 ";"  => (Tokens.SEMICOLON(yypos,yypos+1));
 ":"  => (Tokens.COLON(yypos,yypos+1));
 ","	=> (Tokens.COMMA(yypos,yypos+1));
-\n|\t	=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
-"/*"(.|\n)*"*/"|" " => (continue());
+\n|\t|" "=> (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+"/*"(.|\n)*"*/" => (continue());
 [a-z][a-zA-Z0-9_]+ => (Tokens.ID(yytext,yypos,yypos+size yytext));
 [0-9]+ => (Tokens.INT(valOf(Int.fromString yytext),yypos,yypos+size yytext));
 "eof"  => (Tokens.EOF(yypos,yypos+3));
+\"(.|/n)*\"  => (Tokens.STRING(yytext,yypos,yypos+size yytext));
 .       => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
 
