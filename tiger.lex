@@ -1,7 +1,7 @@
 type pos = int
 type lexresult = Tokens.token
 
-val comment_nest = ref 0;
+val comment_nest = ref 0
 val last_open_comment = ref ~1
 
 val lineNum = ErrorMsg.lineNum
@@ -10,10 +10,13 @@ fun err(p1,p2) = ErrorMsg.error p1
 
 fun eof() = let
   val pos = hd(!linePos)
-  fun check_open_comments () = if !comment_nest <> 0 then ErrorMsg.error (!last_open_comment) ("Comment never closed")
-  else ()
+  fun check_open_comments () = if !comment_nest <> 0 then
+                                ErrorMsg.error (!last_open_comment) ("Comment never closed")
+                               else ()
 in
   check_open_comments();
+  comment_nest := 0;
+  last_open_comment := ~1;
   Tokens.EOF(pos,pos)
 end
 
@@ -21,7 +24,7 @@ end
 %s COMMENT;
 %%
 
-<INITIAL> [" "\t] => (continue());
+<INITIAL> [" "\t]+ => (continue());
 <INITIAL> "/*" => (YYBEGIN COMMENT;
                     comment_nest := !comment_nest + 1;
                     last_open_comment := yypos;
@@ -32,9 +35,10 @@ end
                  else ();
                  comment_nest := !comment_nest - 1;
                  continue());
-<COMMENT> [.\n] => (continue());
+<COMMENT> . => (print(yytext);
+                    continue());
 
-<INITIAL> [\n\r] => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
+[\n\r]+ => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
 
 
 <INITIAL>type  => (Tokens.TYPE(yypos,yypos+4));
@@ -45,7 +49,7 @@ end
 <INITIAL>end  => (Tokens.END(yypos,yypos+3));
 <INITIAL>in  => (Tokens.IN(yypos,yypos+2));
 <INITIAL>nil  => (Tokens.NIL(yypos,yypos+3));
-<INITIAL>let  => (Tokens.LET(yypos,yypos+3));
+<INITIAL>let  => (print("got let");Tokens.LET(yypos,yypos+3));
 <INITIAL>do  => (Tokens.DO(yypos,yypos+2));
 <INITIAL>to  => (Tokens.TO(yypos,yypos+2));
 <INITIAL>for  => (Tokens.FOR(yypos,yypos+3));
@@ -79,4 +83,4 @@ end
 <INITIAL>","	=> (Tokens.COMMA(yypos,yypos+1));
 <INITIAL> [a-zA-Z][a-zA-Z0-9_]* => (Tokens.ID(yytext,yypos,yypos+size yytext));
 <INITIAL> [0-9]+ => (Tokens.INT(valOf(Int.fromString yytext),yypos,yypos+size yytext));
-<INITIAL>   .    => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
+<INITIAL> .   => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
