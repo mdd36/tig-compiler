@@ -3,7 +3,8 @@ type lexresult = Tokens.token
 
 val comment_nest = ref 0
 val last_open_comment = ref ~1
-
+val string_in = ref 0
+val last_open_string = ref ~1
 val lineNum = ErrorMsg.lineNum
 val linePos = ErrorMsg.linePos
 fun err(p1,p2) = ErrorMsg.error p1
@@ -13,15 +14,21 @@ fun eof() = let
   fun check_open_comments () = if !comment_nest <> 0 then
                                 ErrorMsg.error (!last_open_comment) ("Comment never closed")
                                else ()
+  fun check_open_string () = if !string_in <> 0 then
+                                ErrorMsg.error (!last_open_string) ("unclosed string")
+                               else ()
 in
   check_open_comments();
   comment_nest := 0;
+  last_open_comment := ~1;
+  check_open_string();
+  string_in := 0;
   last_open_comment := ~1;
   Tokens.EOF(pos,pos)
 end
 
 %%
-%s COMMENT;
+%s COMMENT STR STRESCAPE;
 %%
 
 <INITIAL> (" "|\t)+ => (continue());
@@ -35,8 +42,13 @@ end
                  else ();
                  comment_nest := !comment_nest - 1;
                  continue());
-<COMMENT> . => (print(yytext);
-                    continue());
+<COMMENT> . => ( continue());
+<INITIAL> \" => (YYBEGIN STR; string_in := 1;last_open_string := yypos; continue());
+<STR> \" => (Tokens.STRING(yytext,yypos,yypos+size yytext);string_in := 0; YYBEGIN INITIAL;    continue());
+<STR> [^\\]+=> (   continue());
+<STR> \\ => (YYBEGIN STRESCAPE;    continue());
+<STRESCAPE> [ntabfrv\"]|[0-1][0-9][0-9]|2[0-4][0-9]|25[0-5]|(" "|\n|\r|\t)*\\=> (YYBEGIN STR;    continue());
+<STRESCAPE> [^[ntabfrv\"]|[0-1][0-9][0-9]|2[0-4][0-9]|25[0-5]|(" "|\n|\r|\t)*\\]=> (ErrorMsg.error (yypos) ("illegal string escape");    continue());
 
 [\n\r]+ => (lineNum := !lineNum+1; linePos := yypos :: !linePos; continue());
 
@@ -49,7 +61,7 @@ end
 <INITIAL>end  => (Tokens.END(yypos,yypos+3));
 <INITIAL>in  => (Tokens.IN(yypos,yypos+2));
 <INITIAL>nil  => (Tokens.NIL(yypos,yypos+3));
-<INITIAL>let  => (print("got let");Tokens.LET(yypos,yypos+3));
+<INITIAL>let  => (Tokens.LET(yypos,yypos+3));
 <INITIAL>do  => (Tokens.DO(yypos,yypos+2));
 <INITIAL>to  => (Tokens.TO(yypos,yypos+2));
 <INITIAL>for  => (Tokens.FOR(yypos,yypos+3));
