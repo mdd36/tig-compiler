@@ -24,7 +24,7 @@ end
 %s COMMENT;
 %%
 
-<INITIAL> [" "\t]+ => (continue());
+<INITIAL> (" "|\t)+ => (continue());
 <INITIAL> "/*" => (YYBEGIN COMMENT;
                     comment_nest := !comment_nest + 1;
                     last_open_comment := yypos;
@@ -81,6 +81,8 @@ end
 <INITIAL>";"  => (Tokens.SEMICOLON(yypos,yypos+1));
 <INITIAL>":"  => (Tokens.COLON(yypos,yypos+1));
 <INITIAL>","	=> (Tokens.COMMA(yypos,yypos+1));
+<INITIAL> \"([^\\]|\\[ntabfrv\"]|\\[0-1][0-9][0-9]|\\2[0-4][0-9]|\\25[0-5]|\\(" "|\n|\r|\t)*\\)*\" => (Tokens.STRING(yytext,yypos,yypos+size yytext));
 <INITIAL> [a-zA-Z][a-zA-Z0-9_]* => (Tokens.ID(yytext,yypos,yypos+size yytext));
 <INITIAL> [0-9]+ => (Tokens.INT(valOf(Int.fromString yytext),yypos,yypos+size yytext));
 <INITIAL> .   => (ErrorMsg.error yypos ("illegal character " ^ yytext); continue());
+
