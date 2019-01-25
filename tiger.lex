@@ -44,7 +44,7 @@ end
                  continue());
 <COMMENT> . => ( continue());
 <INITIAL> \" => (YYBEGIN STR; string_in := 1;last_open_string := yypos; s:=""; continue());
-<STR> \" => (Tokens.STRING(!s,!last_open_string,yypos);print (!s); YYBEGIN INITIAL; string_in := 0;    continue());
+<STR> \" => ( YYBEGIN INITIAL; string_in := 0;Tokens.STRING(!s,!last_open_string+1,yypos-1));
 <STR> [^\\\"]+=> (s:=(!s)^yytext;   continue());
 <STR> \\n => (s:=(!s)^"\n";   continue());
 <STR> \\t => (s:=(!s)^"\t";   continue());
