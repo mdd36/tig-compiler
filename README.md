@@ -12,7 +12,7 @@ Supporting files:
 ***driver.sml*** A test scaffold to run your lexer on an input file. <br />
 ***tiger.lex*** The beginnings of a real tiger.lex file. <br />
 ***sources.cm*** A “makefile” for the ML Compilation Manager.<br />
-***tiger.lex*** Analyze Identifiers, Comments, Integer literal, String literal, Reserved words, and Punctuations.<br /> In this file, the comments are handled appropriately and the nested comments are allowed;<br />Strings are flexible, where escape sequences are dealt with correctly;\n Errors are covered and dealt with reasonably combined with the EOF.<br />
+***tiger.lex*** Analyze Identifiers, Comments, Integer literal, String literal, Reserved words, and Punctuations.<br /> In this file, the comments are handled appropriately and the nested comments are allowed;<br />Strings are flexible, where escape sequences are dealt with correctly;<br />Errors are covered and dealt with reasonably combined with the EOF.<br />
 ***main.sml*** A wrapper for the whole program, which resets the parameters at the beginning of every usage.<br />
 
 Run the Code with the following commands:<br />
