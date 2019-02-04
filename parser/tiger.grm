@@ -11,7 +11,8 @@
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
 
-%nonterm  exp | program | lvalue | expseq | explist | field | type-declaration
+%nonterm  exp | program | lvalue | expseq | explist | field | declaration-list
+| declaration | type-declaration	| variable-declaration | function-declaration
 | type | type-field | type-fields
 
 %pos int
@@ -49,12 +50,18 @@ exp: STRING                             ()
 	|  NIL                                ()
 	|  lvalue                             ()
 	|  MINUS exp  %prec UMINUS            ()
-  |  exp PLUS exp                       ()
-  |  exp MINUS exp                      ()
-  |  exp TIMES exp                      ()
-  |  exp DIVIDE exp                     ()
-  |  exp AND exp                        ()
-  |  exp OR exp                         ()
+	|  exp PLUS exp                       ()
+	|  exp MINUS exp                      ()
+	|  exp TIMES exp                      ()
+	|  exp DIVIDE exp                     ()
+	|  exp AND exp                        ()
+	|  exp OR exp                         ()
+	|  exp EQ exp                         ()
+	|  exp NEQ exp                        ()
+	|  exp LT exp                         ()
+	|  exp LE exp                         ()
+	|  exp GT exp                         ()
+	|  exp GE exp                         ()
 	|  lvalue ASSIGN exp                  ()
 	|  ID LPAREN explist RPAREN           ()
 	|  LPAREN expseq RPAREN               ()
@@ -71,8 +78,28 @@ lvalue: ID                     ()
 	   |lvalue DOT ID            ()
 	   |lvalue LBRACK exp RBRACK ()
 
-expseq: exp                  ()
-	    | expseq SEMICOLON exp ()
+expseq: exp                   ()
+	    | expseq SEMICOLON exp  ()
+
+explist: exp               ()
+		   | explist COMMA exp ()
+
+field: ID EQ exp             ()
+	   | field COMMA ID EQ exp ()
+
+declaration-list: declaration          ()
+				 |declaration-list declaration ()
+
+declaration: type-declaration ()
+			|variable-declaration   ()
+			|function-declaration   ()
+
+variable-declaration: VAR ID ASSIGN exp     ()
+					 |VAR ID COLON type-id ASSIGN exp ()
+
+function-declaration: FUNCTION ID LPAREN type-fields RPAREN EQ exp     ()
+					 |FUNCTION ID LPAREN type-fields RPAREN COLON type-id EQ exp ()
+
 
 explist: exp               ()
 		   | explist COMMA exp ()
