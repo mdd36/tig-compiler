@@ -11,7 +11,8 @@
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
 
-%nonterm  exp | program | lvalue | expseq | explist | field
+%nonterm  exp | program | lvalue | expseq | explist | field | type-declaration
+| type | type-field | type-fields
 
 %pos int
 %verbose
@@ -57,8 +58,8 @@ exp: STRING                             ()
 	|  lvalue ASSIGN exp                  ()
 	|  ID LPAREN explist RPAREN           ()
 	|  LPAREN expseq RPAREN               ()
-	|  type-id LBRACE field RBRACE        ()
-	|  type-id LBRACK exp RBRACK OF exp   ()
+	|  ID LBRACE field RBRACE             ()
+	|  ID LBRACK exp RBRACK OF exp        ()
 	|  IF exp THEN exp                    ()
 	|  IF exp THEN exp ELSE exp           ()
 	|  WHILE exp DO exp                   ()
@@ -78,3 +79,15 @@ explist: exp               ()
 
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
+
+type-declaration: TYPE ID EQ type ()
+
+type: ID                        ()
+    | LBRACE type-fields RBRACE ()
+    | LBRACE RBRACE             ()
+    | ARRAY OF ID               ()
+
+type-fields: type-field                   ()
+           | type-fields COMMA type-field ()
+
+type-field: ID COLON ID ()
