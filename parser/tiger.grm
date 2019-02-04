@@ -11,7 +11,7 @@
   | BREAK | NIL
   | FUNCTION | VAR | TYPE 
 
-%nonterm  exp | program
+%nonterm  exp | program | lvalue | expseq | explist | field
 
 %pos int
 %verbose
@@ -40,4 +40,34 @@
 program	: exp				()
 
 	
-exp: 			()
+exp: STRING
+	|INT
+	|NIL
+	|lvalue
+	|- exp
+	|exp binary-operator exp 			()
+	|lvalue ASSIGN exp
+	|ID LPAREN explist RPAREN
+	|LPAREN expseq RPAREN
+	|type-id LBRACE field RBRACE
+	|type-id LBRACK exp RBRACK OF exp
+	|IF exp THEN exp
+	|IF exp THEN exp ELSE exp
+	|WHILE exp DO exp
+	|FOR ID ASSIGN exp TO exp DO exp
+	|BREAK
+	|LET declaration-list IN expseq END
+
+lvalue: ID
+	   |lvalue DOT ID
+	   |lvalue LBRACK exp RBRACK
+	   
+expseq: exp
+	   |expseq SEMICOLON exp
+	   
+explist: exp
+		|explist COMMA exp
+		
+field: ID EQ exp
+	  |field COMMA ID EQ exp
+	  
