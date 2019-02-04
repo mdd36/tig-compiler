@@ -11,7 +11,7 @@
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
 
-%nonterm  exp | program | lvalue | expseq | explist | field
+%nonterm  exp | program | lvalue | expseq | explist | field | declaration-list | declaration | type-declaration	| variable-declaration | function-declaration
 
 %pos int
 %verbose
@@ -72,15 +72,30 @@ exp: STRING                             ()
 	|  BREAK                              ()
 	|  LET declaration-list IN expseq END ()
 
-lvalue: ID                     ()
-	   |lvalue DOT ID            ()
-	   |lvalue LBRACK exp RBRACK ()
+lvalue: ID                                ()
+	   |lvalue DOT ID                     ()
+	   |lvalue LBRACK exp RBRACK          ()
 
-expseq: exp                  ()
-	    | expseq SEMICOLON exp ()
+expseq: exp                               ()
+	    | expseq SEMICOLON exp            ()
 
-explist: exp               ()
-		   | explist COMMA exp ()
+explist: exp                              ()
+		   | explist COMMA exp            ()
 
-field: ID EQ exp             ()
-	   | field COMMA ID EQ exp ()
+field: ID EQ exp                          ()
+	   | field COMMA ID EQ exp            ()
+	   
+declaration-list: declaration                    ()
+				 |declaration-list declaration   ()
+				 
+declaration: type-declaration                    ()
+			|variable-declaration                ()
+			|function-declaration                ()
+			
+variable-declaration: VAR ID ASSIGN exp          ()
+					 |VAR ID COLON type-id ASSIGN exp ()
+					 
+function-declaration: FUNCTION ID LPAREN type-fields RPAREN EQ exp               ()
+					 |FUNCTION ID LPAREN type-fields RPAREN COLON type-id EQ exp ()
+
+
