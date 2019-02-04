@@ -26,8 +26,8 @@
 
 %prefer THEN ELSE LPAREN
 
-% nonassoc EQ NEQ LT LE GT GE
 % left AND OR
+% nonassoc EQ NEQ LT LE GT GE
 % left PLUS MINUS
 % left DIVIDE TIMES
 % left UMINUS grouping
@@ -43,36 +43,38 @@
 program	: exp				()
 
 
-exp: STRING
-	|  INT
-	|  NIL
-	|  lvalue
-	|  MINUS exp  %prec UMINUS ()
-  |  exp PLUS exp   ()
-  |  exp MINUS exp  ()
-  |  exp TIMES exp  ()
-  |  exp DIVIDE exp ()
-	|  lvalue ASSIGN exp
-	|  ID LPAREN explist RPAREN
-	|  LPAREN expseq RPAREN
-	|  type-id LBRACE field RBRACE
-	|  type-id LBRACK exp RBRACK OF exp
-	|  IF exp THEN exp
-	|  IF exp THEN exp ELSE exp
-	|  WHILE exp DO exp
-	|  FOR ID ASSIGN exp TO exp DO exp
-	|  BREAK
-	|  LET declaration-list IN expseq END
+exp: STRING                             ()
+	|  INT                                ()
+	|  NIL                                ()
+	|  lvalue                             ()
+	|  MINUS exp  %prec UMINUS            ()
+  |  exp PLUS exp                       ()
+  |  exp MINUS exp                      ()
+  |  exp TIMES exp                      ()
+  |  exp DIVIDE exp                     ()
+  |  exp AND exp                        ()
+  |  exp OR exp                         ()
+	|  lvalue ASSIGN exp                  ()
+	|  ID LPAREN explist RPAREN           ()
+	|  LPAREN expseq RPAREN               ()
+	|  type-id LBRACE field RBRACE        ()
+	|  type-id LBRACK exp RBRACK OF exp   ()
+	|  IF exp THEN exp                    ()
+	|  IF exp THEN exp ELSE exp           ()
+	|  WHILE exp DO exp                   ()
+	|  FOR ID ASSIGN exp TO exp DO exp    ()
+	|  BREAK                              ()
+	|  LET declaration-list IN expseq END ()
 
-lvalue: ID
-	   |lvalue DOT ID
-	   |lvalue LBRACK exp RBRACK
+lvalue: ID                     ()
+	   |lvalue DOT ID            ()
+	   |lvalue LBRACK exp RBRACK ()
 
-expseq: exp
-	   |expseq SEMICOLON exp
+expseq: exp                  ()
+	    | expseq SEMICOLON exp ()
 
-explist: exp
-		|explist COMMA exp
+explist: exp               ()
+		   | explist COMMA exp ()
 
-field: ID EQ exp
-	  |field COMMA ID EQ exp
+field: ID EQ exp             ()
+	   | field COMMA ID EQ exp ()
