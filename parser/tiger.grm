@@ -11,7 +11,7 @@
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
 
-%nonterm  exp | program
+%nonterm  exp | program | lvalue | expseq | explist | field
 
 %pos int
 %verbose
@@ -43,32 +43,36 @@
 program	: exp				()
 
 
-exp:  INT            ()
-   |  STRING         ()
-   |  NIL            ()
-   |  FUNCTION       ()
-   |  lvalue         ()
-   |  exp PLUS exp   ()
-   |  exp MINUS exp  ()
-   |  exp TIMES exp  ()
-   |  exp DIVIDE exp ()
-   |  MINUS exp  %prec UMINUS ()
-   |  grouping       ()
-   |  exp AND exp    ()
-   |  exp OR  exp    ()
-   |  IF exp THEN exp()
-   |  FOR exp TO exp DO loop_action ()
-   |  WHILE exp DO loop_action()
-   | (*empty*)
+exp: STRING
+	|  INT
+	|  NIL
+	|  lvalue
+	|  MINUS exp  %prec UMINUS ()
+  |  exp PLUS exp   ()
+  |  exp MINUS exp  ()
+  |  exp TIMES exp  ()
+  |  exp DIVIDE exp ()
+	|  lvalue ASSIGN exp
+	|  ID LPAREN explist RPAREN
+	|  LPAREN expseq RPAREN
+	|  type-id LBRACE field RBRACE
+	|  type-id LBRACK exp RBRACK OF exp
+	|  IF exp THEN exp
+	|  IF exp THEN exp ELSE exp
+	|  WHILE exp DO exp
+	|  FOR ID ASSIGN exp TO exp DO exp
+	|  BREAK
+	|  LET declaration-list IN expseq END
 
 lvalue: ID
-      | lvalue DOT ID
-      | lvalue LBRACK exp RBRACKx
+	   |lvalue DOT ID
+	   |lvalue LBRACK exp RBRACK
 
-grouping: LPAREN exp RPAREN    ()
-        | LPAREN exp SEMICOLON ()
-        | exp SEMICOLON        ()
-        | exp RPAREN           ()
+expseq: exp
+	   |expseq SEMICOLON exp
 
-loop_action: exp
-           | BREAK
+explist: exp
+		|explist COMMA exp
+
+field: ID EQ exp
+	  |field COMMA ID EQ exp
