@@ -5,15 +5,16 @@
   | INT of int | STRING of string
   | COMMA | COLON | SEMICOLON | LPAREN | RPAREN | LBRACK | RBRACK
   | LBRACE | RBRACE | DOT
-  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE
+  | PLUS | MINUS | TIMES | DIVIDE | EQ | NEQ | LT | LE | GT | GE | UMINUS
   | AND | OR | ASSIGN
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
 
-%nonterm  exp | program | lvalue | expseq | explist | field | declaration-list
-| declaration | type-declaration	| variable-declaration | function-declaration
-| type | type-field | type-fields
+%nonterm  
+		exp | program | lvalue | expseq | explist | field | declarationlist
+	| declaration | typedeclaration	| variabledeclaration | functiondeclaration
+	| type | typefield | typefields
 
 %pos int
 %verbose
@@ -23,22 +24,17 @@
 
 %name Tiger
 
-%keyword WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE
-	DO OF NIL
+%keyword 
+WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
-% left AND OR
-% nonassoc EQ NEQ LT LE GT GE
-% left PLUS MINUS
-% left DIVIDE TIMES
-% left UMINUS grouping
+%left AND OR
+%nonassoc EQ NEQ LT LE GT GE
+%left PLUS MINUS
+%left DIVIDE TIMES
+%left UMINUS 
 
-%value ID ("bogus")
-%value INT (1)
-%value STRING ("")
-
-%change
 
 %%
 
@@ -72,7 +68,7 @@ exp: STRING                             ()
 	|  WHILE exp DO exp                   ()
 	|  FOR ID ASSIGN exp TO exp DO exp    ()
 	|  BREAK                              ()
-	|  LET declaration-list IN expseq END ()
+	|  LET declarationlist IN expseq END ()
 
 lvalue: ID                     ()
 	   |lvalue DOT ID            ()
@@ -87,18 +83,18 @@ explist: exp               ()
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
 
-declaration-list: declaration          ()
-				 |declaration-list declaration ()
+declarationlist: declaration          ()
+				 |declarationlist declaration ()
 
-declaration: type-declaration ()
-			|variable-declaration   ()
-			|function-declaration   ()
+declaration: typedeclaration ()
+			|variabledeclaration   ()
+			|functiondeclaration   ()
 
-variable-declaration: VAR ID ASSIGN exp     ()
-					 |VAR ID COLON type-id ASSIGN exp ()
+variabledeclaration: VAR ID ASSIGN exp     ()
+					 |VAR ID COLON ID ASSIGN exp ()
 
-function-declaration: FUNCTION ID LPAREN type-fields RPAREN EQ exp     ()
-					 |FUNCTION ID LPAREN type-fields RPAREN COLON type-id EQ exp ()
+functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp     ()
+					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
 
 
 explist: exp               ()
@@ -107,14 +103,14 @@ explist: exp               ()
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
 
-type-declaration: TYPE ID EQ type ()
+typedeclaration: TYPE ID EQ type ()
 
 type: ID                        ()
-    | LBRACE type-fields RBRACE ()
+    | LBRACE typefields RBRACE ()
     | LBRACE RBRACE             ()
     | ARRAY OF ID               ()
 
-type-fields: type-field                   ()
-           | type-fields COMMA type-field ()
+typefields: typefield                   ()
+           | typefields COMMA typefield ()
 
-type-field: ID COLON ID ()
+typefield: ID COLON ID ()
