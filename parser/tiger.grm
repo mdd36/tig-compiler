@@ -29,6 +29,9 @@ WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
+%left DO
+%left ELSE
+%left ASSIGN 
 %left AND OR
 %nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
@@ -80,9 +83,6 @@ expseq: exp                   ()
 explist: exp               ()
 		   | explist COMMA exp ()
 
-field: ID EQ exp             ()
-	   | field COMMA ID EQ exp ()
-
 declarationlist: declaration          ()
 				 |declarationlist declaration ()
 
@@ -97,8 +97,6 @@ functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp     ()
 					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
 
 
-explist: exp               ()
-		   | explist COMMA exp ()
 
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
