@@ -10,6 +10,7 @@
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
+  | ERROR
 
 %nonterm  
 		exp | program | lvalue | expseq | explist | field | declarationlist
@@ -29,7 +30,6 @@ WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
-
 %right OF
 %right THEN
 %right DO
@@ -41,13 +41,15 @@ WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 %left DIVIDE TIMES
 %left UMINUS 
 
+%change    EQ -> ASSIGN | ASSIGN -> EQ
+		|  SEMICOLON ELSE -> ELSE |  ->IN INT END
 
 %%
 
 program	: exp				()
 
 
-exp: STRING                             ()
+exp:   STRING                             ()
 	|  INT                                ()
 	|  NIL                                ()
 	|  lvalue                             ()
@@ -74,17 +76,20 @@ exp: STRING                             ()
 	|  WHILE exp DO exp                   ()
 	|  FOR ID ASSIGN exp TO exp DO exp    ()
 	|  BREAK                              ()
-	|  LET declarationlist IN expseq END ()
+	|  LET declarationlist IN expseq END  ()
+	|  LPAREN ERROR RPAREN                ()
 
-lvalue: ID                     ()
+lvalue: ID                       ()
 	   |lvalue DOT ID            ()
 	   |lvalue LBRACK exp RBRACK ()
 
-expseq: exp                   ()
+expseq:   exp                   ()
 	    | expseq SEMICOLON exp  ()
+		| ERROR  SEMICOLON exp  ()
 
-explist: exp               ()
-		   | explist COMMA exp ()
+explist:  exp               ()
+		| explist COMMA exp ()
+		| ERROR   COMMA exp ()
 
 declarationlist: declaration          ()
 				 |declarationlist declaration ()
