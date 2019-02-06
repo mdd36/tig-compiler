@@ -762,7 +762,7 @@ MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, IF1left, _)) :: rest671)) =>
  let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) =
  exp1 ()
  val  exp2 = exp2 ()
- in (print("if exp then exp | "))
+ in (print("end if exp then exp | "))
 end; ()))
  in ( LrTable.NT 0, ( result, IF1left, exp2right), rest671)
 end
@@ -772,7 +772,7 @@ MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _
 MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in (print("if exp then exp | "))
+ in (print("end if exp then exp else exp | "))
 end; ()))
  in ( LrTable.NT 0, ( result, IF1left, exp3right), rest671)
 end
@@ -781,7 +781,7 @@ MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, WHILE1left, _)) :: rest671))
  => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1
 ) = exp1 ()
  val  exp2 = exp2 ()
- in (print("while exp do exp | "))
+ in (print("end while exp do exp | "))
 end; ()))
  in ( LrTable.NT 0, ( result, WHILE1left, exp2right), rest671)
 end
@@ -793,7 +793,7 @@ MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _
  val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in (print("for " ^ ID ^ " := start to end do exp | "))
+ in (print("end for " ^ ID ^ " := start to end do exp | "))
 end; ()))
  in ( LrTable.NT 0, ( result, FOR1left, exp3right), rest671)
 end
@@ -934,7 +934,7 @@ MlyValue.ID ID1, _, _)) :: ( _, ( _, VAR1left, _)) :: rest671)) => let
  val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1
  ()
  val  exp1 = exp1 ()
- in ("given to var " ^ ID ^ " | ")
+ in (print("given to var " ^ ID ^ " | "))
 end; ()))
  in ( LrTable.NT 9, ( result, VAR1left, exp1right), rest671)
 end
@@ -944,9 +944,9 @@ MlyValue.ID ID2, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _,
  (fn _ => ( let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
  val  exp1 = exp1 ()
- in ("given to var " ^ ID1 ^ " expected type " ^ ID2 ^ " | ")
-end; ())
-)
+ in (print("given to var " ^ ID1 ^ " expected type " ^ ID2 ^ " | "))
+
+end; ()))
  in ( LrTable.NT 9, ( result, VAR1left, exp1right), rest671)
 end
 |  ( 46, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: _ :: (
