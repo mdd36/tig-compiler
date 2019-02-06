@@ -12,7 +12,7 @@
   | FUNCTION | VAR | TYPE
   | ERROR
 
-%nonterm  
+%nonterm
 		exp | program | lvalue | expseq | explist | field | declarationlist
 	| declaration | typedeclaration	| variabledeclaration | functiondeclaration
 	| type | typefield | typefields
@@ -25,21 +25,23 @@
 
 %name Tiger
 
-%keyword 
+%keyword
 WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
 
+%right ID
 %right OF
 %right THEN
 %right DO
 %right ELSE
-%right ASSIGN 
+%right ASSIGN
 %left AND OR
 %nonassoc EQ NEQ LT LE GT GE
 %left PLUS MINUS
 %left DIVIDE TIMES
-%left UMINUS 
+%right LBRACE LBRACK LPAREN
+%left UMINUS
 
 %change    EQ -> ASSIGN | ASSIGN -> EQ
 		|  SEMICOLON ELSE -> ELSE |  ->IN INT END
