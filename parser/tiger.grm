@@ -59,7 +59,7 @@ program	: exp				()
 exp:   STRING                             (A.StringExp(STRING,STRINGleft))
 	|  INT                                (A.IntExp(INT))
 	|  NIL                                (A.NilExp))
-	|  lvalue                             (look(table, A.symbol lvalue))
+	|  lvalue                             (if isSome (look(table, A.symbol lvalue)) then valOf look(table, A.symbol lvalue) else raise ERROR )
 	|  MINUS exp  %prec UMINUS            (A.OpExp{left = 0   , oper = A.MinusOp,  right = exp,                 pos = MINUSleft})
 	|  exp PLUS exp                       (A.OpExp{left = exp1, oper = A.PlusOp,   right = exp2,                pos = PLUSleft})
 	|  exp MINUS exp                      (A.OpExp{left = exp1, oper = A.MinusOp,  right = exp2,                pos = MINUSleft})
@@ -118,8 +118,14 @@ variabledeclaration: VAR ID ASSIGN exp (A.VarDec{name=A.symbol(ID), escape=ref f
 					 |VAR ID COLON ID ASSIGN exp (A.VarDec{name=A.symbol(ID), escape=ref false,
                                         type=Option.SOME((A.symbol(ID), IDleft)), init=exp, pos=VARleft})
 
-functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
-					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
+functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp (A.fundec{name = A.symbol ID, params = typefields,
+															result: NONE,
+															body = exp,
+															pos = FUNCTIONleft})
+					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp (A.fundec{name = A.symbol ID1, params = typefields,
+															result = SOME(A.symbol ID2, ID2left),
+															body = exp,
+															pos = FUNCTIONleft})
 
 field: ID EQ exp             ((A.symbol(ID), exp, IDleft) :: [])
 	   | field COMMA ID EQ exp ((A.symbol(ID), exp, IDleft) :: field)
@@ -134,4 +140,4 @@ ty: ID                          (A.symbol(ID))
 typefields: typefield                   (typefield :: nil)
            | typefields COMMA typefield (typefields :: typefield)
 
-typefield: ID COLON ID ()
+typefield: ID COLON ID (A.field{name = A.symbol ID1, escape = ref true, typ = A.symbol ID2, pos = ID1left})
