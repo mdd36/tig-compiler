@@ -1,9 +1,10 @@
 /* an array type and an array variable */
 let
-	type tree = {key: int, children: treelist}
-	type treelist = {head: tree, tail: treelist}
 	type  arrtype = array of int
 	var arr1:arrtype := arrtype [10] of 0
+  var s:string := "hello there!"
+  var x:string := "general kenobi"
+  function f(a:int, b:int) : int = a + b
 in
-	arr1
+  for i := (5+1) to (4+8) do (arr1[i] := f(i,i); (5+4)*9 < (5*7)-4)
 end

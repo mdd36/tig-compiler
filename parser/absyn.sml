@@ -1,4 +1,4 @@
-structure Absyn = 
+structure Absyn =
 struct
 
 type pos = int   and   symbol = Symbol.symbol
@@ -13,13 +13,12 @@ and exp = VarExp of var
         | StringExp of string * pos
         | CallExp of {func: symbol, args: exp list, pos: pos}
         | OpExp of {left: exp, oper: oper, right: exp, pos: pos}
-        | RecordExp of {fields: (symbol * exp * pos) list,
-			typ: symbol, pos: pos}
+        | RecordExp of {fields: (symbol * exp * pos) list, typ: symbol, pos: pos}
         | SeqExp of (exp * pos) list
         | AssignExp of {var: var, exp: exp, pos: pos}
         | IfExp of {test: exp, then': exp, else': exp option, pos: pos}
         | WhileExp of {test: exp, body: exp, pos: pos}
-	| ForExp of {var: symbol, escape: bool ref,
+	      | ForExp of {var: symbol, escape: bool ref,
 		     lo: exp, hi: exp, body: exp, pos: pos}
         | BreakExp of pos
         | LetExp of {decs: dec list, body: exp, pos: pos}
@@ -40,13 +39,12 @@ and ty = NameTy of symbol * pos
 and oper = PlusOp | MinusOp | TimesOp | DivideOp
          | EqOp | NeqOp | LtOp | LeOp | GtOp | GeOp
 
-withtype field = {name: symbol, escape: bool ref, 
+withtype field = {name: symbol, escape: bool ref,
 		  typ: symbol, pos: pos}
    and   fundec = {name: symbol,
 		   params: field list,
 		   result: (symbol * pos) option,
 		   body: exp,
 		   pos: pos}
-     
+
 end
-        

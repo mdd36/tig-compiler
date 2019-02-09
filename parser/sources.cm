@@ -12,4 +12,3 @@ absyn.sml
 table.sig
 table.sml
 symbol.sml
-parse.sml
