@@ -8,3 +8,8 @@ tiger.lex
 main.sml
 parsetest.sml
 tiger.grm
+absyn.sml
+table.sig
+table.sml
+symbol.sml
+parse.sml

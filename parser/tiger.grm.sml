@@ -8,7 +8,8 @@ structure ParserData=
 struct
 structure Header = 
 struct
-
+(*#line 1.2 "tiger.grm"*)
+(*#line 12.1 "tiger.grm.sml"*)
 end
 structure LrTable = Token.LrTable
 structure Token = Token
@@ -446,7 +447,7 @@ local
        fun f i =
             if i=numstates then g i
             else (Array.update(memo,i,SHIFT (STATE i)); f (i+1))
-          in f 0 handle General.Subscript => ()
+          in f 0 handle Subscript => ()
           end
 in
 val entry_to_action = fn 0 => ACCEPT | 1 => ERROR | j => Array.sub(memo,(j-2))
@@ -456,7 +457,7 @@ val actionRows=string_to_table(string_to_pairlist_default(T,entry_to_action),act
 val actionRowNumbers = string_to_list actionRowNumbers
 val actionT = let val actionRowLookUp=
 let val a=Array.fromList(actionRows) in fn i=>Array.sub(a,i) end
-in Array.fromList(List.map actionRowLookUp actionRowNumbers)
+in Array.fromList(map actionRowLookUp actionRowNumbers)
 end
 in LrTable.mkLrTable {actions=actionT,gotos=gotoT,numRules=numrules,
 numStates=numstates,initialState=STATE 0}
@@ -467,9 +468,7 @@ type pos = int
 type arg = unit
 structure MlyValue = 
 struct
-datatype svalue = VOID | ntVOID of unit ->  unit
- | STRING of unit ->  (string) | INT of unit ->  (int)
- | ID of unit ->  (string)
+datatype svalue = VOID | ntVOID of unit ->  unit | STRING of unit ->  (string) | INT of unit ->  (int) | ID of unit ->  (string)
 end
 type svalue = MlyValue.svalue
 type result = unit
@@ -480,11 +479,7 @@ open LrTable
 infix 5 $$
 fun x $$ y = y::x
 val is_keyword =
-fn (T 32) => true | (T 33) => true | (T 34) => true | (T 40) => true
- | (T 36) => true | (T 37) => true | (T 38) => true | (T 42) => true
- | (T 43) => true | (T 44) => true | (T 28) => true | (T 29) => true
- | (T 30) => true | (T 31) => true | (T 35) => true | (T 39) => true
- | (T 41) => true | _ => false
+fn (T 32) => true | (T 33) => true | (T 34) => true | (T 40) => true | (T 36) => true | (T 37) => true | (T 38) => true | (T 42) => true | (T 43) => true | (T 44) => true | (T 28) => true | (T 29) => true | (T 30) => true | (T 31) => true | (T 35) => true | (T 39) => true | (T 41) => true | _ => false
 val preferred_change : (term list * term list) list = 
 (nil
 ,nil
@@ -563,13 +558,7 @@ val errtermvalue=
 fn _ => MlyValue.VOID
 end
 val terms : term list = nil
- $$ (T 45) $$ (T 44) $$ (T 43) $$ (T 42) $$ (T 41) $$ (T 40) $$ (T 39)
- $$ (T 38) $$ (T 37) $$ (T 36) $$ (T 35) $$ (T 34) $$ (T 33) $$ (T 32)
- $$ (T 31) $$ (T 30) $$ (T 29) $$ (T 28) $$ (T 27) $$ (T 26) $$ (T 25)
- $$ (T 24) $$ (T 23) $$ (T 22) $$ (T 21) $$ (T 20) $$ (T 19) $$ (T 18)
- $$ (T 17) $$ (T 16) $$ (T 15) $$ (T 14) $$ (T 13) $$ (T 12) $$ (T 11)
- $$ (T 10) $$ (T 9) $$ (T 8) $$ (T 7) $$ (T 6) $$ (T 5) $$ (T 4) $$ 
-(T 0)end
+ $$ (T 45) $$ (T 44) $$ (T 43) $$ (T 42) $$ (T 41) $$ (T 40) $$ (T 39) $$ (T 38) $$ (T 37) $$ (T 36) $$ (T 35) $$ (T 34) $$ (T 33) $$ (T 32) $$ (T 31) $$ (T 30) $$ (T 29) $$ (T 28) $$ (T 27) $$ (T 26) $$ (T 25) $$ (T 24) $$ (T 23) $$ (T 22) $$ (T 21) $$ (T 20) $$ (T 19) $$ (T 18) $$ (T 17) $$ (T 16) $$ (T 15) $$ (T 14) $$ (T 13) $$ (T 12) $$ (T 11) $$ (T 10) $$ (T 9) $$ (T 8) $$ (T 7) $$ (T 6) $$ (T 5) $$ (T 4) $$ (T 0)end
 structure Actions =
 struct 
 exception mlyAction of int
@@ -578,478 +567,387 @@ val actions =
 fn (i392,defaultPos,stack,
     (()):arg) =>
 case (i392,stack)
-of  ( 0, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  
-exp1 = exp1 ()
- in (print(Int.toString 1))
+of  ( 0, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+ in ((*#line 51.19 "tiger.grm"*)print(Int.toString 1)(*#line 570.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 1, ( result, exp1left, exp1right), rest671)
 end
-|  ( 1, ( ( _, ( MlyValue.STRING STRING1, STRING1left, STRING1right))
- :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val 
- (STRING as STRING1) = STRING1 ()
- in (print(STRING ^ " | "))
+|  ( 1, ( ( _, ( MlyValue.STRING STRING1, STRING1left, STRING1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (STRING as STRING1) = STRING1 ()
+ in ((*#line 54.42 "tiger.grm"*)print(STRING ^ " | ")(*#line 576.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, STRING1left, STRING1right), rest671)
 end
-|  ( 2, ( ( _, ( MlyValue.INT INT1, INT1left, INT1right)) :: rest671))
- => let val  result = MlyValue.ntVOID (fn _ => ( let val  (INT as INT1
-) = INT1 ()
- in (print((Int.toString INT) ^ " | "))
+|  ( 2, ( ( _, ( MlyValue.INT INT1, INT1left, INT1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (INT as INT1) = INT1 ()
+ in ((*#line 55.41 "tiger.grm"*)print((Int.toString INT) ^ " | ")(*#line 582.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, INT1left, INT1right), rest671)
 end
-|  ( 3, ( ( _, ( _, NIL1left, NIL1right)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => (print("nil | ")))
+|  ( 3, ( ( _, ( _, NIL1left, NIL1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ((*#line 56.41 "tiger.grm"*)print("nil | ")(*#line 588.1 "tiger.grm.sml"*)
+))
  in ( LrTable.NT 0, ( result, NIL1left, NIL1right), rest671)
 end
-|  ( 4, ( ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, lvalue1right))
- :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val 
- (lvalue as lvalue1) = lvalue1 ()
- in (print("lvalue | "))
+|  ( 4, ( ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, lvalue1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = lvalue1 ()
+ in ((*#line 57.41 "tiger.grm"*)print("lvalue | ")(*#line 592.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, lvalue1left, lvalue1right), rest671)
 end
-|  ( 5, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: ( _, ( _, 
-MINUS1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn
- _ => ( let val  exp1 = exp1 ()
- in (print("minus | "))
+|  ( 5, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: ( _, ( _, MINUS1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+ in ((*#line 58.41 "tiger.grm"*)print("minus | ")(*#line 598.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, MINUS1left, exp1right), rest671)
 end
-|  ( 6, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 6, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("plus | "))
+ in ((*#line 59.41 "tiger.grm"*)print("plus | ")(*#line 604.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 7, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 7, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("minus | "))
+ in ((*#line 60.41 "tiger.grm"*)print("minus | ")(*#line 611.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 8, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 8, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("times | "))
+ in ((*#line 61.41 "tiger.grm"*)print("times | ")(*#line 618.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 9, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 9, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("div | "))
+ in ((*#line 62.41 "tiger.grm"*)print("div | ")(*#line 625.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 10, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 10, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("and | "))
+ in ((*#line 63.41 "tiger.grm"*)print("and | ")(*#line 632.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 11, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 11, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("or | "))
+ in ((*#line 64.41 "tiger.grm"*)print("or | ")(*#line 639.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 12, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 12, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("eq | "))
+ in ((*#line 65.41 "tiger.grm"*)print("eq | ")(*#line 646.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 13, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 13, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("neq | "))
+ in ((*#line 66.41 "tiger.grm"*)print("neq | ")(*#line 653.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 14, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 14, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("lt | "))
+ in ((*#line 67.41 "tiger.grm"*)print("lt | ")(*#line 660.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 15, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 15, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("le | "))
+ in ((*#line 68.41 "tiger.grm"*)print("le | ")(*#line 667.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 16, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 16, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("gt | "))
+ in ((*#line 69.41 "tiger.grm"*)print("gt | ")(*#line 674.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 17, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+|  ( 17, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in (print("ge | "))
+ in ((*#line 70.41 "tiger.grm"*)print("ge | ")(*#line 681.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
-|  ( 18, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ntVOID lvalue1, lvalue1left, _)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = 
-lvalue1 ()
+|  ( 18, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = lvalue1 ()
  val  (exp as exp1) = exp1 ()
- in (print("lvalue assign exp | "))
+ in ((*#line 71.41 "tiger.grm"*)print("lvalue assign exp | ")(*#line 688.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, lvalue1left, exp1right), rest671)
 end
-|  ( 19, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.ntVOID 
-explist1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID
- as ID1) = ID1 ()
+|  ( 19, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.ntVOID explist1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  explist1 = explist1 ()
- in (print(ID ^ "(expresslist) | "))
+ in ((*#line 72.41 "tiger.grm"*)print(ID ^ "(expresslist) | ")(*#line 695.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, ID1left, RPAREN1right), rest671)
 end
-|  ( 20, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.ntVOID 
-expseq1, _, _)) :: ( _, ( _, LPAREN1left, _)) :: rest671)) => let val 
- result = MlyValue.ntVOID (fn _ => ( let val  expseq1 = expseq1 ()
- in (print("(expreseq) | "))
+|  ( 20, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.ntVOID expseq1, _, _)) :: ( _, ( _, LPAREN1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  expseq1 = expseq1 ()
+ in ((*#line 73.41 "tiger.grm"*)print("(expreseq) | ")(*#line 702.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, LPAREN1left, RPAREN1right), rest671)
 end
-|  ( 21, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.ntVOID 
-field1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671
-)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1
-) = ID1 ()
+|  ( 21, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.ntVOID field1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  (field as field1) = field1 ()
- in (print(ID ^ "{field} | "))
+ in ((*#line 74.41 "tiger.grm"*)print(ID ^ "{field} | ")(*#line 708.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, ID1left, RBRACE1right), rest671)
 end
-|  ( 22, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: _ :: (
- _, ( MlyValue.ntVOID exp1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, 
-ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _
- => ( let val  (ID as ID1) = ID1 ()
+|  ( 22, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
- in (print(ID ^ "[exp] of exp | "))
+ in ((*#line 75.41 "tiger.grm"*)print(ID ^ "[exp] of exp | ")(*#line 715.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, ID1left, exp2right), rest671)
 end
-|  ( 23, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, IF1left, _)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) =
- exp1 ()
+|  ( 23, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, IF1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
- in (print("end if exp then exp | "))
+ in ((*#line 76.41 "tiger.grm"*)print("end if exp then exp | ")(*#line 723.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, IF1left, exp2right), rest671)
 end
-|  ( 24, ( ( _, ( MlyValue.ntVOID exp3, _, exp3right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _
-)) :: ( _, ( _, IF1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
+|  ( 24, ( ( _, ( MlyValue.ntVOID exp3, _, exp3right)) :: _ :: ( _, ( MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, IF1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in (print("end if exp then exp else exp | "))
+ in ((*#line 77.41 "tiger.grm"*)print("end if exp then exp else exp | ")(*#line 730.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, IF1left, exp3right), rest671)
 end
-|  ( 25, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, WHILE1left, _)) :: rest671))
- => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1
-) = exp1 ()
+|  ( 25, ( ( _, ( MlyValue.ntVOID exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: ( _, ( _, WHILE1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
- in (print("end while exp do exp | "))
+ in ((*#line 78.41 "tiger.grm"*)print("end while exp do exp | ")(*#line 738.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, WHILE1left, exp2right), rest671)
 end
-|  ( 26, ( ( _, ( MlyValue.ntVOID exp3, _, exp3right)) :: _ :: ( _, ( 
-MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _
-)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, FOR1left, _))
- :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val 
- (ID as ID1) = ID1 ()
+|  ( 26, ( ( _, ( MlyValue.ntVOID exp3, _, exp3right)) :: _ :: ( _, ( MlyValue.ntVOID exp2, _, _)) :: _ :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, FOR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in (print("end for " ^ ID ^ " := start to end do exp | "))
+ in ((*#line 79.41 "tiger.grm"*)print("end for " ^ ID ^ " := start to end do exp | ")(*#line 745.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, FOR1left, exp3right), rest671)
 end
-|  ( 27, ( ( _, ( _, BREAK1left, BREAK1right)) :: rest671)) => let
- val  result = MlyValue.ntVOID (fn _ => (print("break | ")))
+|  ( 27, ( ( _, ( _, BREAK1left, BREAK1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ((*#line 80.41 "tiger.grm"*)print("break | ")(*#line 754.1 "tiger.grm.sml"*)
+))
  in ( LrTable.NT 0, ( result, BREAK1left, BREAK1right), rest671)
 end
-|  ( 28, ( ( _, ( _, _, END1right)) :: ( _, ( MlyValue.ntVOID expseq1,
- _, _)) :: _ :: ( _, ( MlyValue.ntVOID declarationlist1, _, _)) :: ( _
-, ( _, LET1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  declarationlist1 = declarationlist1 ()
+|  ( 28, ( ( _, ( _, _, END1right)) :: ( _, ( MlyValue.ntVOID expseq1, _, _)) :: _ :: ( _, ( MlyValue.ntVOID declarationlist1, _, _)) :: ( _, ( _, LET1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  declarationlist1 = declarationlist1 ()
  val  expseq1 = expseq1 ()
- in (print("end let in block | "))
+ in ((*#line 81.41 "tiger.grm"*)print("end let in block | ")(*#line 758.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 0, ( result, LET1left, END1right), rest671)
 end
-|  ( 29, ( ( _, ( _, _, RPAREN1right)) :: _ :: ( _, ( _, LPAREN1left,
- _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => (
-print("error | ")))
+|  ( 29, ( ( _, ( _, _, RPAREN1right)) :: _ :: ( _, ( _, LPAREN1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ((*#line 82.41 "tiger.grm"*)print("error | ")(*#line 765.1 "tiger.grm.sml"*)
+))
  in ( LrTable.NT 0, ( result, LPAREN1left, RPAREN1right), rest671)
 end
-|  ( 30, ( ( _, ( MlyValue.ID ID1, ID1left, ID1right)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = 
-ID1 ()
- in (print(ID ^ " | "))
+|  ( 30, ( ( _, ( MlyValue.ID ID1, ID1left, ID1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
+ in ((*#line 84.33 "tiger.grm"*)print(ID ^ " | ")(*#line 769.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 2, ( result, ID1left, ID1right), rest671)
 end
-|  ( 31, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( 
-MlyValue.ntVOID lvalue1, lvalue1left, _)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = 
-lvalue1 ()
+|  ( 31, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = lvalue1 ()
  val  (ID as ID1) = ID1 ()
- in (print("lvalue . " ^ ID ^ " | "))
+ in ((*#line 85.32 "tiger.grm"*)print("lvalue . " ^ ID ^ " | ")(*#line 775.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 2, ( result, lvalue1left, ID1right), rest671)
 end
-|  ( 32, ( ( _, ( _, _, RBRACK1right)) :: ( _, ( MlyValue.ntVOID exp1,
- _, _)) :: _ :: ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, _)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (
-lvalue as lvalue1) = lvalue1 ()
+|  ( 32, ( ( _, ( _, _, RBRACK1right)) :: ( _, ( MlyValue.ntVOID exp1, _, _)) :: _ :: ( _, ( MlyValue.ntVOID lvalue1, lvalue1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (lvalue as lvalue1) = lvalue1 ()
  val  (exp as exp1) = exp1 ()
- in (print("lvalue [exp] | "))
+ in ((*#line 86.32 "tiger.grm"*)print("lvalue [exp] | ")(*#line 782.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 2, ( result, lvalue1left, RBRACK1right), rest671)
 end
-|  ( 33, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  
-exp1 = exp1 ()
- in ()
+|  ( 33, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+ in ((*#line 88.32 "tiger.grm"*)(*#line 789.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 3, ( result, exp1left, exp1right), rest671)
 end
-|  ( 34, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ntVOID expseq1, expseq1left, _)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => ( let val  expseq1 = expseq1 ()
+|  ( 34, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ntVOID expseq1, expseq1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  expseq1 = expseq1 ()
  val  (exp as exp1) = exp1 ()
- in (print("; exp | "))
+ in ((*#line 89.31 "tiger.grm"*)print("; exp | ")(*#line 795.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 3, ( result, expseq1left, exp1right), rest671)
 end
-|  ( 35, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, (
- _, ERROR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  (exp as exp1) = exp1 ()
- in (print("; exp | "))
+|  ( 35, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( _, ERROR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
+ in ((*#line 90.30 "tiger.grm"*)print("; exp | ")(*#line 802.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 3, ( result, ERROR1left, exp1right), rest671)
 end
-|  ( 36, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  
-exp1 = exp1 ()
- in ()
+|  ( 36, ( ( _, ( MlyValue.ntVOID exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  exp1 = exp1 ()
+ in ((*#line 92.26 "tiger.grm"*)(*#line 808.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 4, ( result, exp1left, exp1right), rest671)
 end
-|  ( 37, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ntVOID explist1, explist1left, _)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => ( let val  explist1 = explist1 ()
+|  ( 37, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ntVOID explist1, explist1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  explist1 = explist1 ()
  val  (exp as exp1) = exp1 ()
- in (print(", exp | "))
+ in ((*#line 93.24 "tiger.grm"*)print(", exp | ")(*#line 814.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 4, ( result, explist1left, exp1right), rest671)
 end
-|  ( 38, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, (
- _, ERROR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  (exp as exp1) = exp1 ()
- in (print(", exp| "))
+|  ( 38, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( _, ERROR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (exp as exp1) = exp1 ()
+ in ((*#line 94.24 "tiger.grm"*)print(", exp| ")(*#line 821.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 4, ( result, ERROR1left, exp1right), rest671)
 end
-|  ( 39, ( ( _, ( MlyValue.ntVOID declaration1, declaration1left, 
-declaration1right)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  declaration1 = declaration1 ()
- in ()
+|  ( 39, ( ( _, ( MlyValue.ntVOID declaration1, declaration1left, declaration1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  declaration1 = declaration1 ()
+ in ((*#line 96.40 "tiger.grm"*)(*#line 827.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 6, ( result, declaration1left, declaration1right), 
-rest671)
+ in ( LrTable.NT 6, ( result, declaration1left, declaration1right), rest671)
 end
-|  ( 40, ( ( _, ( MlyValue.ntVOID declaration1, _, declaration1right))
- :: ( _, ( MlyValue.ntVOID declarationlist1, declarationlist1left, _))
- :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val 
- declarationlist1 = declarationlist1 ()
+|  ( 40, ( ( _, ( MlyValue.ntVOID declaration1, _, declaration1right)) :: ( _, ( MlyValue.ntVOID declarationlist1, declarationlist1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  declarationlist1 = declarationlist1 ()
  val  declaration1 = declaration1 ()
- in ()
+ in ((*#line 97.36 "tiger.grm"*)(*#line 833.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 6, ( result, declarationlist1left, declaration1right)
-, rest671)
+ in ( LrTable.NT 6, ( result, declarationlist1left, declaration1right), rest671)
 end
-|  ( 41, ( ( _, ( MlyValue.ntVOID typedeclaration1, 
-typedeclaration1left, typedeclaration1right)) :: rest671)) => let val 
- result = MlyValue.ntVOID (fn _ => ( let val  typedeclaration1 = 
-typedeclaration1 ()
- in ()
+|  ( 41, ( ( _, ( MlyValue.ntVOID typedeclaration1, typedeclaration1left, typedeclaration1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  typedeclaration1 = typedeclaration1 ()
+ in ((*#line 99.31 "tiger.grm"*)(*#line 840.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 7, ( result, typedeclaration1left, 
-typedeclaration1right), rest671)
+ in ( LrTable.NT 7, ( result, typedeclaration1left, typedeclaration1right), rest671)
 end
-|  ( 42, ( ( _, ( MlyValue.ntVOID variabledeclaration1, 
-variabledeclaration1left, variabledeclaration1right)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  
-variabledeclaration1 = variabledeclaration1 ()
- in ()
+|  ( 42, ( ( _, ( MlyValue.ntVOID variabledeclaration1, variabledeclaration1left, variabledeclaration1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  variabledeclaration1 = variabledeclaration1 ()
+ in ((*#line 100.28 "tiger.grm"*)(*#line 846.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 7, ( result, variabledeclaration1left, 
-variabledeclaration1right), rest671)
+ in ( LrTable.NT 7, ( result, variabledeclaration1left, variabledeclaration1right), rest671)
 end
-|  ( 43, ( ( _, ( MlyValue.ntVOID functiondeclaration1, 
-functiondeclaration1left, functiondeclaration1right)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  
-functiondeclaration1 = functiondeclaration1 ()
- in ()
+|  ( 43, ( ( _, ( MlyValue.ntVOID functiondeclaration1, functiondeclaration1left, functiondeclaration1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  functiondeclaration1 = functiondeclaration1 ()
+ in ((*#line 101.28 "tiger.grm"*)(*#line 852.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 7, ( result, functiondeclaration1left, 
-functiondeclaration1right), rest671)
+ in ( LrTable.NT 7, ( result, functiondeclaration1left, functiondeclaration1right), rest671)
 end
-|  ( 44, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ID ID1, _, _)) :: ( _, ( _, VAR1left, _)) :: rest671)) => let
- val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1
- ()
+|  ( 44, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, VAR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  exp1 = exp1 ()
- in (print("given to var " ^ ID ^ " | "))
+ in ((*#line 103.41 "tiger.grm"*)print("given to var " ^ ID ^ " | ")(*#line 858.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 9, ( result, VAR1left, exp1right), rest671)
 end
-|  ( 45, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ID ID2, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _,
- ( _, VAR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  ID1 = ID1 ()
+|  ( 45, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, VAR1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
  val  exp1 = exp1 ()
- in (print("given to var " ^ ID1 ^ " expected type " ^ ID2 ^ " | "))
-
+ in ((*#line 104.36 "tiger.grm"*)print("given to var " ^ ID1 ^ " expected type " ^ ID2 ^ " | ")(*#line 865.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 9, ( result, VAR1left, exp1right), rest671)
 end
-|  ( 46, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: _ :: (
- _, ( MlyValue.ntVOID typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID 
-ID1, _, _)) :: ( _, ( _, FUNCTION1left, _)) :: rest671)) => let val  
-result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
+|  ( 46, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: _ :: ( _, ( MlyValue.ntVOID typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, FUNCTION1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  typefields1 = typefields1 ()
  val  exp1 = exp1 ()
- in (print("create function " ^ ID ^ " | "))
+ in ((*#line 106.67 "tiger.grm"*)print("create function " ^ ID ^ " | ")(*#line 873.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 10, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 47, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ID ID2, _, _)) :: _ :: _ :: ( _, ( MlyValue.ntVOID 
-typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _
-, FUNCTION1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  ID1 = ID1 ()
+|  ( 47, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, _, _)) :: _ :: _ :: ( _, ( MlyValue.ntVOID typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, FUNCTION1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
  val  typefields1 = typefields1 ()
  val  ID2 = ID2 ()
  val  exp1 = exp1 ()
- in (print("create function " ^ ID1 ^ " expect type " ^ ID2 ^ " | "))
-
+ in ((*#line 107.62 "tiger.grm"*)print("create function " ^ ID1 ^ " expect type " ^ ID2 ^ " | ")(*#line 881.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 10, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 48, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
+|  ( 48, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  exp1 = exp1 ()
- in (print(ID ^ " = | "))
+ in ((*#line 109.31 "tiger.grm"*)print(ID ^ " = | ")(*#line 890.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 5, ( result, ID1left, exp1right), rest671)
 end
-|  ( 49, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( 
-MlyValue.ID ID1, _, _)) :: _ :: ( _, ( MlyValue.ntVOID field1, 
-field1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn
- _ => ( let val  field1 = field1 ()
+|  ( 49, ( ( _, ( MlyValue.ntVOID exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: _ :: ( _, ( MlyValue.ntVOID field1, field1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  field1 = field1 ()
  val  (ID as ID1) = ID1 ()
  val  exp1 = exp1 ()
- in (print(", " ^ ID ^ " = | "))
+ in ((*#line 110.30 "tiger.grm"*)print(", " ^ ID ^ " = | ")(*#line 897.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 5, ( result, field1left, exp1right), rest671)
 end
-|  ( 50, ( ( _, ( MlyValue.ntVOID type1, _, type1right)) :: _ :: ( _, 
-( MlyValue.ID ID1, _, _)) :: ( _, ( _, TYPE1left, _)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = 
-ID1 ()
+|  ( 50, ( ( _, ( MlyValue.ntVOID type1, _, type1right)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, TYPE1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
  val  type1 = type1 ()
- in (print("type_ " ^ ID ^ " = type_ | "))
+ in ((*#line 112.35 "tiger.grm"*)print("type_ " ^ ID ^ " = type_ | ")(*#line 905.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 8, ( result, TYPE1left, type1right), rest671)
 end
-|  ( 51, ( ( _, ( MlyValue.ID ID1, ID1left, ID1right)) :: rest671)) =>
- let val  result = MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
- in ()
+|  ( 51, ( ( _, ( MlyValue.ID ID1, ID1left, ID1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
+ in ((*#line 114.34 "tiger.grm"*)(*#line 912.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 11, ( result, ID1left, ID1right), rest671)
 end
-|  ( 52, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.ntVOID 
-typefields1, _, _)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let
- val  result = MlyValue.ntVOID (fn _ => ( let val  typefields1 = 
-typefields1 ()
- in (print("[ fields ] | "))
+|  ( 52, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.ntVOID typefields1, _, _)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  typefields1 = typefields1 ()
+ in ((*#line 115.34 "tiger.grm"*)print("[ fields ] | ")(*#line 918.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 11, ( result, LBRACE1left, RBRACE1right), rest671)
-
 end
-|  ( 53, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( _, LBRACE1left, _))
- :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => (
-print("[] | ")))
+|  ( 53, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ((*#line 116.34 "tiger.grm"*)print("[] | ")(*#line 924.1 "tiger.grm.sml"*)
+))
  in ( LrTable.NT 11, ( result, LBRACE1left, RBRACE1right), rest671)
-
 end
-|  ( 54, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( _, 
-ARRAY1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn
- _ => ( let val  (ID as ID1) = ID1 ()
- in (print("Array of " ^ ID ^ " | "))
+|  ( 54, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( _, ARRAY1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  (ID as ID1) = ID1 ()
+ in ((*#line 117.34 "tiger.grm"*)print("Array of " ^ ID ^ " | ")(*#line 928.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 11, ( result, ARRAY1left, ID1right), rest671)
 end
-|  ( 55, ( ( _, ( MlyValue.ntVOID typefield1, typefield1left, 
-typefield1right)) :: rest671)) => let val  result = MlyValue.ntVOID
- (fn _ => ( let val  typefield1 = typefield1 ()
- in ()
+|  ( 55, ( ( _, ( MlyValue.ntVOID typefield1, typefield1left, typefield1right)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  typefield1 = typefield1 ()
+ in ((*#line 119.42 "tiger.grm"*)(*#line 934.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 13, ( result, typefield1left, typefield1right), 
-rest671)
+ in ( LrTable.NT 13, ( result, typefield1left, typefield1right), rest671)
 end
-|  ( 56, ( ( _, ( MlyValue.ntVOID typefield1, _, typefield1right)) ::
- _ :: ( _, ( MlyValue.ntVOID typefields1, typefields1left, _)) :: 
-rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  
-typefields1 = typefields1 ()
+|  ( 56, ( ( _, ( MlyValue.ntVOID typefield1, _, typefield1right)) :: _ :: ( _, ( MlyValue.ntVOID typefields1, typefields1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  typefields1 = typefields1 ()
  val  typefield1 = typefield1 ()
- in (print(", | "))
+ in ((*#line 120.42 "tiger.grm"*)print(", | ")(*#line 940.1 "tiger.grm.sml"*)
+)
 end; ()))
- in ( LrTable.NT 13, ( result, typefields1left, typefield1right), 
-rest671)
+ in ( LrTable.NT 13, ( result, typefields1left, typefield1right), rest671)
 end
-|  ( 57, ( ( _, ( MlyValue.ID ID2, _, ID2right)) :: _ :: ( _, ( 
-MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = 
-MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
+|  ( 57, ( ( _, ( MlyValue.ID ID2, _, ID2right)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.ntVOID (fn _ => ( let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
- in (print(ID1 ^ " : " ^ ID2 ^ " | "))
+ in ((*#line 122.25 "tiger.grm"*)print(ID1 ^ " : " ^ ID2 ^ " | ")(*#line 947.1 "tiger.grm.sml"*)
+)
 end; ()))
  in ( LrTable.NT 12, ( result, ID1left, ID2right), rest671)
 end
@@ -1065,97 +963,51 @@ structure Tokens : Tiger_TOKENS =
 struct
 type svalue = ParserData.svalue
 type ('a,'b) token = ('a,'b) Token.token
-fun EOF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 0,(
-ParserData.MlyValue.VOID,p1,p2))
-fun ID (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 1,(
-ParserData.MlyValue.ID (fn () => i),p1,p2))
-fun INT (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 2,(
-ParserData.MlyValue.INT (fn () => i),p1,p2))
-fun STRING (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 3,(
-ParserData.MlyValue.STRING (fn () => i),p1,p2))
-fun COMMA (p1,p2) = Token.TOKEN (ParserData.LrTable.T 4,(
-ParserData.MlyValue.VOID,p1,p2))
-fun COLON (p1,p2) = Token.TOKEN (ParserData.LrTable.T 5,(
-ParserData.MlyValue.VOID,p1,p2))
-fun SEMICOLON (p1,p2) = Token.TOKEN (ParserData.LrTable.T 6,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LPAREN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 7,(
-ParserData.MlyValue.VOID,p1,p2))
-fun RPAREN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 8,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LBRACK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 9,(
-ParserData.MlyValue.VOID,p1,p2))
-fun RBRACK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 10,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LBRACE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 11,(
-ParserData.MlyValue.VOID,p1,p2))
-fun RBRACE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 12,(
-ParserData.MlyValue.VOID,p1,p2))
-fun DOT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 13,(
-ParserData.MlyValue.VOID,p1,p2))
-fun PLUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 14,(
-ParserData.MlyValue.VOID,p1,p2))
-fun MINUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 15,(
-ParserData.MlyValue.VOID,p1,p2))
-fun TIMES (p1,p2) = Token.TOKEN (ParserData.LrTable.T 16,(
-ParserData.MlyValue.VOID,p1,p2))
-fun DIVIDE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 17,(
-ParserData.MlyValue.VOID,p1,p2))
-fun EQ (p1,p2) = Token.TOKEN (ParserData.LrTable.T 18,(
-ParserData.MlyValue.VOID,p1,p2))
-fun NEQ (p1,p2) = Token.TOKEN (ParserData.LrTable.T 19,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 20,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 21,(
-ParserData.MlyValue.VOID,p1,p2))
-fun GT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 22,(
-ParserData.MlyValue.VOID,p1,p2))
-fun GE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 23,(
-ParserData.MlyValue.VOID,p1,p2))
-fun UMINUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 24,(
-ParserData.MlyValue.VOID,p1,p2))
-fun AND (p1,p2) = Token.TOKEN (ParserData.LrTable.T 25,(
-ParserData.MlyValue.VOID,p1,p2))
-fun OR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 26,(
-ParserData.MlyValue.VOID,p1,p2))
-fun ASSIGN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 27,(
-ParserData.MlyValue.VOID,p1,p2))
-fun ARRAY (p1,p2) = Token.TOKEN (ParserData.LrTable.T 28,(
-ParserData.MlyValue.VOID,p1,p2))
-fun IF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 29,(
-ParserData.MlyValue.VOID,p1,p2))
-fun THEN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 30,(
-ParserData.MlyValue.VOID,p1,p2))
-fun ELSE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 31,(
-ParserData.MlyValue.VOID,p1,p2))
-fun WHILE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 32,(
-ParserData.MlyValue.VOID,p1,p2))
-fun FOR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 33,(
-ParserData.MlyValue.VOID,p1,p2))
-fun TO (p1,p2) = Token.TOKEN (ParserData.LrTable.T 34,(
-ParserData.MlyValue.VOID,p1,p2))
-fun DO (p1,p2) = Token.TOKEN (ParserData.LrTable.T 35,(
-ParserData.MlyValue.VOID,p1,p2))
-fun LET (p1,p2) = Token.TOKEN (ParserData.LrTable.T 36,(
-ParserData.MlyValue.VOID,p1,p2))
-fun IN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 37,(
-ParserData.MlyValue.VOID,p1,p2))
-fun END (p1,p2) = Token.TOKEN (ParserData.LrTable.T 38,(
-ParserData.MlyValue.VOID,p1,p2))
-fun OF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 39,(
-ParserData.MlyValue.VOID,p1,p2))
-fun BREAK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 40,(
-ParserData.MlyValue.VOID,p1,p2))
-fun NIL (p1,p2) = Token.TOKEN (ParserData.LrTable.T 41,(
-ParserData.MlyValue.VOID,p1,p2))
-fun FUNCTION (p1,p2) = Token.TOKEN (ParserData.LrTable.T 42,(
-ParserData.MlyValue.VOID,p1,p2))
-fun VAR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 43,(
-ParserData.MlyValue.VOID,p1,p2))
-fun TYPE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 44,(
-ParserData.MlyValue.VOID,p1,p2))
-fun ERROR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 45,(
-ParserData.MlyValue.VOID,p1,p2))
+fun EOF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 0,(ParserData.MlyValue.VOID,p1,p2))
+fun ID (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 1,(ParserData.MlyValue.ID (fn () => i),p1,p2))
+fun INT (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 2,(ParserData.MlyValue.INT (fn () => i),p1,p2))
+fun STRING (i,p1,p2) = Token.TOKEN (ParserData.LrTable.T 3,(ParserData.MlyValue.STRING (fn () => i),p1,p2))
+fun COMMA (p1,p2) = Token.TOKEN (ParserData.LrTable.T 4,(ParserData.MlyValue.VOID,p1,p2))
+fun COLON (p1,p2) = Token.TOKEN (ParserData.LrTable.T 5,(ParserData.MlyValue.VOID,p1,p2))
+fun SEMICOLON (p1,p2) = Token.TOKEN (ParserData.LrTable.T 6,(ParserData.MlyValue.VOID,p1,p2))
+fun LPAREN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 7,(ParserData.MlyValue.VOID,p1,p2))
+fun RPAREN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 8,(ParserData.MlyValue.VOID,p1,p2))
+fun LBRACK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 9,(ParserData.MlyValue.VOID,p1,p2))
+fun RBRACK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 10,(ParserData.MlyValue.VOID,p1,p2))
+fun LBRACE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 11,(ParserData.MlyValue.VOID,p1,p2))
+fun RBRACE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 12,(ParserData.MlyValue.VOID,p1,p2))
+fun DOT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 13,(ParserData.MlyValue.VOID,p1,p2))
+fun PLUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 14,(ParserData.MlyValue.VOID,p1,p2))
+fun MINUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 15,(ParserData.MlyValue.VOID,p1,p2))
+fun TIMES (p1,p2) = Token.TOKEN (ParserData.LrTable.T 16,(ParserData.MlyValue.VOID,p1,p2))
+fun DIVIDE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 17,(ParserData.MlyValue.VOID,p1,p2))
+fun EQ (p1,p2) = Token.TOKEN (ParserData.LrTable.T 18,(ParserData.MlyValue.VOID,p1,p2))
+fun NEQ (p1,p2) = Token.TOKEN (ParserData.LrTable.T 19,(ParserData.MlyValue.VOID,p1,p2))
+fun LT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 20,(ParserData.MlyValue.VOID,p1,p2))
+fun LE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 21,(ParserData.MlyValue.VOID,p1,p2))
+fun GT (p1,p2) = Token.TOKEN (ParserData.LrTable.T 22,(ParserData.MlyValue.VOID,p1,p2))
+fun GE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 23,(ParserData.MlyValue.VOID,p1,p2))
+fun UMINUS (p1,p2) = Token.TOKEN (ParserData.LrTable.T 24,(ParserData.MlyValue.VOID,p1,p2))
+fun AND (p1,p2) = Token.TOKEN (ParserData.LrTable.T 25,(ParserData.MlyValue.VOID,p1,p2))
+fun OR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 26,(ParserData.MlyValue.VOID,p1,p2))
+fun ASSIGN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 27,(ParserData.MlyValue.VOID,p1,p2))
+fun ARRAY (p1,p2) = Token.TOKEN (ParserData.LrTable.T 28,(ParserData.MlyValue.VOID,p1,p2))
+fun IF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 29,(ParserData.MlyValue.VOID,p1,p2))
+fun THEN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 30,(ParserData.MlyValue.VOID,p1,p2))
+fun ELSE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 31,(ParserData.MlyValue.VOID,p1,p2))
+fun WHILE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 32,(ParserData.MlyValue.VOID,p1,p2))
+fun FOR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 33,(ParserData.MlyValue.VOID,p1,p2))
+fun TO (p1,p2) = Token.TOKEN (ParserData.LrTable.T 34,(ParserData.MlyValue.VOID,p1,p2))
+fun DO (p1,p2) = Token.TOKEN (ParserData.LrTable.T 35,(ParserData.MlyValue.VOID,p1,p2))
+fun LET (p1,p2) = Token.TOKEN (ParserData.LrTable.T 36,(ParserData.MlyValue.VOID,p1,p2))
+fun IN (p1,p2) = Token.TOKEN (ParserData.LrTable.T 37,(ParserData.MlyValue.VOID,p1,p2))
+fun END (p1,p2) = Token.TOKEN (ParserData.LrTable.T 38,(ParserData.MlyValue.VOID,p1,p2))
+fun OF (p1,p2) = Token.TOKEN (ParserData.LrTable.T 39,(ParserData.MlyValue.VOID,p1,p2))
+fun BREAK (p1,p2) = Token.TOKEN (ParserData.LrTable.T 40,(ParserData.MlyValue.VOID,p1,p2))
+fun NIL (p1,p2) = Token.TOKEN (ParserData.LrTable.T 41,(ParserData.MlyValue.VOID,p1,p2))
+fun FUNCTION (p1,p2) = Token.TOKEN (ParserData.LrTable.T 42,(ParserData.MlyValue.VOID,p1,p2))
+fun VAR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 43,(ParserData.MlyValue.VOID,p1,p2))
+fun TYPE (p1,p2) = Token.TOKEN (ParserData.LrTable.T 44,(ParserData.MlyValue.VOID,p1,p2))
+fun ERROR (p1,p2) = Token.TOKEN (ParserData.LrTable.T 45,(ParserData.MlyValue.VOID,p1,p2))
 end
 end
