@@ -1,3 +1,7 @@
+structure A = Absyn
+struct
+
+end
 %%
 %term
     EOF
@@ -48,17 +52,17 @@ WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %%
 
-program	: exp				(print(Int.toString 1))
+program	: exp				()
 
 
-exp:   STRING                           (print(STRING ^ " | "))
-	|  INT                                (print((Int.toString INT) ^ " | "))
-	|  NIL                                (print("nil | "))
-	|  lvalue                             (print("lvalue | "))
-	|  MINUS exp  %prec UMINUS            (print("minus | "))
-	|  exp PLUS exp                       (print("plus | "))
-	|  exp MINUS exp                      (print("minus | "))
-	|  exp TIMES exp                      (print("times | "))
+exp:   STRING                           (A.StringExp(STRING, STRINGleft))
+	|  INT                                (A.IntExp(INT))
+	|  NIL                                (A.NilExp)
+	|  lvalue                             (print("lvalue -> exp | "))
+	|  MINUS exp  %prec UMINUS            (A.OpExp(0, A.MinusOp, exp))
+	|  exp PLUS exp                       (A.OpExp(exp1, A.PlusOp, exp2))
+	|  exp MINUS exp                      (A.opExp(exp1, A.MinusOp, exp2))
+	|  exp TIMES exp                      (A.opExp(exp1, A.TimesOp, exp2))
 	|  exp DIVIDE exp                     (print("div | "))
 	|  exp AND exp                        (print("and | "))
 	|  exp OR exp                         (print("or | "))
@@ -77,46 +81,48 @@ exp:   STRING                           (print(STRING ^ " | "))
 	|  IF exp THEN exp ELSE exp           (print("end if exp then exp else exp | "))
 	|  WHILE exp DO exp                   (print("end while exp do exp | "))
 	|  FOR ID ASSIGN exp TO exp DO exp    (print("end for " ^ ID ^ " := start to end do exp | "))
-	|  BREAK                              (print("break | "))
+	|  BREAK                              (BREAKleft)
 	|  LET declarationlist IN expseq END  (print("end let in block | "))
-	|  LPAREN ERROR RPAREN                (print("error | "))
+	|  LPAREN ERROR RPAREN                (ERROR)
 
-lvalue: ID                     (print(ID ^ " | "))
-	   |lvalue DOT ID            (print("lvalue . " ^ ID ^ " | "))
-	   |lvalue LBRACK exp RBRACK (print("lvalue [exp] | "))
+lvalue: ID                     (A.symbol(ID))
+	   |lvalue DOT ID            ()
+	   |lvalue LBRACK exp RBRACK ()
 
-expseq:   exp                 ()
-	    | expseq SEMICOLON exp  (print("; exp | "))
-		| ERROR  SEMICOLON exp    (print("; exp | "))
+expseq:   exp                 (exp :: nil)
+	  | expseq SEMICOLON exp    (exp :: expseq)
+		| ERROR  SEMICOLON exp    (exp :: ERROR)
 
-explist:  exp           ()
-		| explist COMMA exp (print(", exp | "))
-		| ERROR   COMMA exp (print(", exp| "))
+explist:  exp           (exp :: nil)
+		| explist COMMA exp (exp :: explist)
+		| ERROR   COMMA exp (exp :: ERROR)
 
-declarationlist: declaration          ()
-				 |declarationlist declaration ()
+declarationlist: declaration           (declaration :: nil)
+				 | declarationlist declaration (declaration :: declarationlist)
 
-declaration: typedeclaration ()
-			|variabledeclaration   ()
-			|functiondeclaration   ()
+declaration: typedeclaration  ()
+			| variabledeclaration   ()
+			| functiondeclaration   ()
 
-variabledeclaration: VAR ID ASSIGN exp (print("given to var " ^ ID ^ " | "))
-					 |VAR ID COLON ID ASSIGN exp (print("given to var " ^ ID1 ^ " expected type " ^ ID2 ^ " | "))
+variabledeclaration: VAR ID ASSIGN exp (A.VarDec(A.symbol(ID), ref false,
+                                        Option.NONE, exp, VARleft))
+					 |VAR ID COLON ID ASSIGN exp (A.VarDec(A.symbol(ID), ref false,
+                                        (A.symbol(ID), IDleft), exp, VARleft))
 
-functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp (print("create function " ^ ID ^ " | "))
-					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp (print("create function " ^ ID1 ^ " expect type " ^ ID2 ^ " | "))
+functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
+					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
 
-field: ID EQ exp             (print(ID ^ " = | "))
-	   | field COMMA ID EQ exp (print(", " ^ ID ^ " = | "))
+field: ID EQ exp             ()
+	   | field COMMA ID EQ exp ()
 
-typedeclaration: TYPE ID EQ type (print("type_ " ^ ID ^ " = type_ | "))
+typedeclaration: TYPE ID EQ type (A.TypeDec(A.symbol(ID), A.ty(type), IDleft)
 
-type: ID                        ()
-    | LBRACE typefields RBRACE  (print("[ fields ] | "))
-    | LBRACE RBRACE             (print("[] | "))
-    | ARRAY OF ID               (print("Array of " ^ ID ^ " | "))
+type: ID                        (A.symbol(ID))
+    | LBRACE typefields RBRACE  ()
+    | LBRACE RBRACE             ()
+    | ARRAY OF ID               (A.ArrayTy(A.symbol(ID), ARRAYleft))
 
-typefields: typefield                   ()
-           | typefields COMMA typefield (print(", | "))
+typefields: typefield                   (typefield :: nil)
+           | typefields COMMA typefield (typefields :: typefield)
 
-typefield: ID COLON ID (print(ID1 ^ " : " ^ ID2 ^ " | "))
+typefield: ID COLON ID ()
