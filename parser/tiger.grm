@@ -108,17 +108,10 @@ declaration: typedeclaration  ()
 			| variabledeclaration   ()
 			| functiondeclaration   ()
 
-<<<<<<< HEAD
 variabledeclaration: VAR ID ASSIGN exp (A.VarDec{name=A.symbol{ID}, escape=ref false,
                                         type=Option.NONE, init=exp, pos=VARleft})
 					 |VAR ID COLON ID ASSIGN exp (A.VarDec{name=A.symbol{ID}, escape=ref false,
                                         type=Option.SOME((A.symbol{ID}, IDleft)), init=exp, pos=VARleft})
-=======
-variabledeclaration: VAR ID ASSIGN exp (A.VarDec(name=A.symbol(ID), escape=ref false,
-                                        type=Option.NONE, init=exp, pos=VARleft))
-					 |VAR ID COLON ID ASSIGN exp (name=A.VarDec(A.symbol(ID), escape=ref false,
-                                        type=Option.SOME((A.symbol(ID), IDleft)), init=exp, pos=VARleft))
->>>>>>> 654ee53e01373f96b92c82643b4f1dcb62f14292
 
 functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
 					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
@@ -126,7 +119,7 @@ functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
 
-typedeclaration: TYPE ID EQ ty (A.TypeDec{name=A.symbol(ID), ty=A.ty{ty}, pos=IDleft})
+typedeclaration: TYPE ID EQ ty (A.TypeDec{name=A.symbol{ID}, ty=A.ty{ty}, pos=IDleft})
 
 type: ID                        (A.symbol{ID})
     | LBRACE typefields RBRACE  ()
