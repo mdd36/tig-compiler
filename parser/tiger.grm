@@ -87,7 +87,7 @@ exp:   STRING                             (A.StringExp(STRING,STRINGleft))
 	|  LET declarationlist IN expseq END  (A.LetExp{decs = declarationlist, body = expseq,                      pos = LETleft})
 	|  LPAREN ERROR RPAREN                (ERROR)
 
-lvalue: ID                     (A.symbol(ID))
+lvalue: ID                     (A.symbol{ID})
 	   |lvalue DOT ID            ()
 	   |lvalue LBRACK exp RBRACK ()
 
@@ -108,10 +108,10 @@ declaration: typedeclaration  ()
 			| variabledeclaration   ()
 			| functiondeclaration   ()
 
-variabledeclaration: VAR ID ASSIGN exp (A.VarDec(name=A.symbol(ID), escape=ref false,
-                                        type=Option.NONE, init=exp, pos=VARleft))
-					 |VAR ID COLON ID ASSIGN exp (name=A.VarDec(A.symbol(ID), escape=ref false,
-                                        type=(A.symbol(ID), IDleft), init=exp, pos=VARleft))
+variabledeclaration: VAR ID ASSIGN exp (A.VarDec{name=A.symbol{ID}, escape=ref false,
+                                        type=Option.NONE, init=exp, pos=VARleft})
+					 |VAR ID COLON ID ASSIGN exp (A.VarDec{name=A.symbol{ID}, escape=ref false,
+                                        type=Option.SOME((A.symbol{ID}, IDleft)), init=exp, pos=VARleft})
 
 functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
 					 |FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp ()
@@ -119,12 +119,12 @@ functiondeclaration: FUNCTION ID LPAREN typefields RPAREN EQ exp ()
 field: ID EQ exp             ()
 	   | field COMMA ID EQ exp ()
 
-typedeclaration: TYPE ID EQ type (A.TypeDec(name=A.symbol(ID), ty=A.ty(type), pos=IDleft)
+typedeclaration: TYPE ID EQ ty (A.TypeDec{name=A.symbol(ID), ty=A.ty{ty}, pos=IDleft})
 
-type: ID                        (A.symbol(ID))
+type: ID                        (A.symbol{ID})
     | LBRACE typefields RBRACE  ()
     | LBRACE RBRACE             ()
-    | ARRAY OF ID               (A.ArrayTy(name=A.symbol(ID), pos=ARRAYleft))
+    | ARRAY OF ID               (A.ArrayTy{name=A.symbol{ID}, pos=ARRAYleft})
 
 typefields: typefield                   (typefield :: nil)
            | typefields COMMA typefield (typefields :: typefield)
