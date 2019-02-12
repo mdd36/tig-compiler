@@ -1,10 +1,15 @@
 /* an array type and an array variable */
 let
-	type  arrtype = array of int
+	type arrtype = array of int
+	type t1 = array of arrtype
 	var arr1:arrtype := arrtype [10] of 0
   var s:string := "hello there!"
   var x:string := "general kenobi"
   function f(a:int, b:int) : int = a + b
-in
-  for i := (5+1) to (4+8) do (arr1[i] := f(i,i); (5+4)*9 < (5*7)-4)
-end
+	function g(k: int):string = ("h")
+	var j:string := "initialValue"
+	function h(str: string):unit = print(str)
+in(
+  for i := (5+1) to (4+8) do arr1[i] := f(i,i);
+	if j then if x then (arr1[1]) + 2 else arr1[0]
+)end

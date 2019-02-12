@@ -13,3 +13,4 @@ table.sml
 symbol.sml
 parse.sml
 prabsyn.sml
+clear.sml
