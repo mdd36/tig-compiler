@@ -14,7 +14,7 @@ end
   | ARRAY | IF | THEN | ELSE | WHILE | FOR | TO | DO | LET | IN | END | OF
   | BREAK | NIL
   | FUNCTION | VAR | TYPE
-  | ERROR
+  | ERROR | LOWPRIORITY
 
 %nonterm
 		exp | program | lvalue | expseq | explist | field | declarationlist
@@ -33,13 +33,14 @@ end
 WHILE FOR TO BREAK LET IN END FUNCTION VAR TYPE ARRAY IF THEN ELSE DO OF NIL
 
 %prefer THEN ELSE LPAREN
-
-%right ID
-%right OF
-%right THEN
-%right DO
-%right ELSE
-%right ASSIGN
+%nonassoc LOWPRIORITY
+%nonassoc FUNCTION TYPE
+%nonassoc ID
+%nonassoc OF
+%nonassoc THEN
+%nonassoc DO
+%nonassoc ELSE
+%nonassoc ASSIGN
 %left OR
 %left AND
 %nonassoc EQ NEQ LT LE GT GE
@@ -106,9 +107,9 @@ explist:  exp           (exp :: [])
 declarationlist: declaration           (declaration :: [])
 				 | declarationlist declaration (declaration :: declarationlist)
 
-declaration: tyDecs  (A.TypeDec(tyDecs))
+declaration: tyDecs %prec LOWPRIORITY (A.TypeDec(tyDecs))
 			| vardec       (vardec)
-			| funDecs      (A.FunctionDec(funDecs))
+			| funDecs %prec LOWPRIORITY     (A.FunctionDec(funDecs))
 
 vardec: VAR ID ASSIGN exp (A.VarDec{name=A.symbol(ID), escape=ref false,
                                         type=Option.NONE, init=exp, pos=VARleft})

@@ -1,7 +1,3 @@
-2 shift/reduce conflicts
-
-error:  state 30: shift/reduce conflict (shift FUNCTION, reduce by rule 44)
-error:  state 31: shift/reduce conflict (shift TYPE, reduce by rule 42)
 
 state 0:
 
@@ -573,7 +569,6 @@ state 29:
 
 	.	reduce by rule 43
 
-error:  state 30: shift/reduce conflict (shift FUNCTION, reduce by rule 44)
 
 state 30:
 
@@ -586,7 +581,6 @@ state 30:
 
 	.	reduce by rule 44
 
-error:  state 31: shift/reduce conflict (shift TYPE, reduce by rule 42)
 
 state 31:
 
