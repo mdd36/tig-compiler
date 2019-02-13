@@ -22,4 +22,4 @@ Run the Code with the following commands:<br />
 ***Go.go "test1.tig";*** <br />
 
 Example for test1.tig:<br /><br />
-![alt text](https://github.com/HanxinHua/Compiler/blob/lexing/test.png)
+![alt text](https://github.com/HanxinHua/Compiler/blob/AST/parser/example.png)
