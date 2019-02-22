@@ -22,7 +22,7 @@ struct
                         S.empty, S.symbol("string"), Types.STRING
                         ), S.symbol("int"), Types.INT
                     )
-                    
+
   val base_funs = [
     {name="print", details=FunEntry{formals=[Types.STRING], result=Types.UNIT}},
     {name="flush", details=FunEntry{formals=[], result=Types.UNIT}},
@@ -36,14 +36,6 @@ struct
     {name="exit", details=FunEntry{formals=[Types.INT], result=Types.UNIT}}
   ]
 
-  fun base_venv_helper(head: {name:string, details:enventry}, res) =
-    let
-      val name = S.symbol(#name head)
-      val details = #details head
-    in
-      S.enter(res, name, details)
-    end
 
-
-  val base_venv = foldr base_venv_helper S.empty base_funs
+  val base_venv = foldr (fn (head, res) => S.enter(res, S.symbol(#name head), #details head)) S.empty base_funs
 end
