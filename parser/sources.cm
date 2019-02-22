@@ -15,3 +15,5 @@ parse.sml
 prabsyn.sml
 clear.sml
 types.sml
+semant.sml
+translate.sml
