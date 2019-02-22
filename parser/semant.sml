@@ -2,7 +2,7 @@ structure A = Absyn
 
 structure Semant :
   sig
-    type expty
+    type expty = {exp: Translate.exp, ty: Types.ty}
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
     val transVar: (venv * tenv * A.var) -> expty
@@ -13,10 +13,11 @@ structure Semant :
 struct
 
   type expty = {exp: Translate.exp, ty: Types.ty}
+  type venv = Env.enventry Symbol.table
+  type tenv = Types.ty Symbol.table
 
-
-
-  fun assert(exp, msg) = if exp then () else raise msg
+  val venv = Env.base_venv
+  val tenv = Env.base_tenv
 
   fun transProg() = () (*TODO*)
 
@@ -59,7 +60,7 @@ struct
         let
           val expty' = trexp then'
         in
-          if checkInt(trexp test, pos) andalso checkSameType(expty',  trexp getOpt(else', A.NilExp)) then {exp=(), ty=(#ty expty')}
+          if checkInt(trexp test, pos) andalso checkSameType(expty',  trexp(getOpt(else', A.NilExp))) then {exp=(), ty=(#ty expty')}
           else (print("Error: Invalid if conditional statement at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
         end
     (*TODO how to think about comparison ops? Just that they must be the same type and map to int?*)
@@ -72,7 +73,8 @@ struct
   end
 
   fun transDec (venv, tenv, A.VarDec{name, escape, typ = NONE, init, pos}) = {venv=venv, tenv=tenv}
-		(*(let val {exp, ty} = transExp {venv, tenv, init}
+		(* Commenting this out to test for compilation. TODO
+    (let val {exp, ty} = transExp {venv, tenv, init}
 		in
 		case typ
 		  of NONE =>
@@ -113,19 +115,22 @@ struct
 
 		end*)
 
-    val venv = Env.base_venv
-  	val tenv = Env.base_tenv
+    (* This is type mismatch -- t is a ty option ref,
+    so the case where it's none isn't handled. I've
+    commented it out for now so I can test other things.
   	fun actual_ty ty = case ty of Types.NAME(s,t) => !t
-  								 |  _              => ty
+  								 |  _              => ty *)
 
   	fun transTy(tenv,ty) = Types.BOTTOM
-  		(*let
+  		(* TODO uncomment this and actually make it compile
+      let
   			fun firsttrans t = case t of A.NameTy(s, p) =>  Types.NAME(s, ty option ref)
   									   | A.RecordTy of field list
   									   | A.ArrayTy(s,p) => Types.ARRAY(firsttrans s, Types.unique)
                        *)
-  	fun transVar (venv, tenv) = {exp=(), ty=Types.BOTTOM}
-  		(*let fun trvar (A.SimpleVar(id, pos)) =
+  	fun transVar (venv, tenv, node) = {exp=(), ty=Types.BOTTOM}
+  		(*TODO uncomment this and actually make it compile
+      let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
   							 | NONE => (error pos ("undefined variable "^Symbol.name id);

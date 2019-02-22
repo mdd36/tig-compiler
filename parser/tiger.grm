@@ -1,5 +1,10 @@
 structure A = Absyn
 
+(*
+Possibly the biggest hack I've ever written :))
+Using instanceof in a super polymorph language is bad,
+but so is sleep deprivation so ¯\_(ツ)_/¯
+*)
 datatype wrapper = Sym of Symbol.symbol * int
                   | Express of A.exp * int
 
