@@ -24,7 +24,7 @@ struct
   fun  checkInt({exp, ty}, pos) = (case ty of
         Types.INT => true
      |  Types.BOTTOM => true
-     |  _ => (print("Error: Expected string token at " ^ Int.toString(pos)); false))
+     |  _ => (print("Error: Expected int token at " ^ Int.toString(pos)); false))
 
   fun  checkStr({exp, ty}, pos) = (case ty of
        Types.STRING => true
@@ -61,16 +61,30 @@ struct
   							 | NONE => (print(Int.toString(pos)^"Error: undefined variable " ^ Symbol.name id);
   										{exp = (), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
-  							(case Symbol.look(venv, id)
-  							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
-  							 | NONE => (print(Int.toString(pos)^"Error: undefined variable " ^ Symbol.name id);
-  										{exp = (), ty = Types.BOTTOM}))
+							let val {exp = (), ty = ty} = trvar(v)
+							in
+								(case ty of Types.RECORD(stl, u) => let fun searchField ((s,t)::m) id = if s = id then actual_ty t else searchField m id
+																		  | searchField nil id  = (print(Int.toString(pos)^"Error: Field name is not defined in the record: " ^ Symbol.name (id));
+																								   Types.BOTTOM)	
+																	in
+																		{exp = (), ty = searchField stl id}
+																	end
+															 | _ => (print(Int.toString(pos)^"Error: Variable is not defined as a record: ");
+																	{exp = (), ty = Types.BOTTOM})
+															)
+							end
 
-  			  (*| trvar (A.SubscriptVar(v, exp, pos)) = 
-							(case Symbol.look(venv, id)
-  							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
-  							 | NONE => (print(Int.toString(pos)^"Error: undefined variable " ^ Symbol.name id);
-  										{exp = (), ty = Types.BOTTOM}))*)
+  			  | trvar (A.SubscriptVar(v, exp, pos)) =  (*Do we have to check the bound?*)
+							let val {exp = (), ty = ty} = trvar(v)
+  							in 
+								(case ty of Types.ARRAY(t, u) =>  (if checkInt(transExp (venv,tenv,exp), pos) 
+																	then {exp = (), ty = actual_ty t}
+																	else (print(Int.toString(pos)^"Error: the index is not int ");
+																	{exp = (), ty = Types.BOTTOM}))
+											| _               => (print(Int.toString(pos)^"Error: Variable is not defined as an array: ");
+																 {exp = (), ty = Types.BOTTOM})
+								)
+  							end
 		in
 		trvar node
 		end
@@ -106,13 +120,41 @@ struct
                                        else (print("Error: While loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
     |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos) andalso checkInt(trexp hi, pos) andalso checkSameType({exp=(), ty=Types.UNIT}, trexp body) then {exp=(), ty=Types.UNIT}
                                                   else (print("Error: For loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
-	(*|   trexp(A.RecordExp{fields, typ, pos}) = *)
+	|   trexp(A.RecordExp{fields, typ, pos}) = (case Symbol.look(tenv, typ) of 
+														SOME(stl, u) => (let fun judgeField a b = if (#1 a) = (#1 b) 
+																									then (if checkSameType({exp=(), ty=(#2 b)}, trexp (#2 a)) 
+																											then true
+																											else (print("Error: Unmatched field var " ^ Symbol.name (#1 a) ^ Int.toString(#3 a));
+																												false)) 
+																									else (print("Error: Undefined field var or the order is wrong " ^ Symbol.name (#1 a) ^ Int.toString(#3 a));
+																											false)
+																			 fun judgeRecord (a::b) (c::d) = if judgeField a b then judgeRecord b d else false
+																			   | judgeRecord nil nil = true
+																			   | judgeRecord a   nil = (print("Error: Undefined field var " ^ Symbol.name (#1 a) ^ Int.toString(#3 a));
+																											false)
+																			   | judgeRecord nil   a = (print("Error: Not define the field var " ^ Symbol.name (#1 a) ^ Int.toString(pos));
+																											false)
+																		 in
+																			if judgeRecord fields stl then {exp=(), ty=Types.RECORD} else {exp=(), ty=Types.BOTTOM}
+																		 end
+																		)
+													  | NONE         => (print("Error: Record type undefined " ^ Symbol.name (typ)^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+													  )
+    |   trexp(A.ArrayExp{typ, size, init, pos}) = case Symbol.look(tenv, typ) of 
+														SOME(ty, u) => (if checkInt(trexp size, pos) 
+																		then (if checkSameType({exp=(), ty=actual_ty ty}, trexp init)
+																				then {exp=(), ty=actual_ty ty}
+																				else (print("Error: Array type unmatched " ^ Symbol.name (typ)^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+																				)
+																		else {exp=(), ty=Types.BOTTOM}
+																		)
+													  | NONE         => (print("Error: Array type undefined " ^ Symbol.name (typ)^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
   in
     trexp(root)
   end
 
-  
-  fun transDec (venv, tenv, A.VarDec{name, escape, typ, init, pos}) = 
+  (*corner case ? for record: var r:myRecord = anotherRecord{f=1,s=2}*)
+  fun transDec (venv, tenv, A.VarDec{name, escape, typ, init, pos}) =  
 		
     (let val {exp = exp, ty = ty} = transExp(venv, tenv, init)
 		in
