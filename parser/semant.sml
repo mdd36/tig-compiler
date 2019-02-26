@@ -21,58 +21,149 @@ struct
 
   fun transProg() = () (*TODO*)
 
-  fun  checkInt({exp, ty}, pos) = (case ty of
-        Types.INT => true
-     |  Types.BOTTOM => true
-     |  _ => (print("Error: Expected string token at " ^ Int.toString(pos)); false))
+  (*fun checkSameType({_, ty=ty1}, {_, ty=ty2}) =
+      if (ty1 <> ty2) then
+          (case (ty1, ty2) of
+              (_, Types.BOTTOM) => true
+            | (Types.BOTTOM, _) => true
+            | (_,_) => false
+          )
+      else *)
+  fun checkSameType(ty1: expty, ty2: expty) = ty1 = ty1 orelse ty1 = Types.BOTTOM orelse ty2 = Types.BOTTOM
+  fun checkLegacy(x, y) = checkSameType(#ty x, #ty y)
 
-  fun  checkStr({exp, ty}, pos) = (case ty of
-       Types.STRING => true
-     | Types.BOTTOM => true
-     | _ => (print("Error: Expected string token at " ^ Int.toString(pos)); false))
 
-  (*fun compareRecList([], []) = true
-    | compareRecList(a1::s1, a2::s2) = checkSameType(a1, a2) andalso compareRecList(s1, s2)
-    | compareRecList(_, _) = false*)
+  fun  checkInt({exp', ty'}, pos, print_) =
+      if checkSameType(ty', Types.INT) then true
+      else (if print_ then print("Error: Expected int token at " ^ Int.toString(pos)) else (); false)
 
-  fun checkSameType(e1:expty, e2:expty) = (#ty e1 = #ty e2 orelse #ty e1 = Types.BOTTOM orelse #ty e2 = Types.BOTTOM)
-  (*|checkSameType({_, Types.ARRAY a1}, {_, Types.ARRAY a2}) = checkSameType(#1 a1, #1 a2)*)
+
+    fun  checkStr({exp', ty'}, pos, print_) =
+        if  checkSameType(ty',Types.STRING) then true
+        else (if print_ then print("Error: Expected string token at " ^ Int.toString(pos)) else (); false)
 
   fun transExp(venv, tenv, root) =
   let
-  (*|   trexp(SOME x) = trexp(x) Not sure about this*)
-  fun   trexp(A.IntExp i) = {exp=(), ty=Types.INT}
-    |   trexp(A.StringExp (s,pos)) = {exp=(), ty=Types.STRING}
-    |   trexp(A.NilExp) = {exp=(), ty=Types.UNIT}
-    |   trexp(A.OpExp{left, oper=A.PlusOp, right, pos}) =
-          if checkInt(trexp(left), pos) andalso checkInt(trexp(right), pos) then {exp=(), ty=Types.INT}
-          else {exp=(), ty=Types.BOTTOM}
-    |   trexp(A.OpExp{left, oper=A.MinusOp, right, pos}) =
-          if checkInt(trexp(left), pos) andalso checkInt(trexp(right), pos) then {exp=(), ty=Types.INT}
-          else {exp=(), ty=Types.BOTTOM}
-    |   trexp(A.OpExp{left, oper=A.DivideOp, right, pos}) =
-          if checkInt(trexp(left), pos) andalso checkInt(trexp(right), pos) then {exp=(), ty=Types.INT}
-          else {exp=(), ty=Types.BOTTOM}
-    |   trexp(A.OpExp{left, oper=A.TimesOp, right, pos}) =
-          if checkInt(trexp(left), pos) andalso checkInt(trexp(right), pos) then {exp=(), ty=Types.INT}
-          else {exp=(), ty=Types.BOTTOM}
-    |   trexp(A.IfExp{test, then', else', pos}) =
-        let
-          val expty' = trexp then'
-        in
-          if checkInt(trexp test, pos) andalso checkSameType(expty',  trexp(getOpt(else', A.NilExp))) then {exp=(), ty=(#ty expty')}
-          else (print("Error: Invalid if conditional statement at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
-        end
-    (*TODO how to think about comparison ops? Just that they must be the same type and map to int?*)
-    |   trexp(A.WhileExp{test, body, pos}) = if checkInt(trexp test, pos) andalso checkSameType({exp=(), ty=Types.UNIT}, trexp body) then {exp=(), ty=Types.UNIT}
-                                       else (print("Error: While loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
-    |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos) andalso checkInt(trexp hi, pos) andalso checkSameType({exp=(), ty=Types.UNIT}, trexp body) then {exp=(), ty=Types.UNIT}
-                                                  else (print("Error: For loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
-  in
-    trexp(root)
-  end
+    datatype OpType = SORT | MATH | EQUALITY
+    val equatable = []
 
-  fun transDec (venv, tenv, A.VarDec{name, escape, typ = NONE, init, pos}) = {venv=venv, tenv=tenv}
+    fun getTypeByOperation(A.NeqOp)    = EQUALITY
+      | getTypeByOperation(A.EqOp)     = EQUALITY
+      | getTypeByOperation(A.PlusOp)   = MATH
+      | getTypeByOperation(A.MinusOp)  = MATH
+      | getTypeByOperation(A.DivideOp) = MATH
+      | getTypeByOperation(A.TimesOp)  = MATH
+      | getTypeByOperation(A.GeOp)     = SORT
+      | getTypeByOperation(A.GtOp)     = SORT
+      | getTypeByOperation(A.LeOp)     = SORT
+      | getTypeByOperation(A.LtOp)     = SORT
+
+    and validateMath(left, right, pos) = if checkInt(trexp(left), pos, true) andalso checkInt(trexp(right), pos, true) then {exp=(), ty=Types.INT}
+                                    else {exp=(), ty=Types.BOTTOM}
+    and validateSort(left, right, pos) =
+        let
+            val l = trexp left
+            val r = trexp right
+        in
+            if checkLegacy(l, r) andalso (checkInt(l, pos, false) orelse checkStr(l, pos, false)) then {exp=(), ty=Types.INT}
+            else (print("Comparison Error: Malformed comparison at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+        end
+
+    and validateEquality(left, right, pos) =
+      let
+        val l = trexp left
+        val r = trexp right
+      in
+        case l of
+            Types.INT => if checkInt(r, pos, true) then {exp=(), ty=Types.INT} else (print("Compared structures must be of same type: pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+          | Types.STRING => if checkStr(r, pos, true) then {exp=(), ty=Types.INT} else (print("Compared structures must be of same type: pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+          | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=(), ty=Types.INT} else (print("Compared structures must be of same type: pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+          | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=(), ty=Types.INT} else (print("Compared structures must be of same type: pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+          | _ => (print("Cannont camparer structures at pos " ^ Int.toString(pos) ^ ": can only compare int, string, record, and array types"); {exp=(), ty=Types.BOTTOM})
+      end
+
+    and  trexp(A.IntExp i) = {exp=(), ty=Types.INT}
+        |   trexp(A.StringExp (s,pos)) = {exp=(), ty=Types.STRING}
+        |   trexp(A.NilExp) = {exp=(), ty=Types.UNIT}
+        |   trexp(A.OpExp{left, oper, right, pos}) = (case getTypeByOperation oper of
+                                                      MATH     => validateMath(left, right, pos)
+                                                    | SORT     => validateSort(left, right, pos)
+                                                    | EQUALITY => validateEquality(left, right, pos)
+                                                    | _        => {exp=(), ty=Types.BOTTOM}
+                                                )
+        |   trexp(A.IfExp{test, then', else', pos}) =
+                let
+                    val expty' = trexp then'
+                in
+                    if checkInt(trexp test, pos) andalso checkLegacy(expty',  trexp(getOpt(else', A.NilExp))) then {exp=(), ty=(#ty expty')}
+                    else (print("Error: Invalid if conditional statement at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                end
+        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos) andalso checkSameType(Types.UNIT, #ty (trexp body)) then {exp=(), ty=Types.UNIT}
+                                                else (print("Error: While loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos) andalso checkInt(trexp hi, pos) andalso checkSameType(Types.UNIT, #ty (trexp body)) then {exp=(), ty=Types.UNIT}
+                                                    else (print("Error: For loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+        |   trexp(A.BreakExp(_)) = {exp=(), ty=Types.BOTTOM}
+        |   trexp(A.VarExp(v)) = {exp=(), ty=(trvar v)}
+        |   trexp(A.AssignExp{var, exp, pos}) =
+                let
+                    val expTy = trexp exp
+                    val varTy = trvar var
+                in
+                    if checkLegacy(expTy, varTy) then {exp=(), ty = #ty expTy}
+                    else (print("Illegal assign expression at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                end
+        |   trexp(A.RecordExp{fields, typ, pos}) = (
+                case Symbol.look(tenv, typ) of
+                    SOME(t) => case actual_ty(t, pos) of
+                        Types.RECORD(fieldTypes, unique') =>
+                        let
+                            fun getFieldTypes({exp, ty}) = () (*TODO*)
+                            fun validateRecord() = ()
+                        in
+                            {exp=(), ty=Types.BOTTOM}(*TODO*)
+                        end
+                    |   _ => (print("Type mismatch in record usage at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                |   NONE    => (print("Unknown type " ^ Symbol.name typ ^ " at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+
+            )
+        |   trexp(A.SeqExp(exps)) =
+                if exp <> [] then {exp=(), ty=(#ty trexp (#1 (List.last exps)))} else {exp=(), ty=Types.UNIT}
+
+        |   trexp(A.LetExp{declarations, body, pos}) =
+                let
+                    val {venv', tenv'} = foldr (fn(declaration, {venv, tenv}) => {venv=venv1, tenv=tenv1} = transDec(venv, tenv, declaration)) {venv=venv, tenv=tenv} declarations
+                    val {exp=_, ty=bodyType} = transExp(venv', tenv', body)
+                in
+                    {exp=(), ty=bodyType}
+                end
+        |   trexp(A.ArrayExp{typ, size, init, pos}) = (
+                case S.look(tenv, typ) of
+                    SOME(at) => (
+                        case actual_ty(at) of
+                            Types.ARRAY(t, u) =>
+                                if checkInt(trexp size, pos, true) andalso checkSameType(at, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
+                                else (print("Invalid array expression at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                            | _ => (print("Type mismatch at array exp at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                        )
+                |   NONE => (print("Unknown type at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+            )
+        |   trexp(A.CallExp{func, args, pos}) = (
+                case S.look(venv, func) of
+                    SOME(Env.FunEntry{formals, result}) => if (foldr (fn(res,head) => res andalso (*TODO*)#1 head andalso #2 head) true ListPair.zip(formals, args)) then {exp=(), ty=result}
+                                                           else (print("Type disagreement in function arguments at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+                                                           handle ListPair.UnequalLengths =>    (print("Argument error at pos " ^ Int.toString(pos) ^ ", expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args));
+                                                                                       {exp=(), ty=Types.BOTTOM})
+                |   SOME(_) => (print("Expected a function idenifier, found a variable: pos " ^ Int.toString(pos));{exp=() ,ty=Types.BOTTOM})
+                |   NONE => (print("Unknown symbol at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+
+            )
+        and trvar (_) = {exp=(), ty=Types.BOTTOM}
+        and actual_ty(_) = Types.BOTTOM
+    in
+      trexp(root)
+    end
+
+    and transDec (venv, tenv, A.VarDec{name, escape, typ = NONE, init, pos}) = {venv=venv, tenv=tenv}
 		(* Commenting this out to test for compilation. TODO
     (let val {exp, ty} = transExp {venv, tenv, init}
 		in
@@ -121,14 +212,14 @@ struct
   	fun actual_ty ty = case ty of Types.NAME(s,t) => !t
   								 |  _              => ty *)
 
-  	fun transTy(tenv,ty) = Types.BOTTOM
+  	and transTy(tenv,ty) = Types.BOTTOM
   		(* TODO uncomment this and actually make it compile
       let
   			fun firsttrans t = case t of A.NameTy(s, p) =>  Types.NAME(s, ty option ref)
   									   | A.RecordTy of field list
   									   | A.ArrayTy(s,p) => Types.ARRAY(firsttrans s, Types.unique)
                        *)
-  	fun transVar (venv, tenv, node) = {exp=(), ty=Types.BOTTOM}
+  	and transVar (venv, tenv, node) = {exp=(), ty=Types.BOTTOM}
   		(*TODO uncomment this and actually make it compile
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
