@@ -101,13 +101,19 @@ struct
         |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso checkSameType(Types.UNIT, #ty (trexp body)) then {exp=(), ty=Types.UNIT}
                                                     else (print("Error: For loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
         |   trexp(A.BreakExp(_)) = {exp=(), ty=Types.BOTTOM}
-        |   trexp(A.VarExp(v)) = {exp=(), ty=(trvar v)}
+        |   trexp(A.VarExp(v)) =
+                let
+                    val {exp=exp', ty=ty'} = transVar(venv, tenv, v)
+                in
+                    {exp=(), ty=ty'}
+                end
+
         |   trexp(A.AssignExp{var, exp, pos}) =
                 let
-                    val expTy = trexp exp
-                    val varTy = trvar var
+                    val {exp=ee, ty=expTy} = trexp exp
+                    val {exp=e, ty=varTy} = transVar(venv, tenv, var)
                 in
-                    if checkSameType(#ty expTy, varTy) then {exp=(), ty = #ty expTy}
+                    if checkSameType(expTy, varTy) then {exp=(), ty = expTy}
                     else (print("Illegal assign expression at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
@@ -115,10 +121,16 @@ struct
                     SOME(t) => (case actual_ty(t) of
                         Types.RECORD(fieldTypes, unique') =>
                         let
-                            fun getFieldTypes({exp, ty}) = () (*TODO*)
-                            fun validateRecord() = ()
+                            val reduced = map (fn({exp, ty}, pos) => {ty=ty, pos=pos}) (map (fn (sym, e, pos) => (trexp e, pos)) fields)
+                            val types = map (fn (head) => #ty head) reduced
+                            val actualTypes = map (fn x => #2 x) fieldTypes
+                            fun f(t1, t2, head) = head andalso checkSameType(t1, t2)
                         in
-                            {exp=(), ty=Types.BOTTOM}(*TODO*)
+                            if ListPair.foldr f true (types, actualTypes) then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
+                            else (print("Record assignment type error at pos " ^ Int.toString(pos));
+                                 {exp=(), ty=Types.BOTTOM})
+                            handle ListPair.UnequalLengths => (print("Record error at pos " ^ Int.toString(pos) ^ ": expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types));
+                                                            {exp=(), ty=Types.BOTTOM})
                         end
                     |   _ => (print("Type mismatch in record usage at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM}))
                 |   NONE    => (print("Unknown type " ^ Symbol.name typ ^ " at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
@@ -130,8 +142,13 @@ struct
 
         |   trexp(A.LetExp{decs, body, pos}) =
                 let
-                    (* TODO val {venv', tenv'} = foldr (fn(declaration, {venv, tenv}) => {venv=venv1, tenv=tenv1} = transDec(venv, tenv, declaration)) {venv=venv, tenv=tenv} decs *)
-                    val {exp=_, ty=bodyType} = transExp(venv, tenv, body)
+                    val {venv=venv',tenv=tenv'} = foldl (fn (dec,{venv,tenv}) =>
+                        let
+                            val {venv=venv1,tenv=tenv1} = transDec(venv,tenv,dec)
+                        in
+                            {venv=venv1,tenv=tenv1}
+                        end) {venv=venv, tenv=tenv} decs;
+                    val {exp=e,ty=bodyType} = transExp(venv',tenv', body)
                 in
                     {exp=(), ty=bodyType}
                 end
@@ -140,7 +157,7 @@ struct
                     SOME(at) => (
                         case actual_ty(at) of
                             Types.ARRAY(t, u) =>
-                                if checkInt(trexp size, pos, true) andalso checkSameType(at, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
+                                if checkInt(trexp size, pos, true) andalso checkSameType(t, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
                                 else (print("Invalid array expression at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
                             | _ => (print("Type mismatch at array exp at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
                         )
@@ -161,7 +178,6 @@ struct
                 |   NONE => (print("Unknown symbol at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
 
             )
-        and trvar (_) = Types.BOTTOM
     in
       trexp(root)
     end
@@ -169,7 +185,7 @@ struct
      case ty of A.NameTy(s, p) => Types.NAME(s, ref (SOME (searchTy(tenv,s,p))))
   			  | A.RecordTy(tl) => Types.RECORD(if tl=[] then [] else map (getRecordParam tenv) tl, ref (): Types.unique)
   		      | A.ArrayTy(s,p) => Types.ARRAY(searchTy(tenv,s,p), ref (): Types.unique )
-    and transVar (venv, tenv, node) =
+    and transVar (venv, tenv, node): expty =
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
