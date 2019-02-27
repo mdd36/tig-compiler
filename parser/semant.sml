@@ -21,7 +21,7 @@ struct
 
   fun transProg() = () (*TODO*)
 
-  fun checkSameType(ty1: Types.ty, ty2: Types.ty) = ty1 = ty1 orelse ty1 = Types.BOTTOM orelse ty2 = Types.BOTTOM
+  fun checkSameType(ty1: Types.ty, ty2: Types.ty) = ty1 = ty2 orelse ty1 = Types.BOTTOM orelse ty2 = Types.BOTTOM
   fun checkLegacy(x: expty, y: expty) = checkSameType(#ty x, #ty y)
 
 
@@ -173,7 +173,7 @@ struct
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
-                             | SOME(Env.FunEntry) => (print("Cannot h "))  
+                             | SOME(Env.FunEntry(_)) => (print("Expected variable symbol, found function at pos " ^ Int.toString(pos) ^ ": symbol name " ^ Symbol.name id); {exp=(), ty=Types.BOTTOM})
   							 | NONE => (print(Int.toString(pos)^"Error: undefined variable " ^ Symbol.name id);
   										{exp = (), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
