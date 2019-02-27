@@ -83,7 +83,7 @@ struct
 
     and  trexp(A.IntExp i): expty = {exp=(), ty=Types.INT}
         |   trexp(A.StringExp (s,pos)) = {exp=(), ty=Types.STRING}
-        |   trexp(A.NilExp) = {exp=(), ty=Types.UNIT}
+        |   trexp(A.NilExp) = {exp=(), ty=Types.NIL}
         |   trexp(A.OpExp{left, oper, right, pos}) = (case getTypeByOperation oper of
                                                       MATH     => validateMath(left, right, pos)
                                                     | SORT     => validateSort(left, right, pos)
@@ -93,13 +93,14 @@ struct
                 let
                     val expty' = trexp then'
                 in
-                    if checkInt(trexp test, pos, true) andalso checkLegacy(expty', trexp(getOpt(else', A.NilExp))) then {exp=(), ty=(#ty expty')}
+                    if checkInt(trexp test, pos, true) andalso checkLegacy(expty', trexp(getOpt(else', A.SeqExp([])))) then {exp=(), ty=(#ty expty')}
                     else (print("Error: Invalid if conditional statement at pos " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
                 end
         |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso checkSameType(Types.UNIT, #ty (trexp body)) then {exp=(), ty=Types.UNIT}
                                                 else (print("Error: While loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
         |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso checkSameType(Types.UNIT, #ty (trexp body)) then {exp=(), ty=Types.UNIT}
                                                     else (print("Error: For loop construction error at " ^ Int.toString(pos)); {exp=(), ty=Types.BOTTOM})
+													(*check the var*)
         |   trexp(A.BreakExp(_)) = {exp=(), ty=Types.BOTTOM}
         |   trexp(A.VarExp(v)) =
                 let
@@ -121,12 +122,20 @@ struct
                     SOME(t) => (case actual_ty(t) of
                         Types.RECORD(fieldTypes, unique') =>
                         let
-                            val reduced = map (fn({exp, ty}, pos) => {ty=ty, pos=pos}) (map (fn (sym, e, pos) => (trexp e, pos)) fields)
+                            val reduced = map (fn(sym, {exp, ty}, pos) => {sym=sym, ty=ty, pos=pos}) (map (fn (sym, e, pos) => (sym, trexp e, pos)) fields)
                             val types = map (fn (head) => #ty head) reduced
                             val actualTypes = map (fn x => #2 x) fieldTypes
+							val names = map (fn (head) => #sym head) reduced
+                            val actualNames = map (fn x => #1 x) fieldTypes
                             fun f(t1, t2, head) = head andalso checkSameType(t1, t2)
+							fun g(t1, t2, head) = head andalso (t1=t2)
                         in
-                            if ListPair.foldr f true (types, actualTypes) then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
+                            if ListPair.foldr f true (types, actualTypes)   
+							then (if ListPair.foldr g true (names, actualNames) 
+									then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
+									else (print("Record assignment field name unmatched error at pos " ^ Int.toString(pos));
+										{exp=(), ty=Types.BOTTOM})
+									)
                             else (print("Record assignment type error at pos " ^ Int.toString(pos));
                                  {exp=(), ty=Types.BOTTOM})
                             handle ListPair.UnequalLengths => (print("Record error at pos " ^ Int.toString(pos) ^ ": expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types));
