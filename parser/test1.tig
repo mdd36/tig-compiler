@@ -1,8 +1,7 @@
+/* valid for and let */
+
 let
-	type arrtype = array of int
-	type rectype = {b:arrrtype, c: int}
-	var a := rectype{b = arrtype [10] of 0, c=3}
-	var d: rectype := nil
-in
-	a
+	var a:= 0
+in 
+	for i:=0 to 100 do (a:=a+1;())
 end

@@ -4,6 +4,6 @@ fun go file =
   let
     val _ = ErrorMsg.reset()
   in
-    PrintAbsyn.print(TextIO.stdOut, Parse.parse file)
+    Semant.transExp(Semant.venv, Semant.tenv, Parse.parse file)
   end
 end
