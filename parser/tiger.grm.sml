@@ -189,20 +189,20 @@ val table=let val actionRows =
 \\186\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
-\\187\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
-\\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
-\\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
+\\187\000\002\000\015\000\003\000\014\000\004\000\013\000\008\000\012\000\
+\\016\000\011\000\030\000\010\000\033\000\009\000\034\000\008\000\
+\\037\000\007\000\041\000\006\000\042\000\005\000\000\000\
 \\188\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
-\\189\000\000\000\
-\\190\000\000\000\
-\\191\000\045\000\036\000\000\000\
-\\192\000\000\000\
-\\193\000\043\000\038\000\000\000\
-\\194\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
+\\189\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
+\\190\000\000\000\
+\\191\000\000\000\
+\\192\000\045\000\036\000\000\000\
+\\193\000\000\000\
+\\194\000\043\000\038\000\000\000\
 \\195\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
@@ -218,15 +218,17 @@ val table=let val actionRows =
 \\199\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
-\\200\000\000\000\
-\\201\000\000\000\
-\\202\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
+\\200\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
+\\201\000\000\000\
+\\202\000\000\000\
 \\203\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
 \\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
 \\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
-\\204\000\000\000\
+\\204\000\015\000\028\000\016\000\027\000\017\000\026\000\018\000\025\000\
+\\019\000\024\000\020\000\023\000\021\000\022\000\022\000\021\000\
+\\023\000\020\000\024\000\019\000\026\000\018\000\027\000\017\000\000\000\
 \\205\000\000\000\
 \\206\000\000\000\
 \\207\000\000\000\
@@ -236,45 +238,46 @@ val table=let val actionRows =
 \\211\000\000\000\
 \\212\000\000\000\
 \\213\000\000\000\
+\\214\000\000\000\
 \"
 val actionRowNumbers =
 "\008\000\056\000\052\000\055\000\
 \\074\000\051\000\009\000\008\000\
-\\008\000\008\000\008\000\053\000\
+\\008\000\008\000\084\000\053\000\
 \\054\000\079\000\008\000\008\000\
 \\008\000\008\000\008\000\008\000\
 \\008\000\008\000\008\000\008\000\
-\\008\000\008\000\008\000\089\000\
-\\090\000\088\000\097\000\102\000\
-\\086\000\049\000\010\000\011\000\
+\\008\000\008\000\008\000\090\000\
+\\091\000\089\000\098\000\103\000\
+\\087\000\049\000\010\000\011\000\
 \\012\000\047\000\040\000\038\000\
 \\057\000\033\000\082\000\076\000\
 \\013\000\014\000\008\000\007\000\
 \\064\000\063\000\062\000\006\000\
 \\005\000\004\000\003\000\002\000\
 \\001\000\061\000\060\000\059\000\
-\\058\000\098\000\103\000\087\000\
-\\008\000\042\000\029\000\035\000\
+\\058\000\099\000\104\000\088\000\
+\\084\000\042\000\029\000\035\000\
 \\008\000\008\000\008\000\067\000\
 \\008\000\080\000\025\000\043\000\
-\\036\000\026\000\084\000\066\000\
+\\036\000\026\000\085\000\066\000\
 \\034\000\015\000\008\000\016\000\
 \\018\000\039\000\072\000\070\000\
 \\083\000\077\000\008\000\068\000\
 \\020\000\008\000\081\000\065\000\
-\\008\000\075\000\101\000\050\000\
-\\019\000\104\000\091\000\048\000\
-\\027\000\108\000\030\000\031\000\
+\\008\000\075\000\102\000\050\000\
+\\019\000\105\000\092\000\048\000\
+\\027\000\109\000\030\000\031\000\
 \\008\000\008\000\037\000\044\000\
-\\099\000\078\000\008\000\085\000\
-\\021\000\028\000\106\000\008\000\
+\\100\000\078\000\008\000\086\000\
+\\021\000\028\000\107\000\008\000\
 \\032\000\017\000\008\000\022\000\
 \\023\000\041\000\071\000\080\000\
-\\008\000\069\000\107\000\105\000\
-\\092\000\008\000\024\000\109\000\
-\\094\000\045\000\110\000\008\000\
-\\100\000\093\000\046\000\008\000\
-\\073\000\008\000\096\000\095\000\
+\\008\000\069\000\108\000\106\000\
+\\093\000\008\000\024\000\110\000\
+\\095\000\045\000\111\000\008\000\
+\\101\000\094\000\046\000\008\000\
+\\073\000\008\000\097\000\096\000\
 \\000\000"
 val gotoT =
 "\
@@ -431,7 +434,7 @@ val gotoT =
 \\000\000\
 \"
 val numstates = 149
-val numrules = 63
+val numrules = 64
 val s = ref "" and index = ref 0
 val string_to_int = fn () => 
 let val i = !index
@@ -594,152 +597,152 @@ fn (i392,defaultPos,stack,
     (()):arg) =>
 case (i392,stack)
 of  ( 0, ( ( _, ( MlyValue.exp exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.program (fn _ => let val  (exp as exp1) = exp1 ()
- in ((*#line 66.39 "tiger.grm"*)exp(*#line 596.1 "tiger.grm.sml"*)
+ in ((*#line 66.39 "tiger.grm"*)exp(*#line 599.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 1, ( result, exp1left, exp1right), rest671)
 end
 |  ( 1, ( ( _, ( MlyValue.STRING STRING1, (STRINGleft as STRING1left), STRING1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (STRING as STRING1) = STRING1 ()
- in ((*#line 70.42 "tiger.grm"*)A.StringExp(STRING,STRINGleft)(*#line 602.1 "tiger.grm.sml"*)
+ in ((*#line 70.42 "tiger.grm"*)A.StringExp(STRING,STRINGleft)(*#line 605.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, STRING1left, STRING1right), rest671)
 end
 |  ( 2, ( ( _, ( MlyValue.INT INT1, INT1left, INT1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (INT as INT1) = INT1 ()
- in ((*#line 71.41 "tiger.grm"*)A.IntExp(INT)(*#line 608.1 "tiger.grm.sml"*)
+ in ((*#line 71.41 "tiger.grm"*)A.IntExp(INT)(*#line 611.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, INT1left, INT1right), rest671)
 end
-|  ( 3, ( ( _, ( _, NIL1left, NIL1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => ((*#line 72.41 "tiger.grm"*)A.NilExp(*#line 614.1 "tiger.grm.sml"*)
+|  ( 3, ( ( _, ( _, NIL1left, NIL1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => ((*#line 72.41 "tiger.grm"*)A.NilExp(*#line 617.1 "tiger.grm.sml"*)
 ))
  in ( LrTable.NT 0, ( result, NIL1left, NIL1right), rest671)
 end
 |  ( 4, ( ( _, ( MlyValue.lvalue lvalue1, lvalue1left, lvalue1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (lvalue as lvalue1) = lvalue1 ()
- in ((*#line 73.41 "tiger.grm"*)A.VarExp lvalue(*#line 618.1 "tiger.grm.sml"*)
+ in ((*#line 73.41 "tiger.grm"*)A.VarExp lvalue(*#line 621.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, lvalue1left, lvalue1right), rest671)
 end
 |  ( 5, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: ( _, ( _, (MINUSleft as MINUS1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (exp as exp1) = exp1 ()
- in ((*#line 74.41 "tiger.grm"*)A.OpExp{left = A.IntExp(0), oper = A.MinusOp,  right = exp,          pos = MINUSleft}(*#line 624.1 "tiger.grm.sml"*)
+ in ((*#line 74.41 "tiger.grm"*)A.OpExp{left = A.IntExp(0), oper = A.MinusOp,  right = exp,          pos = MINUSleft}(*#line 627.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, MINUS1left, exp1right), rest671)
 end
 |  ( 6, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, PLUSleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 75.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.PlusOp,   right = exp2,                pos = PLUSleft}(*#line 630.1 "tiger.grm.sml"*)
+ in ((*#line 75.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.PlusOp,   right = exp2,                pos = PLUSleft}(*#line 633.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 7, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, MINUSleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 76.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.MinusOp,  right = exp2,                pos = MINUSleft}(*#line 637.1 "tiger.grm.sml"*)
+ in ((*#line 76.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.MinusOp,  right = exp2,                pos = MINUSleft}(*#line 640.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 8, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, TIMESleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 77.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.TimesOp,  right = exp2,                pos = TIMESleft}(*#line 644.1 "tiger.grm.sml"*)
+ in ((*#line 77.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.TimesOp,  right = exp2,                pos = TIMESleft}(*#line 647.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 9, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, DIVIDEleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 78.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.DivideOp, right = exp2,                pos = DIVIDEleft}(*#line 651.1 "tiger.grm.sml"*)
+ in ((*#line 78.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.DivideOp, right = exp2,                pos = DIVIDEleft}(*#line 654.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 10, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, ANDleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 79.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = SOME(A.IntExp(0)),   pos = ANDleft}(*#line 658.1 "tiger.grm.sml"*)
+ in ((*#line 79.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = SOME(A.IntExp(0)),   pos = ANDleft}(*#line 661.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 11, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, ORleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 80.41 "tiger.grm"*)A.IfExp{test = exp1, then' =A.IntExp(1),else' = SOME exp2,           pos = ORleft}(*#line 665.1 "tiger.grm.sml"*)
+ in ((*#line 80.41 "tiger.grm"*)A.IfExp{test = exp1, then' =A.IntExp(1),else' = SOME exp2,           pos = ORleft}(*#line 668.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 12, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, EQleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 81.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.EqOp,     right = exp2,                pos = EQleft}(*#line 672.1 "tiger.grm.sml"*)
+ in ((*#line 81.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.EqOp,     right = exp2,                pos = EQleft}(*#line 675.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 13, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, NEQleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 82.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.NeqOp,    right = exp2,                pos = NEQleft}(*#line 679.1 "tiger.grm.sml"*)
+ in ((*#line 82.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.NeqOp,    right = exp2,                pos = NEQleft}(*#line 682.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 14, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, LTleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 83.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.LtOp,     right = exp2,                pos = LTleft}(*#line 686.1 "tiger.grm.sml"*)
+ in ((*#line 83.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.LtOp,     right = exp2,                pos = LTleft}(*#line 689.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 15, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, LEleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 84.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.LeOp,     right = exp2,                pos = LEleft}(*#line 693.1 "tiger.grm.sml"*)
+ in ((*#line 84.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.LeOp,     right = exp2,                pos = LEleft}(*#line 696.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 16, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, GTleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 85.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.GtOp,     right = exp2,                pos = GTleft}(*#line 700.1 "tiger.grm.sml"*)
+ in ((*#line 85.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.GtOp,     right = exp2,                pos = GTleft}(*#line 703.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 17, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: ( _, ( _, GEleft, _)) :: ( _, ( MlyValue.exp exp1, exp1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 86.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.GeOp,     right = exp2,                pos = GEleft}(*#line 707.1 "tiger.grm.sml"*)
+ in ((*#line 86.41 "tiger.grm"*)A.OpExp{left = exp1, oper = A.GeOp,     right = exp2,                pos = GEleft}(*#line 710.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, exp1left, exp2right), rest671)
 end
 |  ( 18, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: ( _, ( _, ASSIGNleft, _)) :: ( _, ( MlyValue.lvalue lvalue1, lvalue1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (lvalue as lvalue1) = lvalue1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 87.41 "tiger.grm"*)A.AssignExp{var = lvalue,               exp = exp,                   pos = ASSIGNleft}(*#line 714.1 "tiger.grm.sml"*)
+ in ((*#line 87.41 "tiger.grm"*)A.AssignExp{var = lvalue,               exp = exp,                   pos = ASSIGNleft}(*#line 717.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, lvalue1left, exp1right), rest671)
 end
 |  ( 19, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.explist explist1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (ID as ID1) = ID1 ()
  val  (explist as explist1) = explist1 ()
- in ((*#line 88.41 "tiger.grm"*)A.CallExp{func = Symbol.symbol ID,      args = rev explist,              pos = IDleft}(*#line 721.1 "tiger.grm.sml"*)
+ in ((*#line 88.41 "tiger.grm"*)A.CallExp{func = Symbol.symbol ID,      args = rev explist,              pos = IDleft}(*#line 724.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, ID1left, RPAREN1right), rest671)
 end
 |  ( 20, ( ( _, ( _, _, RPAREN1right)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (ID as ID1) = ID1 ()
- in ((*#line 89.42 "tiger.grm"*)A.CallExp{func = Symbol.symbol ID,      args = [],                        pos = IDleft}(*#line 728.1 "tiger.grm.sml"*)
+ in ((*#line 89.42 "tiger.grm"*)A.CallExp{func = Symbol.symbol ID,      args = [],                        pos = IDleft}(*#line 731.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, ID1left, RPAREN1right), rest671)
 end
 |  ( 21, ( ( _, ( _, _, RPAREN1right)) :: ( _, ( MlyValue.expseq expseq1, _, _)) :: ( _, ( _, LPAREN1left, _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (expseq as expseq1) = expseq1 ()
- in ((*#line 90.41 "tiger.grm"*)A.SeqExp( rev expseq)(*#line 734.1 "tiger.grm.sml"*)
+ in ((*#line 90.41 "tiger.grm"*)A.SeqExp( rev expseq)(*#line 737.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, LPAREN1left, RPAREN1right), rest671)
 end
 |  ( 22, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.field field1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (ID as ID1) = ID1 ()
  val  (field as field1) = field1 ()
- in ((*#line 91.41 "tiger.grm"*)A.RecordExp{fields = rev field, typ = Symbol.symbol ID,                  pos=IDleft}(*#line 740.1 "tiger.grm.sml"*)
+ in ((*#line 91.41 "tiger.grm"*)A.RecordExp{fields = rev field, typ = Symbol.symbol ID,                  pos=IDleft}(*#line 743.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, ID1left, RBRACE1right), rest671)
@@ -747,14 +750,14 @@ end
 |  ( 23, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: _ :: _ :: ( _, ( MlyValue.exp exp1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (ID as ID1) = ID1 ()
  val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 92.41 "tiger.grm"*)A.ArrayExp{typ = Symbol.symbol ID, size = exp1, init = exp2,              pos = IDleft}(*#line 747.1 "tiger.grm.sml"*)
+ in ((*#line 92.41 "tiger.grm"*)A.ArrayExp{typ = Symbol.symbol ID, size = exp1, init = exp2,              pos = IDleft}(*#line 750.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, ID1left, exp2right), rest671)
 end
 |  ( 24, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.exp exp1, _, _)) :: ( _, ( _, (IFleft as IF1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 93.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = NONE,                pos = IFleft}(*#line 755.1 "tiger.grm.sml"*)
+ in ((*#line 93.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = NONE,                pos = IFleft}(*#line 758.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, IF1left, exp2right), rest671)
@@ -762,14 +765,14 @@ end
 |  ( 25, ( ( _, ( MlyValue.exp exp3, _, exp3right)) :: _ :: ( _, ( MlyValue.exp exp2, _, _)) :: _ :: ( _, ( MlyValue.exp exp1, _, _)) :: ( _, ( _, (IFleft as IF1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in ((*#line 94.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = SOME exp3,           pos = IFleft}(*#line 762.1 "tiger.grm.sml"*)
+ in ((*#line 94.41 "tiger.grm"*)A.IfExp{test = exp1, then' = exp2,      else' = SOME exp3,           pos = IFleft}(*#line 765.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, IF1left, exp3right), rest671)
 end
 |  ( 26, ( ( _, ( MlyValue.exp exp2, _, exp2right)) :: _ :: ( _, ( MlyValue.exp exp1, _, _)) :: ( _, ( _, (WHILEleft as WHILE1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  exp1 = exp1 ()
  val  exp2 = exp2 ()
- in ((*#line 95.41 "tiger.grm"*)A.WhileExp{test = exp1,  body = exp2,                                pos = WHILEleft}(*#line 770.1 "tiger.grm.sml"*)
+ in ((*#line 95.41 "tiger.grm"*)A.WhileExp{test = exp1,  body = exp2,                                pos = WHILEleft}(*#line 773.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, WHILE1left, exp2right), rest671)
@@ -778,251 +781,255 @@ end
  val  exp1 = exp1 ()
  val  exp2 = exp2 ()
  val  exp3 = exp3 ()
- in ((*#line 96.41 "tiger.grm"*)A.ForExp{var = Symbol.symbol ID, escape = ref true, lo = exp1, hi = exp2, body = exp3, pos = FORleft}(*#line 777.1 "tiger.grm.sml"*)
+ in ((*#line 96.41 "tiger.grm"*)A.ForExp{var = Symbol.symbol ID, escape = ref true, lo = exp1, hi = exp2, body = exp3, pos = FORleft}(*#line 780.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, FOR1left, exp3right), rest671)
 end
-|  ( 28, ( ( _, ( _, (BREAKleft as BREAK1left), BREAK1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => ((*#line 97.41 "tiger.grm"*)A.BreakExp(BREAKleft)(*#line 786.1 "tiger.grm.sml"*)
+|  ( 28, ( ( _, ( _, (BREAKleft as BREAK1left), BREAK1right)) :: rest671)) => let val  result = MlyValue.exp (fn _ => ((*#line 97.41 "tiger.grm"*)A.BreakExp(BREAKleft)(*#line 789.1 "tiger.grm.sml"*)
 ))
  in ( LrTable.NT 0, ( result, BREAK1left, BREAK1right), rest671)
 end
 |  ( 29, ( ( _, ( _, _, END1right)) :: ( _, ( MlyValue.expseq expseq1, _, _)) :: _ :: ( _, ( MlyValue.declarationlist declarationlist1, _, _)) :: ( _, ( _, (LETleft as LET1left), _)) :: rest671)) => let val  result = MlyValue.exp (fn _ => let val  (declarationlist as declarationlist1) = declarationlist1 ()
  val  (expseq as expseq1) = expseq1 ()
- in ((*#line 98.41 "tiger.grm"*)A.LetExp{decs = (rev declarationlist), body = A.SeqExp (rev expseq),                      pos = LETleft}(*#line 790.1 "tiger.grm.sml"*)
+ in ((*#line 98.41 "tiger.grm"*)A.LetExp{decs = (rev declarationlist), body = A.SeqExp (rev expseq),                      pos = LETleft}(*#line 793.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 0, ( result, LET1left, END1right), rest671)
 end
 |  ( 30, ( ( _, ( MlyValue.lvaluebody lvaluebody1, _, lvaluebody1right)) :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.lvalue (fn _ => let val  (ID as ID1) = ID1 ()
  val  (lvaluebody as lvaluebody1) = lvaluebody1 ()
- in ((*#line 100.35 "tiger.grm"*)packl(lvaluebody, A.SimpleVar(Symbol.symbol ID, IDleft))(*#line 797.1 "tiger.grm.sml"*)
+ in ((*#line 100.35 "tiger.grm"*)packl(lvaluebody, A.SimpleVar(Symbol.symbol ID, IDleft))(*#line 800.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 2, ( result, ID1left, lvaluebody1right), rest671)
 end
 |  ( 31, ( ( _, ( MlyValue.lvaluebody lvaluebody1, _, lvaluebody1right)) :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (DOTleft as DOT1left), _)) :: rest671)) => let val  result = MlyValue.lvaluebody (fn _ => let val  (ID as ID1) = ID1 ()
  val  (lvaluebody as lvaluebody1) = lvaluebody1 ()
- in ((*#line 103.43 "tiger.grm"*)Sym(Symbol.symbol ID, DOTleft) ::lvaluebody(*#line 804.1 "tiger.grm.sml"*)
+ in ((*#line 103.43 "tiger.grm"*)Sym(Symbol.symbol ID, DOTleft) ::lvaluebody(*#line 807.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 16, ( result, DOT1left, lvaluebody1right), rest671)
 end
 |  ( 32, ( ( _, ( MlyValue.lvaluebody lvaluebody1, _, lvaluebody1right)) :: _ :: ( _, ( MlyValue.exp exp1, _, _)) :: ( _, ( _, (LBRACKleft as LBRACK1left), _)) :: rest671)) => let val  result = MlyValue.lvaluebody (fn _ => let val  (exp as exp1) = exp1 ()
  val  (lvaluebody as lvaluebody1) = lvaluebody1 ()
- in ((*#line 104.43 "tiger.grm"*)Express(exp, LBRACKleft) :: lvaluebody(*#line 811.1 "tiger.grm.sml"*)
+ in ((*#line 104.43 "tiger.grm"*)Express(exp, LBRACKleft) :: lvaluebody(*#line 814.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 16, ( result, LBRACK1left, lvaluebody1right), rest671)
 end
-|  ( 33, ( rest671)) => let val  result = MlyValue.lvaluebody (fn _ => ((*#line 105.43 "tiger.grm"*)nil(*#line 818.1 "tiger.grm.sml"*)
+|  ( 33, ( rest671)) => let val  result = MlyValue.lvaluebody (fn _ => ((*#line 105.43 "tiger.grm"*)nil(*#line 821.1 "tiger.grm.sml"*)
 ))
  in ( LrTable.NT 16, ( result, defaultPos, defaultPos), rest671)
 end
 |  ( 34, ( ( _, ( MlyValue.exp exp1, (expleft as exp1left), exp1right)) :: rest671)) => let val  result = MlyValue.expseq (fn _ => let val  (exp as exp1) = exp1 ()
- in ((*#line 108.32 "tiger.grm"*)(exp, expleft) :: [](*#line 822.1 "tiger.grm.sml"*)
+ in ((*#line 108.32 "tiger.grm"*)(exp, expleft) :: [](*#line 825.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 3, ( result, exp1left, exp1right), rest671)
 end
 |  ( 35, ( ( _, ( MlyValue.exp exp1, expleft, exp1right)) :: _ :: ( _, ( MlyValue.expseq expseq1, expseq1left, _)) :: rest671)) => let val  result = MlyValue.expseq (fn _ => let val  (expseq as expseq1) = expseq1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 109.31 "tiger.grm"*)(exp, expleft) :: expseq(*#line 828.1 "tiger.grm.sml"*)
+ in ((*#line 109.31 "tiger.grm"*)(exp, expleft) :: expseq(*#line 831.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 3, ( result, expseq1left, exp1right), rest671)
 end
-|  ( 36, ( ( _, ( MlyValue.exp exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.explist (fn _ => let val  (exp as exp1) = exp1 ()
- in ((*#line 112.26 "tiger.grm"*)exp :: [](*#line 835.1 "tiger.grm.sml"*)
+|  ( 36, ( rest671)) => let val  result = MlyValue.expseq (fn _ => ((*#line 110.30 "tiger.grm"*)[](*#line 838.1 "tiger.grm.sml"*)
+))
+ in ( LrTable.NT 3, ( result, defaultPos, defaultPos), rest671)
+end
+|  ( 37, ( ( _, ( MlyValue.exp exp1, exp1left, exp1right)) :: rest671)) => let val  result = MlyValue.explist (fn _ => let val  (exp as exp1) = exp1 ()
+ in ((*#line 113.26 "tiger.grm"*)exp :: [](*#line 842.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 4, ( result, exp1left, exp1right), rest671)
 end
-|  ( 37, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.explist explist1, explist1left, _)) :: rest671)) => let val  result = MlyValue.explist (fn _ => let val  (explist as explist1) = explist1 ()
+|  ( 38, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.explist explist1, explist1left, _)) :: rest671)) => let val  result = MlyValue.explist (fn _ => let val  (explist as explist1) = explist1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 113.24 "tiger.grm"*)exp :: explist(*#line 841.1 "tiger.grm.sml"*)
+ in ((*#line 114.24 "tiger.grm"*)exp :: explist(*#line 848.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 4, ( result, explist1left, exp1right), rest671)
 end
-|  ( 38, ( ( _, ( MlyValue.declaration declaration1, declaration1left, declaration1right)) :: rest671)) => let val  result = MlyValue.declarationlist (fn _ => let val  (declaration as declaration1) = declaration1 ()
- in ((*#line 115.41 "tiger.grm"*)declaration :: [](*#line 848.1 "tiger.grm.sml"*)
+|  ( 39, ( ( _, ( MlyValue.declaration declaration1, declaration1left, declaration1right)) :: rest671)) => let val  result = MlyValue.declarationlist (fn _ => let val  (declaration as declaration1) = declaration1 ()
+ in ((*#line 116.41 "tiger.grm"*)declaration :: [](*#line 855.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 6, ( result, declaration1left, declaration1right), rest671)
 end
-|  ( 39, ( ( _, ( MlyValue.declaration declaration1, _, declaration1right)) :: ( _, ( MlyValue.declarationlist declarationlist1, declarationlist1left, _)) :: rest671)) => let val  result = MlyValue.declarationlist (fn _ => let val  (declarationlist as declarationlist1) = declarationlist1 ()
+|  ( 40, ( ( _, ( MlyValue.declaration declaration1, _, declaration1right)) :: ( _, ( MlyValue.declarationlist declarationlist1, declarationlist1left, _)) :: rest671)) => let val  result = MlyValue.declarationlist (fn _ => let val  (declarationlist as declarationlist1) = declarationlist1 ()
  val  (declaration as declaration1) = declaration1 ()
- in ((*#line 116.37 "tiger.grm"*)declaration :: declarationlist(*#line 854.1 "tiger.grm.sml"*)
+ in ((*#line 117.37 "tiger.grm"*)declaration :: declarationlist(*#line 861.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 6, ( result, declarationlist1left, declaration1right), rest671)
 end
-|  ( 40, ( ( _, ( MlyValue.tyDecs tyDecs1, tyDecs1left, tyDecs1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (tyDecs as tyDecs1) = tyDecs1 ()
- in ((*#line 118.40 "tiger.grm"*)A.TypeDec(rev tyDecs)(*#line 861.1 "tiger.grm.sml"*)
+|  ( 41, ( ( _, ( MlyValue.tyDecs tyDecs1, tyDecs1left, tyDecs1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (tyDecs as tyDecs1) = tyDecs1 ()
+ in ((*#line 119.40 "tiger.grm"*)A.TypeDec(rev tyDecs)(*#line 868.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 7, ( result, tyDecs1left, tyDecs1right), rest671)
 end
-|  ( 41, ( ( _, ( MlyValue.vardec vardec1, vardec1left, vardec1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (vardec as vardec1) = vardec1 ()
- in ((*#line 119.20 "tiger.grm"*)vardec(*#line 867.1 "tiger.grm.sml"*)
+|  ( 42, ( ( _, ( MlyValue.vardec vardec1, vardec1left, vardec1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (vardec as vardec1) = vardec1 ()
+ in ((*#line 120.20 "tiger.grm"*)vardec(*#line 874.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 7, ( result, vardec1left, vardec1right), rest671)
 end
-|  ( 42, ( ( _, ( MlyValue.funDecs funDecs1, funDecs1left, funDecs1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (funDecs as funDecs1) = funDecs1 ()
- in ((*#line 120.37 "tiger.grm"*)A.FunctionDec(rev funDecs)(*#line 873.1 "tiger.grm.sml"*)
+|  ( 43, ( ( _, ( MlyValue.funDecs funDecs1, funDecs1left, funDecs1right)) :: rest671)) => let val  result = MlyValue.declaration (fn _ => let val  (funDecs as funDecs1) = funDecs1 ()
+ in ((*#line 121.37 "tiger.grm"*)A.FunctionDec(rev funDecs)(*#line 880.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 7, ( result, funDecs1left, funDecs1right), rest671)
 end
-|  ( 43, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (VARleft as VAR1left), _)) :: rest671)) => let val  result = MlyValue.vardec (fn _ => let val  (ID as ID1) = ID1 ()
+|  ( 44, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (VARleft as VAR1left), _)) :: rest671)) => let val  result = MlyValue.vardec (fn _ => let val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 122.28 "tiger.grm"*)A.VarDec{name=Symbol.symbol ID, escape=ref true,
-                                        typ = Option.NONE, init=exp, pos=VARleft}(*#line 879.1 "tiger.grm.sml"*)
+ in ((*#line 123.28 "tiger.grm"*)A.VarDec{name=Symbol.symbol ID, escape=ref true,
+                                        typ = Option.NONE, init=exp, pos=VARleft}(*#line 886.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 14, ( result, VAR1left, exp1right), rest671)
 end
-|  ( 44, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (VARleft as VAR1left), _)) :: rest671)) => let val  result = MlyValue.vardec (fn _ => let val  ID1 = ID1 ()
+|  ( 45, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (VARleft as VAR1left), _)) :: rest671)) => let val  result = MlyValue.vardec (fn _ => let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 124.37 "tiger.grm"*)A.VarDec{name=Symbol.symbol ID1, escape=ref true,
-                                        typ = Option.SOME((Symbol.symbol ID2, ID2left)), init=exp, pos=VARleft}(*#line 887.1 "tiger.grm.sml"*)
+ in ((*#line 125.37 "tiger.grm"*)A.VarDec{name=Symbol.symbol ID1, escape=ref true,
+                                        typ = Option.SOME((Symbol.symbol ID2, ID2left)), init=exp, pos=VARleft}(*#line 894.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 14, ( result, VAR1left, exp1right), rest671)
 end
-|  ( 45, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: _ :: ( _, ( MlyValue.typefields typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  (ID as ID1) = ID1 ()
+|  ( 46, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: _ :: ( _, ( MlyValue.typefields typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  (ID as ID1) = ID1 ()
  val  (typefields as typefields1) = typefields1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 127.67 "tiger.grm"*){name = Symbol.symbol ID, params = (rev typefields),
+ in ((*#line 128.67 "tiger.grm"*){name = Symbol.symbol ID, params = (rev typefields),
 															result = NONE,
 															body = exp,
-															pos = FUNCTIONleft}: A.fundec(*#line 896.1 "tiger.grm.sml"*)
+															pos = FUNCTIONleft}: A.fundec(*#line 903.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 9, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 46, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: _ :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  (ID as ID1) = ID1 ()
+|  ( 47, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: _ :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 131.59 "tiger.grm"*){name = Symbol.symbol ID, params = [],
+ in ((*#line 132.59 "tiger.grm"*){name = Symbol.symbol ID, params = [],
 															result = NONE,
 															body = exp,
-															pos = FUNCTIONleft}: A.fundec(*#line 907.1 "tiger.grm.sml"*)
+															pos = FUNCTIONleft}: A.fundec(*#line 914.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 9, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 47, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: _ :: ( _, ( MlyValue.typefields typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  ID1 = ID1 ()
+|  ( 48, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: _ :: ( _, ( MlyValue.typefields typefields1, _, _)) :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  ID1 = ID1 ()
  val  (typefields as typefields1) = typefields1 ()
  val  ID2 = ID2 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 135.78 "tiger.grm"*){name = Symbol.symbol ID1, params = (rev typefields),
+ in ((*#line 136.78 "tiger.grm"*){name = Symbol.symbol ID1, params = (rev typefields),
 															result = SOME(Symbol.symbol ID2, ID2left),
 															body = exp,
-															pos = FUNCTIONleft}: A.fundec(*#line 917.1 "tiger.grm.sml"*)
+															pos = FUNCTIONleft}: A.fundec(*#line 924.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 9, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 48, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: _ :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  ID1 = ID1 ()
+|  ( 49, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID2, ID2left, _)) :: _ :: _ :: _ :: ( _, ( MlyValue.ID ID1, _, _)) :: ( _, ( _, (FUNCTIONleft as FUNCTION1left), _)) :: rest671)) => let val  result = MlyValue.functiondeclaration (fn _ => let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 139.67 "tiger.grm"*){name = Symbol.symbol ID1, params = [],
+ in ((*#line 140.67 "tiger.grm"*){name = Symbol.symbol ID1, params = [],
 															result = SOME(Symbol.symbol ID2, ID2left),
 															body = exp,
-															pos = FUNCTIONleft}: A.fundec(*#line 929.1 "tiger.grm.sml"*)
+															pos = FUNCTIONleft}: A.fundec(*#line 936.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 9, ( result, FUNCTION1left, exp1right), rest671)
 end
-|  ( 49, ( ( _, ( MlyValue.functiondeclaration functiondeclaration1, functiondeclaration1left, functiondeclaration1right)) :: rest671)) => let val  result = MlyValue.funDecs (fn _ => let val  (functiondeclaration as functiondeclaration1) = functiondeclaration1 ()
- in ((*#line 144.31 "tiger.grm"*)functiondeclaration :: [](*#line 940.1 "tiger.grm.sml"*)
+|  ( 50, ( ( _, ( MlyValue.functiondeclaration functiondeclaration1, functiondeclaration1left, functiondeclaration1right)) :: rest671)) => let val  result = MlyValue.funDecs (fn _ => let val  (functiondeclaration as functiondeclaration1) = functiondeclaration1 ()
+ in ((*#line 145.31 "tiger.grm"*)functiondeclaration :: [](*#line 947.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 13, ( result, functiondeclaration1left, functiondeclaration1right), rest671)
 end
-|  ( 50, ( ( _, ( MlyValue.functiondeclaration functiondeclaration1, _, functiondeclaration1right)) :: ( _, ( MlyValue.funDecs funDecs1, funDecs1left, _)) :: rest671)) => let val  result = MlyValue.funDecs (fn _ => let val  (funDecs as funDecs1) = funDecs1 ()
+|  ( 51, ( ( _, ( MlyValue.functiondeclaration functiondeclaration1, _, functiondeclaration1right)) :: ( _, ( MlyValue.funDecs funDecs1, funDecs1left, _)) :: rest671)) => let val  result = MlyValue.funDecs (fn _ => let val  (funDecs as funDecs1) = funDecs1 ()
  val  (functiondeclaration as functiondeclaration1) = functiondeclaration1 ()
- in ((*#line 145.39 "tiger.grm"*)functiondeclaration :: funDecs(*#line 946.1 "tiger.grm.sml"*)
+ in ((*#line 146.39 "tiger.grm"*)functiondeclaration :: funDecs(*#line 953.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 13, ( result, funDecs1left, functiondeclaration1right), rest671)
 end
-|  ( 51, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.field (fn _ => let val  (ID as ID1) = ID1 ()
+|  ( 52, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, (IDleft as ID1left), _)) :: rest671)) => let val  result = MlyValue.field (fn _ => let val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 147.31 "tiger.grm"*)(Symbol.symbol ID, exp, IDleft) :: [](*#line 953.1 "tiger.grm.sml"*)
+ in ((*#line 148.31 "tiger.grm"*)(Symbol.symbol ID, exp, IDleft) :: [](*#line 960.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 5, ( result, ID1left, exp1right), rest671)
 end
-|  ( 52, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, IDleft, _)) :: _ :: ( _, ( MlyValue.field field1, field1left, _)) :: rest671)) => let val  result = MlyValue.field (fn _ => let val  (field as field1) = field1 ()
+|  ( 53, ( ( _, ( MlyValue.exp exp1, _, exp1right)) :: _ :: ( _, ( MlyValue.ID ID1, IDleft, _)) :: _ :: ( _, ( MlyValue.field field1, field1left, _)) :: rest671)) => let val  result = MlyValue.field (fn _ => let val  (field as field1) = field1 ()
  val  (ID as ID1) = ID1 ()
  val  (exp as exp1) = exp1 ()
- in ((*#line 148.30 "tiger.grm"*)(Symbol.symbol ID, exp, IDleft) :: field(*#line 960.1 "tiger.grm.sml"*)
+ in ((*#line 149.30 "tiger.grm"*)(Symbol.symbol ID, exp, IDleft) :: field(*#line 967.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 5, ( result, field1left, exp1right), rest671)
 end
-|  ( 53, ( ( _, ( MlyValue.ty ty1, _, ty1right)) :: _ :: ( _, ( MlyValue.ID ID1, IDleft, _)) :: ( _, ( _, TYPE1left, _)) :: rest671)) => let val  result = MlyValue.typedeclaration (fn _ => let val  (ID as ID1) = ID1 ()
+|  ( 54, ( ( _, ( MlyValue.ty ty1, _, ty1right)) :: _ :: ( _, ( MlyValue.ID ID1, IDleft, _)) :: ( _, ( _, TYPE1left, _)) :: rest671)) => let val  result = MlyValue.typedeclaration (fn _ => let val  (ID as ID1) = ID1 ()
  val  (ty as ty1) = ty1 ()
- in ((*#line 150.33 "tiger.grm"*){name=Symbol.symbol ID, ty=ty, pos=IDleft}(*#line 968.1 "tiger.grm.sml"*)
+ in ((*#line 151.33 "tiger.grm"*){name=Symbol.symbol ID, ty=ty, pos=IDleft}(*#line 975.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 8, ( result, TYPE1left, ty1right), rest671)
 end
-|  ( 54, ( ( _, ( MlyValue.typedeclaration typedeclaration1, typedeclaration1left, typedeclaration1right)) :: rest671)) => let val  result = MlyValue.tyDecs (fn _ => let val  (typedeclaration as typedeclaration1) = typedeclaration1 ()
- in ((*#line 152.33 "tiger.grm"*)typedeclaration :: [](*#line 975.1 "tiger.grm.sml"*)
+|  ( 55, ( ( _, ( MlyValue.typedeclaration typedeclaration1, typedeclaration1left, typedeclaration1right)) :: rest671)) => let val  result = MlyValue.tyDecs (fn _ => let val  (typedeclaration as typedeclaration1) = typedeclaration1 ()
+ in ((*#line 153.33 "tiger.grm"*)typedeclaration :: [](*#line 982.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 12, ( result, typedeclaration1left, typedeclaration1right), rest671)
 end
-|  ( 55, ( ( _, ( MlyValue.typedeclaration typedeclaration1, _, typedeclaration1right)) :: ( _, ( MlyValue.tyDecs tyDecs1, tyDecs1left, _)) :: rest671)) => let val  result = MlyValue.tyDecs (fn _ => let val  (tyDecs as tyDecs1) = tyDecs1 ()
+|  ( 56, ( ( _, ( MlyValue.typedeclaration typedeclaration1, _, typedeclaration1right)) :: ( _, ( MlyValue.tyDecs tyDecs1, tyDecs1left, _)) :: rest671)) => let val  result = MlyValue.tyDecs (fn _ => let val  (tyDecs as tyDecs1) = tyDecs1 ()
  val  (typedeclaration as typedeclaration1) = typedeclaration1 ()
- in ((*#line 153.33 "tiger.grm"*)typedeclaration :: tyDecs(*#line 981.1 "tiger.grm.sml"*)
+ in ((*#line 154.33 "tiger.grm"*)typedeclaration :: tyDecs(*#line 988.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 12, ( result, tyDecs1left, typedeclaration1right), rest671)
 end
-|  ( 56, ( ( _, ( MlyValue.ID ID1, (IDleft as ID1left), ID1right)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (ID as ID1) = ID1 ()
- in ((*#line 155.34 "tiger.grm"*)A.NameTy(Symbol.symbol ID, IDleft)(*#line 988.1 "tiger.grm.sml"*)
+|  ( 57, ( ( _, ( MlyValue.ID ID1, (IDleft as ID1left), ID1right)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (ID as ID1) = ID1 ()
+ in ((*#line 156.34 "tiger.grm"*)A.NameTy(Symbol.symbol ID, IDleft)(*#line 995.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 15, ( result, ID1left, ID1right), rest671)
 end
-|  ( 57, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.typefields typefields1, _, _)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (typefields as typefields1) = typefields1 ()
- in ((*#line 156.34 "tiger.grm"*)A.RecordTy(rev typefields)(*#line 994.1 "tiger.grm.sml"*)
+|  ( 58, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( MlyValue.typefields typefields1, _, _)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (typefields as typefields1) = typefields1 ()
+ in ((*#line 157.34 "tiger.grm"*)A.RecordTy(rev typefields)(*#line 1001.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 15, ( result, LBRACE1left, RBRACE1right), rest671)
 end
-|  ( 58, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => ((*#line 157.34 "tiger.grm"*)A.RecordTy([])(*#line 1000.1 "tiger.grm.sml"*)
+|  ( 59, ( ( _, ( _, _, RBRACE1right)) :: ( _, ( _, LBRACE1left, _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => ((*#line 158.34 "tiger.grm"*)A.RecordTy([])(*#line 1007.1 "tiger.grm.sml"*)
 ))
  in ( LrTable.NT 15, ( result, LBRACE1left, RBRACE1right), rest671)
 end
-|  ( 59, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( _, (ARRAYleft as ARRAY1left), _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (ID as ID1) = ID1 ()
- in ((*#line 158.34 "tiger.grm"*)A.ArrayTy(Symbol.symbol ID, ARRAYleft)(*#line 1004.1 "tiger.grm.sml"*)
+|  ( 60, ( ( _, ( MlyValue.ID ID1, _, ID1right)) :: _ :: ( _, ( _, (ARRAYleft as ARRAY1left), _)) :: rest671)) => let val  result = MlyValue.ty (fn _ => let val  (ID as ID1) = ID1 ()
+ in ((*#line 159.34 "tiger.grm"*)A.ArrayTy(Symbol.symbol ID, ARRAYleft)(*#line 1011.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 15, ( result, ARRAY1left, ID1right), rest671)
 end
-|  ( 60, ( ( _, ( MlyValue.typefield typefield1, typefield1left, typefield1right)) :: rest671)) => let val  result = MlyValue.typefields (fn _ => let val  (typefield as typefield1) = typefield1 ()
- in ((*#line 160.42 "tiger.grm"*)typefield :: [](*#line 1010.1 "tiger.grm.sml"*)
+|  ( 61, ( ( _, ( MlyValue.typefield typefield1, typefield1left, typefield1right)) :: rest671)) => let val  result = MlyValue.typefields (fn _ => let val  (typefield as typefield1) = typefield1 ()
+ in ((*#line 161.42 "tiger.grm"*)typefield :: [](*#line 1017.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 11, ( result, typefield1left, typefield1right), rest671)
 end
-|  ( 61, ( ( _, ( MlyValue.typefield typefield1, _, typefield1right)) :: _ :: ( _, ( MlyValue.typefields typefields1, typefields1left, _)) :: rest671)) => let val  result = MlyValue.typefields (fn _ => let val  (typefields as typefields1) = typefields1 ()
+|  ( 62, ( ( _, ( MlyValue.typefield typefield1, _, typefield1right)) :: _ :: ( _, ( MlyValue.typefields typefields1, typefields1left, _)) :: rest671)) => let val  result = MlyValue.typefields (fn _ => let val  (typefields as typefields1) = typefields1 ()
  val  (typefield as typefield1) = typefield1 ()
- in ((*#line 161.42 "tiger.grm"*)typefield :: typefields(*#line 1016.1 "tiger.grm.sml"*)
+ in ((*#line 162.42 "tiger.grm"*)typefield :: typefields(*#line 1023.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 11, ( result, typefields1left, typefield1right), rest671)
 end
-|  ( 62, ( ( _, ( MlyValue.ID ID2, _, ID2right)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.typefield (fn _ => let val  ID1 = ID1 ()
+|  ( 63, ( ( _, ( MlyValue.ID ID2, _, ID2right)) :: _ :: ( _, ( MlyValue.ID ID1, ID1left, _)) :: rest671)) => let val  result = MlyValue.typefield (fn _ => let val  ID1 = ID1 ()
  val  ID2 = ID2 ()
- in ((*#line 163.25 "tiger.grm"*){name = Symbol.symbol ID1, escape = ref true, typ = Symbol.symbol ID2, pos = ID1left} : A.field(*#line 1023.1 "tiger.grm.sml"*)
+ in ((*#line 164.25 "tiger.grm"*){name = Symbol.symbol ID1, escape = ref true, typ = Symbol.symbol ID2, pos = ID1left} : A.field(*#line 1030.1 "tiger.grm.sml"*)
 )
 end)
  in ( LrTable.NT 10, ( result, ID1left, ID2right), rest671)

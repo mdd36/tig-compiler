@@ -107,6 +107,7 @@ lvaluebody: DOT ID lvaluebody            (Sym(Symbol.symbol ID, DOTleft) ::lvalu
 
 expseq:   exp                 ((exp, expleft) :: [])
 	  | expseq SEMICOLON exp    ((exp, expleft) :: expseq)
+	  |                        ([])
 
 
 explist:  exp           (exp :: [])

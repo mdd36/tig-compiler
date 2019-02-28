@@ -1,11 +1,1 @@
-/* error : second function uses variables local to the first one, undeclared variable */
-let
-
-function do_nothing1(a: int, b: string):int= a
-
-function do_nothing2(d: int):string =
-		(do_nothing1(d, "str");" ")
-
-in
-	do_nothing2(0, "str2")
-end
+()
