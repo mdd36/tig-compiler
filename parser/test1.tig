@@ -1,9 +1,11 @@
-/* arr1 is valid since expression 0 is int = myint */
+/* error : second function uses variables local to the first one, undeclared variable */
 let
-	type myint = int
-	type  arrtype = array of myint
 
-	var arr1:arrtype := arrtype [10] of 0
+function do_nothing1(a: int, b: string):int= a
+
+function do_nothing2(d: int):string =
+		(do_nothing1(d, "str");" ")
+
 in
-	arr1
+	do_nothing2(0, "str2")
 end
