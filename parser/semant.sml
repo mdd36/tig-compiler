@@ -23,7 +23,14 @@ struct
   val nestedBreak = ref 0;
   (*fun transProg(venv, tenv, root) = transExp(venv, tenv, root) (*TODO*)*)
 
-  fun checkSameType(ty1: Types.ty, ty2: Types.ty) = ty1 = ty2 orelse ty1 = Types.BOTTOM orelse ty2 = Types.BOTTOM
+  fun checkSameType(ty1: Types.ty, ty2: Types.ty) = case ty1 of  Types.BOTTOM => true
+															   | Types.NIL => (case ty2 of Types.RECORD(t,u) => true
+																					  | Types.BOTTOM => true
+																					  | _ =>false)
+																| Types.RECORD(t,u) => (case ty2 of Types.NIL => true
+																					  | Types.BOTTOM => true
+																					  | _ => ty1=ty2)
+																| _ => ty1=ty2 orelse ty2 = Types.BOTTOM
   fun checkLegacy(x: expty, y: expty) = checkSameType(#ty x, #ty y)
 
 
@@ -35,12 +42,14 @@ struct
         if  checkSameType(ty',Types.STRING) then true
         else (if print_ then print(Int.toString(pos)^": Error: Expected string token \n") else (); false)
 
-    fun actual_ty ty = case ty of Types.NAME(s,t) => actual_ty (valOf (!t))
-  								 |  _              => ty
+    
 
-	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => actual_ty t
+	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => t
 													  | NONE   => (print(Int.toString(pos)^": Error: No such type defined  " ^ Symbol.name s^"\n");
 																	Types.BOTTOM)
+	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => searchTy(tenv,s,pos)
+															| SOME typ => actual_ty (tenv,typ,pos))
+											|  _              => ty						
 	fun getRecordParam tenv {name=name, escape=escape, typ=typ, pos=pos} = (name, searchTy(tenv,typ,pos))
 
   fun transExp(venv, tenv, root) =
@@ -75,12 +84,13 @@ struct
         val l: expty = trexp left
         val r: expty = trexp right
       in
-        case actual_ty(#ty l) of
+        case actual_ty(tenv,(#ty l),pos) of
             Types.INT => if checkInt(r, pos, true) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
           | Types.STRING => if checkStr(r, pos, true) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
           | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
           | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-          | _ => (print(Int.toString(pos)^": Error: Cannont campare structures: can only compare int, string, record, and array types \n"); {exp=(), ty=Types.BOTTOM})
+          | Types.NIL => if checkSameType(Types.NIL, #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
+		  | _ => (print(Int.toString(pos)^": Error: Cannont campare structures: can only compare int, string, record, and array types \n"); {exp=(), ty=Types.BOTTOM})
       end
 
     and  trexp(A.IntExp i): expty = {exp=(), ty=Types.INT}
@@ -116,17 +126,17 @@ struct
                     val {exp=ee, ty=expTy} = trexp exp
                     val {exp=e, ty=varTy} = transVar(venv, tenv, var)
                 in
-                    if checkSameType(expTy, varTy) then {exp=(), ty = expTy}
+                    if checkSameType(expTy, varTy) then {exp=(), ty = varTy}
                     else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=(), ty=Types.BOTTOM})
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
                 case Symbol.look(tenv, typ) of
-                    SOME(t) => (case actual_ty(t) of
+                    SOME(t) => (case actual_ty(tenv,t,pos) of
                         Types.RECORD(fieldTypes, unique') =>
                         let
                             val reduced = map (fn(sym, {exp, ty}, pos) => {sym=sym, ty=ty, pos=pos}) (map (fn (sym, e, pos) => (sym, trexp e, pos)) fields)
                             val types = map (fn (head) => #ty head) reduced
-                            val actualTypes = map (fn x => #2 x) fieldTypes
+                            val actualTypes = map (fn x => actual_ty(tenv,#2 x,pos)) fieldTypes
 							val names = map (fn (head) => #sym head) reduced
                             val actualNames = map (fn x => #1 x) fieldTypes
                             fun f(t1, t2, head) = head andalso checkSameType(t1, t2)
@@ -166,7 +176,7 @@ struct
         |   trexp(A.ArrayExp{typ, size, init, pos}) = (
                 case S.look(tenv, typ) of
                     SOME(at) => (
-                        case actual_ty(at) of
+                        case actual_ty(tenv,at,pos) of
                             Types.ARRAY(t, u) =>
                                 if checkInt(trexp size, pos, true) andalso checkSameType(t, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
                                 else (print(Int.toString(pos)^": Error: Invalid array expression at pos \n"); {exp=(), ty=Types.BOTTOM})
@@ -192,21 +202,22 @@ struct
     in
       trexp(root)
     end
+
   	and  transTy(tenv,ty) =
-     case ty of A.NameTy(s, p) => Types.NAME(s, ref (SOME (searchTy(tenv,s,p))))
+     case ty of A.NameTy(s, p) => searchTy(tenv,s,p)
   			  | A.RecordTy(tl) => Types.RECORD(if tl=[] then [] else map (getRecordParam tenv) tl, ref (): Types.unique)
   		      | A.ArrayTy(s,p) => Types.ARRAY(searchTy(tenv,s,p), ref (): Types.unique )
     and transVar (venv, tenv, node): expty =
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
-  							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty ty}
+  							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty (tenv,ty,pos)}
                              | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^": Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^"\n"); {exp=(), ty=Types.BOTTOM})
   							 | NONE => (print(Int.toString(pos)^": Error: undefined variable " ^ Symbol.name id^"\n");
   										{exp = (), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
 							let val {exp = (), ty = ty} = trvar(v)
 							in
-								(case ty of Types.RECORD(stl, u) => let fun searchField ((s,t)::m) id = if s = id then actual_ty t else searchField m id
+								(case ty of Types.RECORD(stl, u) => let fun searchField ((s,t)::m) id = if s = id then actual_ty (tenv,t,pos) else searchField m id
 																		  | searchField nil id  = (print(Int.toString(pos)^": Error: Field name is not defined in the record: " ^ Symbol.name (id)^"\n");
 																								   Types.BOTTOM)
 																	in
@@ -221,7 +232,7 @@ struct
 							let val {exp = (), ty = ty} = trvar(v)
   							in
 								(case ty of Types.ARRAY(t, u) =>  (if checkInt(transExp (venv,tenv,exp), pos, true)
-																	then {exp = (), ty = actual_ty t}
+																	then {exp = (), ty = actual_ty (tenv,t,pos)}
 																	else (print(Int.toString(pos)^": Error: the index is not int "^"\n");
 																	{exp = (), ty = Types.BOTTOM}))
 											| _               => (print(Int.toString(pos)^": Error: Variable is not defined as an array: "^"\n");
@@ -235,21 +246,32 @@ struct
 
     (let val {exp = exp, ty = ty} = transExp(venv, tenv, init)
 		in
-		case typ
-			of SOME((s,p)) => if checkLegacy({exp=(), ty=searchTy (tenv,s,p)}, {exp=exp, ty=ty})
-									then {venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv}
-									else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
-										  {venv=venv,tenv=tenv})
-		     | NONE =>
-				{venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv}
+			case ty of Types.NIL => (case typ
+								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv=Symbol.enter(venv,name,Env.VarEntry{ty=Types.RECORD(tl,u)}), tenv=tenv}
+																							| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
+																											{venv=venv,tenv=tenv}))
+								 | NONE =>
+									(print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
+															  {venv=venv,tenv=tenv}))
+					| _ =>
+							(case typ
+								of SOME((s,p)) => if checkLegacy({exp=(), ty=searchTy (tenv,s,p)}, {exp=exp, ty=ty})
+														then {venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv}
+														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
+															  {venv=venv,tenv=tenv})
+								 | NONE =>
+									{venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv})
 
 		end
 		)
 
 	  | transDec (venv, tenv, A.TypeDec(l)) =
-			
-			{venv=venv,
-			 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,transTy(tenv,#2 a))) tenv (map (fn x => (#name x, #ty x)) l))}
+			let val ls = map (fn x => (#name x, #ty x)) l
+				val tenv' = foldl (fn (a,tenv) => Symbol.enter(tenv,#1 a,Types.NAME(#1 a, ref NONE))) tenv ls
+			in
+				{venv=venv,
+				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,transTy(tenv,#2 a))) tenv' ls)}
+			end
 
 	  | transDec (venv, tenv, A.FunctionDec(l)) =
 		let 

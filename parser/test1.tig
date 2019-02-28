@@ -1,1 +1,10 @@
-()
+/* valid rec comparisons */
+let 
+	type rectype = {name:string, id:int}
+	var b:rectype := nil
+in
+	b = nil;
+	nil=nil;
+	b <> nil;
+	nil = nil
+end
