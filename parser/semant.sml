@@ -246,9 +246,10 @@ struct
 		end
 		)
 
-	  | transDec (venv, tenv, A.TypeDec[{name,ty,pos}]) =
+	  | transDec (venv, tenv, A.TypeDec(l)) =
+			
 			{venv=venv,
-			 tenv=Symbol.enter(tenv,name,transTy(tenv,ty))}
+			 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,transTy(tenv,#2 a))) tenv (map (fn x => (#name x, #ty x)) l))}
 
 	  | transDec (venv, tenv, A.FunctionDec[{name,params,body,pos,result}]) =
 		let
