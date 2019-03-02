@@ -7,6 +7,7 @@ sig
   val empty : 'a table
   val enter : 'a table * symbol * 'a -> 'a table
   val look  : 'a table * symbol -> 'a option
+  val compare : symbol * symbol -> order
 end
 
 structure Symbol :> SYMBOL =
@@ -32,7 +33,7 @@ struct
 		  end
 
   fun name(s,n) = s
-
+  fun compare ((s1,n1),(s2,n2)) = if n1 > n2 then GREATER else if n1 = n2 then EQUAL else LESS
   structure Table = IntMapTable(type key = symbol
 				fun getInt(s,n) = n)
 
@@ -40,4 +41,5 @@ struct
   val empty = Table.empty
   val enter = Table.enter
   val look = Table.look
+  
 end

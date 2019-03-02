@@ -1,10 +1,9 @@
-/* valid rec comparisons */
+/* error: mutually recursive types thet do not pass through record or array */
 let 
-	type rectype = {name:string, id:int}
-	var b:rectype := nil
+
+type a=c
+type b=int
+
 in
-	b = nil;
-	nil=nil;
-	b <> nil;
-	nil = nil
+ ""
 end

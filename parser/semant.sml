@@ -1,5 +1,6 @@
 structure A = Absyn
-
+structure set =  RedBlackSetFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
+structure mymap =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
 structure Semant :
   sig
     type expty = {exp: Translate.exp, ty: Types.ty}
@@ -47,8 +48,9 @@ struct
 	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => t
 													  | NONE   => (print(Int.toString(pos)^": Error: No such type defined  " ^ Symbol.name s^"\n");
 																	Types.BOTTOM)
-	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => searchTy(tenv,s,pos)
+	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => actual_ty (tenv,searchTy(tenv,s,pos),pos)
 															| SOME typ => actual_ty (tenv,typ,pos))
+											| Types.ARRAY(t,u) => Types.ARRAY(actual_ty (tenv,t,pos),u)
 											|  _              => ty						
 	fun getRecordParam tenv {name=name, escape=escape, typ=typ, pos=pos} = (name, searchTy(tenv,typ,pos))
 
@@ -121,7 +123,7 @@ struct
                     {exp=(), ty=ty'}
                 end
 
-        |   trexp(A.AssignExp{var, exp, pos}) =
+        |   trexp(A.AssignExp{var, exp, pos}) = (*is assign unit?*)
                 let
                     val {exp=ee, ty=expTy} = trexp exp
                     val {exp=e, ty=varTy} = transVar(venv, tenv, var)
@@ -159,7 +161,7 @@ struct
             )
         |   trexp(A.SeqExp(exps)) =
 
-                if List.null exps then {exp=(), ty=Types.UNIT} else {exp=(), ty=(#ty (trexp (#1 (List.last exps))))}
+                if List.null exps then {exp=(), ty=Types.UNIT} else List.last (map (fn x => trexp (#1 x) ) exps)
 
         |   trexp(A.LetExp{decs, body, pos}) =
                 let
@@ -172,15 +174,15 @@ struct
                     val {exp=e,ty=bodyType} = transExp(venv',tenv', body)
                 in
                     {exp=(), ty=bodyType}
-                end (*need to deal with the venv and tenv scope*)
+                end 
         |   trexp(A.ArrayExp{typ, size, init, pos}) = (
                 case S.look(tenv, typ) of
                     SOME(at) => (
                         case actual_ty(tenv,at,pos) of
                             Types.ARRAY(t, u) =>
                                 if checkInt(trexp size, pos, true) andalso checkSameType(t, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
-                                else (print(Int.toString(pos)^": Error: Invalid array expression at pos \n"); {exp=(), ty=Types.BOTTOM})
-                            | _ => (print(Int.toString(pos)^": Error: Type mismatch at array exp at pos \n"); {exp=(), ty=Types.BOTTOM})
+                                else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=(), ty=Types.BOTTOM})
+                            | _ => (print(Int.toString(pos)^": Error: Type mismatch: "^Symbol.name typ ^"\n"); {exp=(), ty=Types.BOTTOM})
                         )
                 |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=(), ty=Types.BOTTOM})
             )
@@ -266,11 +268,24 @@ struct
 		)
 
 	  | transDec (venv, tenv, A.TypeDec(l)) =
-			let val ls = map (fn x => (#name x, #ty x)) l
-				val tenv' = foldl (fn (a,tenv) => Symbol.enter(tenv,#1 a,Types.NAME(#1 a, ref NONE))) tenv ls
+			let 
+				fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
+				val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
+				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (print(Int.toString(#pos a)^": Error: Type redifined " ^ Symbol.name (#name a)^"\n");
+																								Symbol.enter(tenv,#name a,Types.BOTTOM))
+																else Symbol.enter(tenv,#name a,Types.NAME(#name a, ref NONE))) tenv l
+				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#name a)) then tenv else Symbol.enter(tenv,#name a,transTy(tenv,#ty a))) tenv' l
+				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s) 
+																										then (print(Int.toString(pos)^": Error: Type decs deadlock " ^ Symbol.name a^"\n");
+																												Types.BOTTOM)
+																										else getRidOfCycle(a,(searchTy(tenv,s,pos),pos,set.add(visited,s)),tenv))
+																						| SOME typ => getRidOfCycle (a,(typ,pos,set.add(visited,s)),tenv))
+																| _ => ty)
+																
+				val ht = foldl (fn (a,b) => (#name a,getRidOfCycle(#name a,(transTy(tenv', #ty a), #pos a, set.add(set.empty,#name a)),tenv''))::b) [] l
 			in
 				{venv=venv,
-				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,transTy(tenv,#2 a))) tenv' ls)}
+				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,#2 a)) tenv'' ht)}
 			end
 
 	  | transDec (venv, tenv, A.FunctionDec(l)) =
