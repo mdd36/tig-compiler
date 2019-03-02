@@ -290,7 +290,7 @@ struct
 
 	  | transDec (venv, tenv, A.FunctionDec(l)) =
 		let 
-			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
+			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
 				let
 					val SOME(result_ty) = case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																									 | NONE => (print(Int.toString(pos)^": Error: Undefined return type " ^ Symbol.name rt^"\n");SOME Types.BOTTOM))
@@ -302,17 +302,32 @@ struct
 												  {name = name, ty = Types.BOTTOM})
 					val params' = map transparam params
 					val venv' = Symbol.enter(venv,name,Env.FunEntry{formals = map #ty params', result=result_ty})
+				in
+					{venv=venv',tenv=tenv}
+				end
+			val {venv=venv'',tenv=tenv} = foldl passHeader {venv=venv,tenv=tenv} l
+			
+			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
+				let
+					val SOME(result_ty) = (case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
+																									 | NONE => SOME Types.BOTTOM)
+													   | NONE => SOME Types.UNIT)
+					fun transparam {name, escape, typ, pos} =(
+											case Symbol.look(tenv,typ)
+												of SOME t => {name=name, ty=t}
+												| NONE =>  {name = name, ty = Types.BOTTOM})
+					val params' = map transparam params
 					fun enterparam ({name=name, ty=ty}, venv) =
 								Symbol.enter(venv,name,Env.VarEntry{ty=ty})
-					val venv'' = foldl enterparam venv' params'
+					val venv''' = foldl enterparam venv params'
 				in
-					if checkLegacy(transExp(venv'',tenv, body), {exp=(), ty=result_ty})
-									then {venv=venv',tenv=tenv}
+					if checkLegacy(transExp(venv''',tenv, body), {exp=(), ty=result_ty})
+									then {venv=venv,tenv=tenv}
 									else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
-											{venv=venv',tenv=tenv})
+											{venv=venv,tenv=tenv})
 
 				end
 		in
-			foldl oneFunc {venv=venv,tenv=tenv} l
+			foldl oneFunc {venv=venv'',tenv=tenv} l
 		end
 end
