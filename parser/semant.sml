@@ -1,6 +1,7 @@
 structure A = Absyn
 structure set =  RedBlackSetFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
 structure mymap =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
+structure forbiden =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
 structure Semant :
   sig
     type expty = {exp: Translate.exp, ty: Types.ty}
@@ -112,9 +113,9 @@ struct
                 end
         |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (nestedBreak := 1; checkSameType(Types.UNIT, #ty (trexp body))) then (nestedBreak := 0; {exp=(), ty=Types.UNIT})
                                                 else (nestedBreak := 0; print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=(), ty=Types.BOTTOM})
-        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (nestedBreak := 1; checkSameType(Types.UNIT, #ty (trexp body))) then(nestedBreak := 0; {exp=(), ty=Types.UNIT})
+        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (nestedBreak := 1; checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then(nestedBreak := 0; {exp=(), ty=Types.UNIT})
                                                     else (nestedBreak := 0; print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=(), ty=Types.BOTTOM})
-													(*check the var*)
+													
         |   trexp(A.BreakExp(pos)) = (if (!nestedBreak) = 0 then print(Int.toString(pos)^": Error: Unnested break statement \n") else ();{exp=(), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
@@ -123,13 +124,19 @@ struct
                     {exp=(), ty=ty'}
                 end
 
-        |   trexp(A.AssignExp{var, exp, pos}) = (*is assign unit?*)
+        |   trexp(A.AssignExp{var, exp, pos}) = 
                 let
                     val {exp=ee, ty=expTy} = trexp exp
                     val {exp=e, ty=varTy} = transVar(venv, tenv, var)
+					fun getName var = case var of A.SimpleVar(id, pos) => id
+												| A.FieldVar(v, id, pos) => getName v
+												| A.SubscriptVar(v, exp, pos) => getName v
                 in
-                    if checkSameType(expTy, varTy) then {exp=(), ty = varTy}
-                    else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=(), ty=Types.BOTTOM})
+					case Symbol.look(venv,getName var) of SOME(Env.VarEntry{ty,write}) => if write then (
+																								if checkSameType(expTy, varTy) then {exp=(), ty = varTy}
+																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=(), ty=Types.BOTTOM}))
+																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=(), ty=Types.BOTTOM})
+														| _ => {exp=(), ty=Types.BOTTOM}
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
                 case Symbol.look(tenv, typ) of
@@ -212,7 +219,7 @@ struct
     and transVar (venv, tenv, node): expty =
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
-  							of SOME(Env.VarEntry{ty}) => {exp = (), ty = actual_ty (tenv,ty,pos)}
+  							of SOME(Env.VarEntry{ty,write}) => {exp = (), ty = actual_ty (tenv,ty,pos)}
                              | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^": Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^"\n"); {exp=(), ty=Types.BOTTOM})
   							 | NONE => (print(Int.toString(pos)^": Error: undefined variable " ^ Symbol.name id^"\n");
   										{exp = (), ty = Types.BOTTOM}))
@@ -249,7 +256,7 @@ struct
     (let val {exp = exp, ty = ty} = transExp(venv, tenv, init)
 		in
 			case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv=Symbol.enter(venv,name,Env.VarEntry{ty=Types.RECORD(tl,u)}), tenv=tenv}
+								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv=Symbol.enter(venv,name,Env.VarEntry{ty=Types.RECORD(tl,u),write=true}), tenv=tenv}
 																							| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
 																											{venv=venv,tenv=tenv}))
 								 | NONE =>
@@ -258,11 +265,11 @@ struct
 					| _ =>
 							(case typ
 								of SOME((s,p)) => if checkLegacy({exp=(), ty=searchTy (tenv,s,p)}, {exp=exp, ty=ty})
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv}
+														then {venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true}), tenv=tenv}
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
 															  {venv=venv,tenv=tenv})
 								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty}), tenv=tenv})
+									{venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true}), tenv=tenv})
 
 		end
 		)
@@ -318,7 +325,7 @@ struct
 												| NONE =>  {name = name, ty = Types.BOTTOM})
 					val params' = map transparam params
 					fun enterparam ({name=name, ty=ty}, venv) =
-								Symbol.enter(venv,name,Env.VarEntry{ty=ty})
+								Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true})
 					val venv''' = foldl enterparam venv params'
 				in
 					if checkLegacy(transExp(venv''',tenv, body), {exp=(), ty=result_ty})
