@@ -22,7 +22,6 @@ struct
   type unique = unit ref
   val venv:venv = Env.base_venv
   val tenv:tenv = Env.base_tenv
-  val nestedBreak = ref 0;
   (*fun transProg(venv, tenv, root) = transExp(venv, tenv, root) (*TODO*)*)
 
   fun checkSameType(ty1: Types.ty, ty2: Types.ty) = case ty1 of  Types.BOTTOM => true
@@ -111,12 +110,12 @@ struct
                     if checkInt(trexp test, pos, true) andalso checkLegacy(expty', trexp(getOpt(else', A.SeqExp([])))) then {exp=(), ty=(#ty expty')}
                     else (print(Int.toString(pos)^": Error: Invalid if conditional statement \n"); {exp=(), ty=Types.BOTTOM})
                 end
-        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (nestedBreak := 1; checkSameType(Types.UNIT, #ty (trexp body))) then (nestedBreak := 0; {exp=(), ty=Types.UNIT})
-                                                else (nestedBreak := 0; print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=(), ty=Types.BOTTOM})
-        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (nestedBreak := 1; checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then(nestedBreak := 0; {exp=(), ty=Types.UNIT})
-                                                    else (nestedBreak := 0; print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=(), ty=Types.BOTTOM})
+        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then ({exp=(), ty=Types.UNIT})
+                                                else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=(), ty=Types.BOTTOM})
+        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then({exp=(), ty=Types.UNIT})
+                                                    else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=(), ty=Types.BOTTOM})
 													
-        |   trexp(A.BreakExp(pos)) = (if (!nestedBreak) = 0 then print(Int.toString(pos)^": Error: Unnested break statement \n") else ();{exp=(), ty=Types.BOTTOM})
+        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then () else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=(), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
                     val {exp=exp', ty=ty'} = transVar(venv, tenv, v)
@@ -133,7 +132,7 @@ struct
 												| A.SubscriptVar(v, exp, pos) => getName v
                 in
 					case Symbol.look(venv,getName var) of SOME(Env.VarEntry{ty,write}) => if write then (
-																								if checkSameType(expTy, varTy) then {exp=(), ty = varTy}
+																								if checkSameType(expTy, varTy) then {exp=(), ty = Types.UNIT}
 																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=(), ty=Types.BOTTOM}))
 																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=(), ty=Types.BOTTOM})
 														| _ => {exp=(), ty=Types.BOTTOM}

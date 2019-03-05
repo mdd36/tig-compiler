@@ -1,6 +1,4 @@
-for i := 1 to 100 do
- let
-    var i := i * i
- in
-    ()
- end  
+(for i := 1 to 100 do
+ (while 1 do (break);break);
+ break
+) 
