@@ -186,9 +186,9 @@ struct
                     SOME(at) => (
                         case actual_ty(tenv,at,pos) of
                             Types.ARRAY(t, u) =>
-                                if checkInt(trexp size, pos, true) andalso checkSameType(t, #ty (trexp init)) then {exp=(), ty=Types.ARRAY(t,u)}
+                                if checkInt(trexp size, pos, true) andalso checkSameType(actual_ty(tenv,t,pos), #ty (trexp init)) then {exp=(), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
                                 else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=(), ty=Types.BOTTOM})
-                            | _ => (print(Int.toString(pos)^": Error: Type mismatch: "^Symbol.name typ ^"\n"); {exp=(), ty=Types.BOTTOM})
+                            | _ => (print(Int.toString(pos)^": Error: Type mismatch (should be array type): "^Symbol.name typ ^"\n"); {exp=(), ty=Types.BOTTOM})
                         )
                 |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=(), ty=Types.BOTTOM})
             )
@@ -263,7 +263,7 @@ struct
 															  {venv=venv,tenv=tenv}))
 					| _ =>
 							(case typ
-								of SOME((s,p)) => if checkLegacy({exp=(), ty=searchTy (tenv,s,p)}, {exp=exp, ty=ty})
+								of SOME((s,p)) => if checkLegacy({exp=(), ty=actual_ty(tenv,searchTy (tenv,s,p),p)}, {exp=exp, ty=ty})
 														then {venv=Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true}), tenv=tenv}
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
 															  {venv=venv,tenv=tenv})
