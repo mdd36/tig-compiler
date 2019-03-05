@@ -298,9 +298,10 @@ struct
 		let 
 			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
 				let
-					val SOME(result_ty) = case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
+					val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																									 | NONE => (print(Int.toString(pos)^": Error: Undefined return type " ^ Symbol.name rt^"\n");SOME Types.BOTTOM))
-													   | NONE => SOME Types.UNIT
+														
+													   | NONE => SOME Types.UNIT)
 					fun transparam {name, escape, typ, pos} =
 											case Symbol.look(tenv,typ)
 												of SOME t => {name=name, ty=t}
@@ -315,7 +316,7 @@ struct
 			
 			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
 				let
-					val SOME(result_ty) = (case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
+					val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																									 | NONE => SOME Types.BOTTOM)
 													   | NONE => SOME Types.UNIT)
 					fun transparam {name, escape, typ, pos} =(
