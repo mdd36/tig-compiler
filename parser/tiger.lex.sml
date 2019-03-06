@@ -1,4 +1,4 @@
-structure Mlex  = struct
+functor TigerLexFun(structure Tokens: Tiger_TOKENS)  = struct
 
     structure yyInput : sig
 
@@ -103,7 +103,9 @@ FMT | STR | COMMENT | INITIAL
       struct
 
 type pos = int
-type lexresult = Tokens.token
+type svalue = Tokens.svalue
+type ('a,'b) token = ('a,'b) Tokens.token
+type lexresult= (svalue,pos) token
 val s=ref ""
 val comment_nest = ref 0
 val last_open_comment = ref ~1
