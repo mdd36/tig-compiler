@@ -1,4 +1,4 @@
-/* define a recursive function */
+/* define valid mutually recursive procedures */
 let
     type rec = {a:int, b:string, c: int}
     var myRec := rec{a=1, b="hello", c=0, d=9}
