@@ -1,12 +1,12 @@
-/* define a recursive function */
+/* define valid mutually recursive procedures */
 let
 
-/* calculate n! */
-function nfactor(n: int): int =
-		if  n = 0 
-			then 1
-			else n * nfactor(n-1)
+function do_nothing1(a: int, b: string)=
+		do_nothing2(a+1)
+
+function do_nothing2(d: int) =
+		do_nothing1(d, "str")
 
 in
-	nfactor(10)
+	do_nothing1(0, "str2")
 end

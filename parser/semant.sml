@@ -204,7 +204,7 @@ struct
                                                     {exp=(), ty=Types.BOTTOM})
                     end
                 |   SOME(Env.VarEntry(_)) => (print(Int.toString(pos)^": Error: Expected a function idenifier, found a variable: pos \n");{exp=() ,ty=Types.BOTTOM})
-                |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ "\n"); {exp=(), ty=Types.BOTTOM})
+                |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ Symbol.name func^"\n"); {exp=(), ty=Types.BOTTOM})
 
             )
     in
@@ -296,44 +296,52 @@ struct
 
 	  | transDec (venv, tenv, A.FunctionDec(l)) =
 		let 
+			fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
+			val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
 			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
-				let
-					val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
-																									 | NONE => (print(Int.toString(pos)^": Error: Undefined return type " ^ Symbol.name rt^"\n");SOME Types.BOTTOM))
-														
-													   | NONE => SOME Types.UNIT)
-					fun transparam {name, escape, typ, pos} =
-											case Symbol.look(tenv,typ)
-												of SOME t => {name=name, ty=t}
-												| NONE => (print(Int.toString(pos)^": Error: Undefined parameter type " ^ Symbol.name name^"\n");
-												  {name = name, ty = Types.BOTTOM})
-					val params' = map transparam params
-					val venv' = Symbol.enter(venv,name,Env.FunEntry{formals = map #ty params', result=result_ty})
-				in
-					{venv=venv',tenv=tenv}
-				end
+				if valOf(mymap.find(namemap,name)) then (print(Int.toString(pos)^": Error: Function name redefined " ^ Symbol.name name^"\n");{venv=venv,tenv=tenv})
+				else (
+					let
+						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
+																										 | NONE => (print(Int.toString(pos)^": Error: Undefined return type " ^ Symbol.name rt^"\n");SOME Types.BOTTOM))
+															
+														   | NONE => SOME Types.UNIT)
+						fun transparam {name, escape, typ, pos} =
+												case Symbol.look(tenv,typ)
+													of SOME t => {name=name, ty=t}
+													| NONE => (print(Int.toString(pos)^": Error: Undefined parameter type " ^ Symbol.name name^"\n");
+													  {name = name, ty = Types.BOTTOM})
+						val params' = map transparam params
+						val venv' = Symbol.enter(venv,name,Env.FunEntry{formals = map #ty params', result=result_ty})
+					in
+						{venv=venv',tenv=tenv}
+					end
+				)
 			val {venv=venv'',tenv=tenv} = foldl passHeader {venv=venv,tenv=tenv} l
 			
 			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
-				let
-					val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
-																									 | NONE => SOME Types.BOTTOM)
-													   | NONE => SOME Types.UNIT)
-					fun transparam {name, escape, typ, pos} =(
-											case Symbol.look(tenv,typ)
-												of SOME t => {name=name, ty=t}
-												| NONE =>  {name = name, ty = Types.BOTTOM})
-					val params' = map transparam params
-					fun enterparam ({name=name, ty=ty}, venv) =
-								Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true})
-					val venv''' = foldl enterparam venv params'
-				in
-					if checkLegacy(transExp(venv''',tenv, body), {exp=(), ty=result_ty})
-									then {venv=venv,tenv=tenv}
-									else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
-											{venv=venv,tenv=tenv})
+				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv}
+				else (
+					let
+						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
+																										 | NONE => SOME Types.BOTTOM)
+														   | NONE => SOME Types.UNIT)
+						fun transparam {name, escape, typ, pos} =(
+												case Symbol.look(tenv,typ)
+													of SOME t => {name=name, ty=t}
+													| NONE =>  {name = name, ty = Types.BOTTOM})
+						val params' = map transparam params
+						fun enterparam ({name=name, ty=ty}, venv) =
+									Symbol.enter(venv,name,Env.VarEntry{ty=ty,write=true})
+						val venv''' = foldl enterparam venv params'
+					in
+						if checkLegacy(transExp(venv''',tenv, body), {exp=(), ty=result_ty})
+										then {venv=venv,tenv=tenv}
+										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
+												{venv=venv,tenv=tenv})
 
-				end
+					end
+				)
 		in
 			foldl oneFunc {venv=venv'',tenv=tenv} l
 		end
