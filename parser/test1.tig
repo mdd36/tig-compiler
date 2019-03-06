@@ -1,6 +1,8 @@
-/* error : formals are fewer then actuals */
-let
-	function g (a:int , b:string):int = a
+/* error: syntax error, nil should not be preceded by type-id.  */
+let 
+	type rectype = {name:string, id:int}
+
+	var a:= rectype nil
 in
-	g(3,"one",5)
+	a
 end
