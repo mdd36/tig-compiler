@@ -23,7 +23,7 @@ struct
   val venv:venv = Env.base_venv
   val tenv:tenv = Env.base_tenv
   (*fun transProg(venv, tenv, root) = transExp(venv, tenv, root) (*TODO*)*)
-
+	
   fun checkSameType(ty1: Types.ty, ty2: Types.ty) = case ty1 of  Types.BOTTOM => true
 															   | Types.NIL => (case ty2 of Types.RECORD(t,u) => true
 																					  | Types.BOTTOM => true
@@ -150,15 +150,17 @@ struct
                             fun f(t1, t2, head) = head andalso checkSameType(t1, t2)
 							fun g(t1:Symbol.symbol, t2:Symbol.symbol, head) = head andalso (t1=t2)
                         in
-                            if ListPair.foldr f true (types, actualTypes)   
-							then (if ListPair.foldr g true (names, actualNames) 
-									then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
-									else (print(Int.toString(pos)^": Error: Record assignment field name unmatched error \n");
-										{exp=(), ty=Types.BOTTOM})
-									)
-                            else (print(Int.toString(pos)^": Error: Record assignment type error \n");
-                                 {exp=(), ty=Types.BOTTOM})
-                            handle ListPair.UnequalLengths => (print(Int.toString(pos)^": Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^"\n");
+							if (length types) = (length actualTypes) then (
+								if ListPair.foldr f true (types, actualTypes)   
+								then (if ListPair.foldr g true (names, actualNames) 
+										then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
+										else (print(Int.toString(pos)^": Error: Record assignment field name unmatched error \n");
+											{exp=(), ty=Types.BOTTOM})
+										)
+								else (print(Int.toString(pos)^": Error: Record assignment type error \n");
+									 {exp=(), ty=Types.BOTTOM}))
+									 
+							else (print(Int.toString(pos)^": Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^"\n");
                                                             {exp=(), ty=Types.BOTTOM})
                         end
                     |   _ => (print(Int.toString(pos)^": Error: Type mismatch in record usage \n"); {exp=(), ty=Types.BOTTOM}))
@@ -197,11 +199,14 @@ struct
                     SOME(Env.FunEntry{formals, result}) =>
                     let
                         fun f(ty1, ty2, res) = res andalso checkSameType(ty1, ty2)
+						val args' = map (fn x => #ty (trexp x)) args
                     in
-                        if (ListPair.foldr f true (formals, map (fn x => #ty (trexp x)) args)) then {exp=(), ty=result}
-                        else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=(), ty=Types.BOTTOM})
-                        handle ListPair.UnequalLengths =>    (print(Int.toString(pos) ^": Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^"\n");
+						if (length args' = length formals) then (
+							if (ListPair.foldr f true (formals, args' )) then {exp=(), ty=result}
+							else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=(), ty=Types.BOTTOM}))
+							else (print(Int.toString(pos) ^": Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^"\n");
                                                     {exp=(), ty=Types.BOTTOM})
+						
                     end
                 |   SOME(Env.VarEntry(_)) => (print(Int.toString(pos)^": Error: Expected a function idenifier, found a variable: pos \n");{exp=() ,ty=Types.BOTTOM})
                 |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ Symbol.name func^"\n"); {exp=(), ty=Types.BOTTOM})
@@ -280,7 +285,8 @@ struct
 				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (print(Int.toString(#pos a)^": Error: Type redifined " ^ Symbol.name (#name a)^"\n");
 																								Symbol.enter(tenv,#name a,Types.BOTTOM))
 																else Symbol.enter(tenv,#name a,Types.NAME(#name a, ref NONE))) tenv l
-				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#name a)) then tenv else Symbol.enter(tenv,#name a,transTy(tenv,#ty a))) tenv' l
+				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (#name a,Types.BOTTOM,#pos a) else (#name a, transTy(tenv',#ty a),#pos a)) l							
+				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#1 a)) then tenv else Symbol.enter(tenv,#1 a,#2 a)) tenv' l'
 				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s) 
 																										then (print(Int.toString(pos)^": Error: Type decs deadlock " ^ Symbol.name a^"\n");
 																												Types.BOTTOM)
@@ -288,7 +294,7 @@ struct
 																						| SOME typ => getRidOfCycle (a,(typ,pos,set.add(visited,s)),tenv))
 																| _ => ty)
 																
-				val ht = foldl (fn (a,b) => (#name a,getRidOfCycle(#name a,(transTy(tenv', #ty a), #pos a, set.add(set.empty,#name a)),tenv''))::b) [] l
+				val ht = foldl (fn (a,b) => (#1 a,getRidOfCycle(#1 a,(#2 a, #3 a, set.add(set.empty,#1 a)),tenv''))::b) [] l'
 			in
 				{venv=venv,
 				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,#2 a)) tenv'' ht)}
