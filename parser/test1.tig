@@ -1,7 +1,6 @@
-/* define valid mutually recursive procedures */
+/* error : formals are fewer then actuals */
 let
-    type rec = {a:int, b:string, c: int}
-    var myRec := rec{a=1, b="hello", c=0, d=9}
+	function g (a:int , b:string):int = a
 in
-    myRec
+	g(3,"one",5)
 end
