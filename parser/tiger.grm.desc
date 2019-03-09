@@ -200,7 +200,7 @@ state 10:
 	lvalue	goto 1
 	expseq	goto 41
 
-	.	error
+	.	reduce by rule 36
 
 
 state 11:
@@ -527,62 +527,62 @@ state 26:
 
 state 27:
 
-	declaration : vardec .  (reduce by rule 41)
+	declaration : vardec .  (reduce by rule 42)
 
 
 
-	.	reduce by rule 41
+	.	reduce by rule 42
 
 
 state 28:
 
-	declaration : funDecs .  (reduce by rule 42)
+	declaration : funDecs .  (reduce by rule 43)
 	funDecs : funDecs . functiondeclaration 
 
 	FUNCTION	shift 36
 
 	functiondeclaration	goto 61
 
-	.	reduce by rule 42
+	.	reduce by rule 43
 
 
 state 29:
 
-	declaration : tyDecs .  (reduce by rule 40)
+	declaration : tyDecs .  (reduce by rule 41)
 	tyDecs : tyDecs . typedeclaration 
 
 	TYPE	shift 34
 
 	typedeclaration	goto 62
 
-	.	reduce by rule 40
+	.	reduce by rule 41
 
 
 state 30:
 
-	funDecs : functiondeclaration .  (reduce by rule 49)
+	funDecs : functiondeclaration .  (reduce by rule 50)
 
 
 
-	.	reduce by rule 49
+	.	reduce by rule 50
 
 
 state 31:
 
-	tyDecs : typedeclaration .  (reduce by rule 54)
+	tyDecs : typedeclaration .  (reduce by rule 55)
 
 
 
-	.	reduce by rule 54
+	.	reduce by rule 55
 
 
 state 32:
 
-	declarationlist : declaration .  (reduce by rule 38)
+	declarationlist : declaration .  (reduce by rule 39)
 
 
 
-	.	reduce by rule 38
+	.	reduce by rule 39
 
 
 state 33:
@@ -1300,29 +1300,29 @@ state 60:
 
 state 61:
 
-	funDecs : funDecs functiondeclaration .  (reduce by rule 50)
+	funDecs : funDecs functiondeclaration .  (reduce by rule 51)
 
 
 
-	.	reduce by rule 50
+	.	reduce by rule 51
 
 
 state 62:
 
-	tyDecs : tyDecs typedeclaration .  (reduce by rule 55)
+	tyDecs : tyDecs typedeclaration .  (reduce by rule 56)
 
 
 
-	.	reduce by rule 55
+	.	reduce by rule 56
 
 
 state 63:
 
-	declarationlist : declarationlist declaration .  (reduce by rule 39)
+	declarationlist : declarationlist declaration .  (reduce by rule 40)
 
 
 
-	.	reduce by rule 39
+	.	reduce by rule 40
 
 
 state 64:
@@ -1345,7 +1345,7 @@ state 64:
 	lvalue	goto 1
 	expseq	goto 80
 
-	.	error
+	.	reduce by rule 36
 
 
 state 65:
@@ -1576,7 +1576,7 @@ state 78:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	explist : exp .  (reduce by rule 36)
+	explist : exp .  (reduce by rule 37)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -1592,7 +1592,7 @@ state 78:
 	OR	shift 15
 
 
-	.	reduce by rule 36
+	.	reduce by rule 37
 
 
 state 79:
@@ -1940,11 +1940,11 @@ state 97:
 
 state 98:
 
-	typedeclaration : TYPE ID EQ ty .  (reduce by rule 53)
+	typedeclaration : TYPE ID EQ ty .  (reduce by rule 54)
 
 
 
-	.	reduce by rule 53
+	.	reduce by rule 54
 
 
 state 99:
@@ -1973,11 +1973,11 @@ state 100:
 
 state 101:
 
-	ty : ID .  (reduce by rule 56)
+	ty : ID .  (reduce by rule 57)
 
 
 
-	.	reduce by rule 56
+	.	reduce by rule 57
 
 
 state 102:
@@ -1994,7 +1994,7 @@ state 102:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	vardec : VAR ID ASSIGN exp .  (reduce by rule 43)
+	vardec : VAR ID ASSIGN exp .  (reduce by rule 44)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2010,7 +2010,7 @@ state 102:
 	OR	shift 15
 
 
-	.	reduce by rule 43
+	.	reduce by rule 44
 
 
 state 103:
@@ -2038,11 +2038,11 @@ state 104:
 
 state 105:
 
-	typefields : typefield .  (reduce by rule 60)
+	typefields : typefield .  (reduce by rule 61)
 
 
 
-	.	reduce by rule 60
+	.	reduce by rule 61
 
 
 state 106:
@@ -2169,7 +2169,7 @@ state 112:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	field : ID EQ exp .  (reduce by rule 51)
+	field : ID EQ exp .  (reduce by rule 52)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2185,7 +2185,7 @@ state 112:
 	OR	shift 15
 
 
-	.	reduce by rule 51
+	.	reduce by rule 52
 
 
 state 113:
@@ -2233,7 +2233,7 @@ state 115:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	explist : explist COMMA exp .  (reduce by rule 37)
+	explist : explist COMMA exp .  (reduce by rule 38)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2249,7 +2249,7 @@ state 115:
 	OR	shift 15
 
 
-	.	reduce by rule 37
+	.	reduce by rule 38
 
 
 state 116:
@@ -2276,11 +2276,11 @@ state 117:
 
 state 118:
 
-	ty : LBRACE RBRACE .  (reduce by rule 58)
+	ty : LBRACE RBRACE .  (reduce by rule 59)
 
 
 
-	.	reduce by rule 58
+	.	reduce by rule 59
 
 
 state 119:
@@ -2506,20 +2506,20 @@ state 129:
 
 state 130:
 
-	ty : ARRAY OF ID .  (reduce by rule 59)
+	ty : ARRAY OF ID .  (reduce by rule 60)
 
 
 
-	.	reduce by rule 59
+	.	reduce by rule 60
 
 
 state 131:
 
-	ty : LBRACE typefields RBRACE .  (reduce by rule 57)
+	ty : LBRACE typefields RBRACE .  (reduce by rule 58)
 
 
 
-	.	reduce by rule 57
+	.	reduce by rule 58
 
 
 state 132:
@@ -2536,7 +2536,7 @@ state 132:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	vardec : VAR ID COLON ID ASSIGN exp .  (reduce by rule 44)
+	vardec : VAR ID COLON ID ASSIGN exp .  (reduce by rule 45)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2552,7 +2552,7 @@ state 132:
 	OR	shift 15
 
 
-	.	reduce by rule 44
+	.	reduce by rule 45
 
 
 state 133:
@@ -2589,11 +2589,11 @@ state 134:
 
 state 135:
 
-	typefields : typefields COMMA typefield .  (reduce by rule 61)
+	typefields : typefields COMMA typefield .  (reduce by rule 62)
 
 
 
-	.	reduce by rule 61
+	.	reduce by rule 62
 
 
 state 136:
@@ -2610,7 +2610,7 @@ state 136:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	functiondeclaration : FUNCTION ID LPAREN RPAREN EQ exp .  (reduce by rule 46)
+	functiondeclaration : FUNCTION ID LPAREN RPAREN EQ exp .  (reduce by rule 47)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2626,7 +2626,7 @@ state 136:
 	OR	shift 15
 
 
-	.	reduce by rule 46
+	.	reduce by rule 47
 
 
 state 137:
@@ -2641,11 +2641,11 @@ state 137:
 
 state 138:
 
-	typefield : ID COLON ID .  (reduce by rule 62)
+	typefield : ID COLON ID .  (reduce by rule 63)
 
 
 
-	.	reduce by rule 62
+	.	reduce by rule 63
 
 
 state 139:
@@ -2684,7 +2684,7 @@ state 140:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	field : field COMMA ID EQ exp .  (reduce by rule 52)
+	field : field COMMA ID EQ exp .  (reduce by rule 53)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2700,7 +2700,7 @@ state 140:
 	OR	shift 15
 
 
-	.	reduce by rule 52
+	.	reduce by rule 53
 
 
 state 141:
@@ -2717,7 +2717,7 @@ state 141:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN EQ exp .  (reduce by rule 45)
+	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN EQ exp .  (reduce by rule 46)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2733,7 +2733,7 @@ state 141:
 	OR	shift 15
 
 
-	.	reduce by rule 45
+	.	reduce by rule 46
 
 
 state 142:
@@ -2837,7 +2837,40 @@ state 146:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	functiondeclaration : FUNCTION ID LPAREN RPAREN COLON ID EQ exp .  (reduce by rule 48)
+	functiondeclaration : FUNCTION ID LPAREN RPAREN COLON ID EQ exp .  (reduce by rule 49)
+
+	PLUS	shift 26
+	MINUS	shift 25
+	TIMES	shift 24
+	DIVIDE	shift 23
+	EQ	shift 22
+	NEQ	shift 21
+	LT	shift 20
+	LE	shift 19
+	GT	shift 18
+	GE	shift 17
+	AND	shift 16
+	OR	shift 15
+
+
+	.	reduce by rule 49
+
+
+state 147:
+
+	exp : exp . PLUS exp 
+	exp : exp . MINUS exp 
+	exp : exp . TIMES exp 
+	exp : exp . DIVIDE exp 
+	exp : exp . AND exp 
+	exp : exp . OR exp 
+	exp : exp . EQ exp 
+	exp : exp . NEQ exp 
+	exp : exp . LT exp 
+	exp : exp . LE exp 
+	exp : exp . GT exp 
+	exp : exp . GE exp 
+	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp .  (reduce by rule 48)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2856,39 +2889,6 @@ state 146:
 	.	reduce by rule 48
 
 
-state 147:
-
-	exp : exp . PLUS exp 
-	exp : exp . MINUS exp 
-	exp : exp . TIMES exp 
-	exp : exp . DIVIDE exp 
-	exp : exp . AND exp 
-	exp : exp . OR exp 
-	exp : exp . EQ exp 
-	exp : exp . NEQ exp 
-	exp : exp . LT exp 
-	exp : exp . LE exp 
-	exp : exp . GT exp 
-	exp : exp . GE exp 
-	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN COLON ID EQ exp .  (reduce by rule 47)
-
-	PLUS	shift 26
-	MINUS	shift 25
-	TIMES	shift 24
-	DIVIDE	shift 23
-	EQ	shift 22
-	NEQ	shift 21
-	LT	shift 20
-	LE	shift 19
-	GT	shift 18
-	GE	shift 17
-	AND	shift 16
-	OR	shift 15
-
-
-	.	reduce by rule 47
-
-
 state 148:
 
 
@@ -2897,5 +2897,5 @@ state 148:
 
 	.	error
 
-549 of 1107 action table entries left after compaction
+560 of 1107 action table entries left after compaction
 108 goto table entries
