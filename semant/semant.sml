@@ -1,7 +1,7 @@
 structure A = Absyn
-structure set =  RedBlackSetFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
-structure mymap =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
-structure forbiden =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare) 
+structure set =  RedBlackSetFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
+structure mymap =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
+structure forbiden =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
 structure Semant :
   sig
     type expty = {exp: Translate.exp, ty: Types.ty}
@@ -23,7 +23,7 @@ struct
   val venv:venv = Env.base_venv
   val tenv:tenv = Env.base_tenv
   (*fun transProg(venv, tenv, root) = transExp(venv, tenv, root) (*TODO*)*)
-	
+
   fun checkSameType(ty1: Types.ty, ty2: Types.ty) = case ty1 of  Types.BOTTOM => true
 															   | Types.NIL => (case ty2 of Types.RECORD(t,u) => true
 																					  | Types.BOTTOM => true
@@ -43,7 +43,7 @@ struct
         if  checkSameType(ty',Types.STRING) then true
         else (if print_ then print(Int.toString(pos)^": Error: Expected string token \n") else (); false)
 
-    
+
 
 	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => t
 													  | NONE   => (print(Int.toString(pos)^": Error: No such type defined  " ^ Symbol.name s^"\n");
@@ -51,7 +51,7 @@ struct
 	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => actual_ty (tenv,searchTy(tenv,s,pos),pos)
 															| SOME typ => actual_ty (tenv,typ,pos))
 											| Types.ARRAY(t,u) => Types.ARRAY(actual_ty (tenv,t,pos),u)
-											|  _              => ty						
+											|  _              => ty
 	fun getRecordParam tenv {name=name, escape=escape, typ=typ, pos=pos} = (name, searchTy(tenv,typ,pos))
 
   fun transExp(venv, tenv, root) =
@@ -114,7 +114,7 @@ struct
                                                 else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=(), ty=Types.BOTTOM})
         |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then({exp=(), ty=Types.UNIT})
                                                     else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=(), ty=Types.BOTTOM})
-													
+
         |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then () else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=(), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
@@ -123,7 +123,7 @@ struct
                     {exp=(), ty=ty'}
                 end
 
-        |   trexp(A.AssignExp{var, exp, pos}) = 
+        |   trexp(A.AssignExp{var, exp, pos}) =
                 let
                     val {exp=ee, ty=expTy} = trexp exp
                     val {exp=e, ty=varTy} = transVar(venv, tenv, var)
@@ -151,15 +151,15 @@ struct
 							fun g(t1:Symbol.symbol, t2:Symbol.symbol, head) = head andalso (t1=t2)
                         in
 							if (length types) = (length actualTypes) then (
-								if ListPair.foldr f true (types, actualTypes)   
-								then (if ListPair.foldr g true (names, actualNames) 
+								if ListPair.foldr f true (types, actualTypes)
+								then (if ListPair.foldr g true (names, actualNames)
 										then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
 										else (print(Int.toString(pos)^": Error: Record assignment field name unmatched error \n");
 											{exp=(), ty=Types.BOTTOM})
 										)
 								else (print(Int.toString(pos)^": Error: Record assignment type error \n");
 									 {exp=(), ty=Types.BOTTOM}))
-									 
+
 							else (print(Int.toString(pos)^": Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^"\n");
                                                             {exp=(), ty=Types.BOTTOM})
                         end
@@ -182,7 +182,7 @@ struct
                     val {exp=e,ty=bodyType} = transExp(venv',tenv', body)
                 in
                     {exp=(), ty=bodyType}
-                end 
+                end
         |   trexp(A.ArrayExp{typ, size, init, pos}) = (
                 case S.look(tenv, typ) of
                     SOME(at) => (
@@ -206,7 +206,7 @@ struct
 							else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=(), ty=Types.BOTTOM}))
 							else (print(Int.toString(pos) ^": Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^"\n");
                                                     {exp=(), ty=Types.BOTTOM})
-						
+
                     end
                 |   SOME(Env.VarEntry(_)) => (print(Int.toString(pos)^": Error: Expected a function idenifier, found a variable: pos \n");{exp=() ,ty=Types.BOTTOM})
                 |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ Symbol.name func^"\n"); {exp=(), ty=Types.BOTTOM})
@@ -279,21 +279,21 @@ struct
 		)
 
 	  | transDec (venv, tenv, A.TypeDec(l)) =
-			let 
+			let
 				fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 				val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
 				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (print(Int.toString(#pos a)^": Error: Type redifined " ^ Symbol.name (#name a)^"\n");
 																								Symbol.enter(tenv,#name a,Types.BOTTOM))
 																else Symbol.enter(tenv,#name a,Types.NAME(#name a, ref NONE))) tenv l
-				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (#name a,Types.BOTTOM,#pos a) else (#name a, transTy(tenv',#ty a),#pos a)) l							
+				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (#name a,Types.BOTTOM,#pos a) else (#name a, transTy(tenv',#ty a),#pos a)) l
 				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#1 a)) then tenv else Symbol.enter(tenv,#1 a,#2 a)) tenv' l'
-				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s) 
+				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s)
 																										then (print(Int.toString(pos)^": Error: Type decs deadlock " ^ Symbol.name a^"\n");
 																												Types.BOTTOM)
 																										else getRidOfCycle(a,(searchTy(tenv,s,pos),pos,set.add(visited,s)),tenv))
 																						| SOME typ => getRidOfCycle (a,(typ,pos,set.add(visited,s)),tenv))
 																| _ => ty)
-																
+
 				val ht = foldl (fn (a,b) => (#1 a,getRidOfCycle(#1 a,(#2 a, #3 a, set.add(set.empty,#1 a)),tenv''))::b) [] l'
 			in
 				{venv=venv,
@@ -301,7 +301,7 @@ struct
 			end
 
 	  | transDec (venv, tenv, A.FunctionDec(l)) =
-		let 
+		let
 			fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 			val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
 			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
@@ -310,7 +310,7 @@ struct
 					let
 						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																										 | NONE => (print(Int.toString(pos)^": Error: Undefined return type " ^ Symbol.name rt^"\n");SOME Types.BOTTOM))
-															
+
 														   | NONE => SOME Types.UNIT)
 						fun transparam {name, escape, typ, pos} =
 												case Symbol.look(tenv,typ)
@@ -324,7 +324,7 @@ struct
 					end
 				)
 			val {venv=venv'',tenv=tenv} = foldl passHeader {venv=venv,tenv=tenv} l
-			
+
 			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
 				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv}
 				else (
