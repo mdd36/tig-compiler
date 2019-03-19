@@ -2,11 +2,14 @@ structure A = Absyn
 structure set =  RedBlackSetFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
 structure mymap =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
 structure forbiden =  RedBlackMapFn(type ord_key=Symbol.symbol val compare=Symbol.compare)
+structure TR = Translate
+
 structure Semant :
   sig
-    type expty = {exp: Translate.exp, ty: Types.ty}
+    type expty = {exp: TR.exp, ty: Types.ty}
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
+    val transProg: A.exp -> unit;
     val transVar: (venv * tenv * A.var) -> expty
     val transExp: venv * tenv * A.exp -> expty
     val transDec: venv * tenv * A.dec -> {venv: venv, tenv: tenv}
@@ -22,7 +25,6 @@ struct
   type unique = unit ref
   val venv:venv = Env.base_venv
   val tenv:tenv = Env.base_tenv
-  (*fun transProg(venv, tenv, root) = transExp(venv, tenv, root) (*TODO*)*)
 
   fun checkSameType(ty1: Types.ty, ty2: Types.ty) = case ty1 of  Types.BOTTOM => true
 															   | Types.NIL => (case ty2 of Types.RECORD(t,u) => true
@@ -95,9 +97,9 @@ struct
 		  | _ => (print(Int.toString(pos)^": Error: Cannont campare structures: can only compare int, string, record, and array types \n"); {exp=(), ty=Types.BOTTOM})
       end
 
-    and  trexp(A.IntExp i): expty = {exp=(), ty=Types.INT}
-        |   trexp(A.StringExp (s,pos)) = {exp=(), ty=Types.STRING}
-        |   trexp(A.NilExp) = {exp=(), ty=Types.NIL}
+    and  trexp(A.IntExp i): expty = {exp=TR.handleInt i, ty=Types.INT}
+        |   trexp(A.StringExp (s,pos)) = {exp=TR.handleStr s, ty=Types.STRING}
+        |   trexp(A.NilExp) = {exp=TR.handleNil(), ty=Types.NIL}
         |   trexp(A.OpExp{left, oper, right, pos}) = (case getTypeByOperation oper of
                                                       MATH     => validateMath(left, right, pos)
                                                     | SORT     => validateSort(left, right, pos)
@@ -108,14 +110,17 @@ struct
                     val expty' = trexp then'
                 in
                     if checkInt(trexp test, pos, true) andalso checkLegacy(expty', trexp(getOpt(else', A.SeqExp([])))) then {exp=(), ty=(#ty expty')}
-                    else (print(Int.toString(pos)^": Error: Invalid if conditional statement \n"); {exp=(), ty=Types.BOTTOM})
+                    else (print(Int.toString(pos)^": Error: Invalid if conditional statement \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
-        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then ({exp=(), ty=Types.UNIT})
-                                                else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=(), ty=Types.BOTTOM})
-        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then({exp=(), ty=Types.UNIT})
-                                                    else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=(), ty=Types.BOTTOM})
+        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then ({exp=TR.whileExp(test, body, Temp.newlabel()), ty=Types.UNIT})
+                                                else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true)
+                                                            andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),
+                                                                Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body))))
+                                                            then ({exp=TR.forExp(Temp.newtemp(), Temp.newlabel(), TR.handleInt lo, TR.handleInt hi, body), ty=Types.UNIT})
+                                                    else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
 
-        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then () else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=(), ty=Types.BOTTOM})
+        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then () else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=TR.breakExp((*TODO how get jump label?*)), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
                     val {exp=exp', ty=ty'} = transVar(venv, tenv, v)
@@ -133,9 +138,9 @@ struct
                 in
 					case Symbol.look(venv,getName var) of SOME(Env.VarEntry{ty,write}) => if write then (
 																								if checkSameType(expTy, varTy) then {exp=(), ty = Types.UNIT}
-																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=(), ty=Types.BOTTOM}))
-																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=(), ty=Types.BOTTOM})
-														| _ => {exp=(), ty=Types.BOTTOM}
+																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
+																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+														| _ => {exp=TR.handleNil(), ty=Types.BOTTOM}
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
                 case Symbol.look(tenv, typ) of
@@ -351,4 +356,7 @@ struct
 		in
 			foldl oneFunc {venv=venv'',tenv=tenv} l
 		end
+
+    fun transProg(root) = (transExp(venv, tenv, root); ())
+
 end
