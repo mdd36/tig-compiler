@@ -43,7 +43,7 @@ struct
             end
     )
 
-    fun allocLocal(Top) = raise Match
+    fun allocLocal(Top) = raise Match (*Y? let var x := 1 in x end*)
     |   allocLocal(l as Lev({frame, parent}, uniq')) = (fn(x) => (l, Frame.allocLocal(frame)(x)))
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
