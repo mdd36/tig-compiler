@@ -411,7 +411,7 @@ struct
 									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
 						val venv''' = foldl enterparam venv params'
 					in
-						if checkLegacy(transExp(venv''',tenv, body, lev, breakpoint), {exp=e, ty=result_ty})
+						if checkLegacy(transExp(venv''',tenv, body, lev, breakpoint), {exp=TR.handleNil(), ty=result_ty})
 										then {venv=venv,tenv=tenv}
 										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
 												{venv=venv,tenv=tenv})
