@@ -2,7 +2,6 @@ structure S = Symbol
 
 signature ENV =
 sig
-  type access
   type ty
   datatype enventry = VarEntry of {access: Translate.access, ty: ty,write:bool}
                     | FunEntry of {level: Translate.level, label: Temp.label, formals: ty list, result: ty}
@@ -14,8 +13,8 @@ structure Env : ENV =
 struct
   type ty = Types.ty
 
-  datatype enventry = VarEntry of {ty: ty,write:bool}
-                    | FunEntry of {formals: ty list, result: ty}
+  datatype enventry = VarEntry of {access: Translate.access, ty: ty,write:bool}
+                    | FunEntry of {level: Translate.level, label: Temp.label, formals: ty list, result: ty}
 
   val base_tenv = S.enter(
                     S.enter(
@@ -24,16 +23,16 @@ struct
                     )
 
   val base_funs = [
-    {name="print", details=FunEntry{formals=[Types.STRING], result=Types.UNIT}},
-    {name="flush", details=FunEntry{formals=[], result=Types.UNIT}},
-    {name="getchar", details=FunEntry{formals=[], result=Types.STRING}},
-    {name="ord", details=FunEntry{formals=[Types.STRING], result=Types.INT}},
-    {name="chr", details=FunEntry{formals=[Types.INT], result=Types.STRING}},
-    {name="size", details=FunEntry{formals=[Types.STRING], result=Types.INT}},
-    {name="substring", details=FunEntry{formals=[Types.STRING, Types.INT, Types.INT], result=Types.STRING}},
-    {name="concat", details=FunEntry{formals=[Types.STRING, Types.STRING], result=Types.STRING}},
-    {name="not", details=FunEntry{formals=[Types.INT], result=Types.INT}},
-    {name="exit", details=FunEntry{formals=[Types.INT], result=Types.UNIT}}
+    {name="print", details=FunEntry{level=Translate.root, label=Temp.namedlabel "print", formals=[Types.STRING], result=Types.UNIT}},
+    {name="flush", details=FunEntry{level=Translate.root, label=Temp.namedlabel "flush", formals=[], result=Types.UNIT}},
+    {name="getchar", details=FunEntry{level=Translate.root, label=Temp.namedlabel "getchar", formals=[], result=Types.STRING}},
+    {name="ord", details=FunEntry{level=Translate.root, label=Temp.namedlabel "ord", formals=[Types.STRING], result=Types.INT}},
+    {name="chr", details=FunEntry{level=Translate.root, label=Temp.namedlabel "chr", formals=[Types.INT], result=Types.STRING}},
+    {name="size", details=FunEntry{level=Translate.root, label=Temp.namedlabel "size", formals=[Types.STRING], result=Types.INT}},
+    {name="substring", details=FunEntry{level=Translate.root, label=Temp.namedlabel "substring", formals=[Types.STRING, Types.INT, Types.INT], result=Types.STRING}},
+    {name="concat", details=FunEntry{level=Translate.root, label=Temp.namedlabel "concat", formals=[Types.STRING, Types.STRING], result=Types.STRING}},
+    {name="not", details=FunEntry{level=Translate.root, label=Temp.namedlabel "not", formals=[Types.INT], result=Types.INT}},
+    {name="exit", details=FunEntry{level=Translate.root, label=Temp.namedlabel "exit", formals=[Types.INT], result=Types.UNIT}}
   ]
 
 

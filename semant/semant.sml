@@ -9,9 +9,9 @@ structure Semant :
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
     val transProg: A.exp -> unit;
-    val transVar: venv * tenv * A.var * TR.level -> expty
-    val transExp: venv * tenv * A.exp * TR.level -> expty
-    val transDec: venv * tenv * A.dec * TR.level -> {venv: venv, tenv: tenv}
+    val transVar: venv * tenv * A.var * TR.level * Temp.label -> expty
+    val transExp: venv * tenv * A.exp * TR.level * Temp.label -> expty
+    val transDec: venv * tenv * A.dec * TR.level * Temp.label -> {venv: venv, tenv: tenv}
     val transTy :        tenv * A.ty  -> Types.ty
 	val venv:venv
 	val tenv:tenv
@@ -55,7 +55,7 @@ struct
 											|  _              => ty
 	fun getRecordParam tenv {name=name, escape=escape, typ=typ, pos=pos} = (name, searchTy(tenv,typ,pos))
 
-  fun transExp(venv, tenv, root, lev) =
+  fun transExp(venv, tenv, root, lev, breakpoint) =
   let
     datatype OpType = SORT | MATH | EQUALITY
     val equatable = []
@@ -130,32 +130,37 @@ struct
                 let
                     val test' = trexp test
                     val body' = trexp body
+                    val breakpoint' = Temp.newlabel()
+                    val x = MipsFrame.allocLocal({name=Temp.newlabel(), formals=[], locals=(ref 0)})(false)
+                    val access = (TR.root, x) (*FIXME*)
+                    val venv' = Symbol.enter(venv,Symbol.symbol "break", Env.VarEntry{ty=Types.INT, access=access, write=false})
                 in
-                    if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body, lev)))) then ({exp=TR.whileExp(#exp test', #exp  body', Temp.newlabel()), ty=Types.UNIT})
+                    if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(venv',tenv, body, lev, breakpoint')))) then ({exp=TR.whileExp(#exp test', #exp  body', Temp.newlabel()), ty=Types.UNIT})
                                                         else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
         |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) =
                 let
-                    val level = Top (*Placeholder until levels are added*)
-                    val venv' = Symbol.enter(venv, var, Env.VarEntry({ty=Types.INT, write=false}))
-                    val venv'' = Symbol.enter(venv', Symbol.symbol "break", Env.VarEntry{ty=Types.INT,write=false})
+                    val access = TR.allocLocal lev (!escape)
 
-                    val access = TR.allocLocal level (!escape)
+                    val venv' = Symbol.enter(venv, var, Env.VarEntry({ty=Types.INT, access=access, write=false}))
+                    val venv'' = Symbol.enter(venv', Symbol.symbol "break", Env.VarEntry{ty=Types.INT, access=access, write=false})
 
-                    val {exp=low,   ty=lowTy}  = transExp(venv, tenv, lo)
-                    val {exp=high,  ty=highTy} = transExp(venv, tenv, hi)
-                    val {exp=body', ty=bodyTy} = transExp(venv'', tenv, body, lev)
+                    val breakpoint' = Temp.newlabel()
+
+                    val {exp=low,   ty=lowTy}  = transExp(venv, tenv, lo, lev, breakpoint')
+                    val {exp=high,  ty=highTy} = transExp(venv, tenv, hi, lev, breakpoint')
+                    val {exp=body', ty=bodyTy} = transExp(venv'', tenv, body, lev, breakpoint')
                 in
                     if checkInt({exp=low, ty=lowTy}, pos, true) andalso checkInt({exp=high, ty=highTy}, pos, true)
                                                                 andalso (checkSameType(Types.UNIT, bodyTy))
-                                                                then ({exp=TR.forExp(TR.simpleVar(access, level), Temp.newlabel(), low, high, body'), ty=Types.UNIT})
+                                                                then ({exp=TR.forExp(TR.simpleVar(access, lev), Temp.newlabel(), low, high, body'), ty=Types.UNIT})
                                                         else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
 
-        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then (TR.breakExp(break)) else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=TR.breakExp((*TODO how get jump label?*)), ty=Types.BOTTOM})
+        |   trexp(A.BreakExp(pos)) = if isSome(Symbol.look(venv,Symbol.symbol "break")) then {exp=TR.breakExp(breakpoint), ty=Types.BOTTOM} else (print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=TR.handleNil(), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
-                    val {exp=exp', ty=ty'} = transVar(venv, tenv, v, lev)
+                    val {exp=exp', ty=ty'} = transVar(venv, tenv, v, lev, breakpoint)
                 in
                     {exp=(), ty=ty'}
                 end
@@ -163,13 +168,13 @@ struct
         |   trexp(A.AssignExp{var, exp, pos}) =
                 let
                     val {exp=ee, ty=expTy} = trexp exp
-                    val {exp=e, ty=varTy} = transVar(venv, tenv, var, lev)
+                    val {exp=e, ty=varTy} = transVar(venv, tenv, var, lev, breakpoint)
 					fun getName var = case var of A.SimpleVar(id, pos) => id
 												| A.FieldVar(v, id, pos) => getName v
 												| A.SubscriptVar(v, exp, pos) => getName v
                 in
 					case Symbol.look(venv,getName var) of SOME(Env.VarEntry{access,ty,write}) => if write then (
-																								if checkSameType(expTy, varTy) then {exp=TR.assign(var, exp), ty = Types.UNIT}
+																								if checkSameType(expTy, varTy) then {exp=TR.assign(e, ee), ty = Types.UNIT}
 																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
 																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
 														| _ => {exp=TR.handleNil(), ty=Types.BOTTOM}
@@ -179,8 +184,9 @@ struct
                     SOME(t) => (case actual_ty(tenv,t,pos) of
                         Types.RECORD(fieldTypes, unique') =>
                         let
-                            val reduced = map (fn(sym, {exp, ty}, pos) => {sym=sym, ty=ty, pos=pos}) (map (fn (sym, e, pos) => (sym, trexp e, pos)) fields)
+                            val reduced = map (fn(sym, {exp, ty}, pos) => {sym=sym, exp = exp, ty=ty, pos=pos}) (map (fn (sym, e, pos) => (sym, trexp e, pos)) fields)
                             val types = map (fn (head) => #ty head) reduced
+                            val exps = map(fn(head) => #exp head) reduced
                             val actualTypes = map (fn x => actual_ty(tenv,#2 x,pos)) fieldTypes
 							val names = map (fn (head) => #sym head) reduced
                             val actualNames = map (fn x => #1 x) fieldTypes
@@ -190,7 +196,7 @@ struct
 							if (length types) = (length actualTypes) then (
 								if ListPair.foldr f true (types, actualTypes)
 								then (if ListPair.foldr g true (names, actualNames)
-										then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
+										then {exp=TR.recordExp(exps), ty=Types.RECORD(fieldTypes, unique')}
 										else (print(Int.toString(pos)^": Error: Record assignment field name unmatched error \n");
 											{exp=TR.handleNil(), ty=Types.BOTTOM})
 										)
@@ -204,42 +210,60 @@ struct
                 |   NONE    => (print(Int.toString(pos)^": Error: Unknown type " ^ Symbol.name typ ^ "\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
 
             )
-        |   trexp(A.SeqExp(exps)) =
-
-                if List.null exps then {exp=TR.seq exps, ty=Types.UNIT} else List.last (map (fn x => trexp (#1 x) ) exps)
+        |   trexp(A.SeqExp []) = {exp=TR.handleNil(), ty=Types.UNIT}
+        |   trexp(A.SeqExp exps) =
+                let
+                    fun f ((exp, _), (res, oldTys)) =
+                        let
+                            val {exp=exp', ty=ty} = transExp(venv, tenv, exp, lev, breakpoint)
+                        in
+                            (exp' :: res, ty :: oldTys)
+                        end
+                    val (exps', tys) = foldr f ([], []) exps
+                    val lastTy = List.last tys
+                in
+                    {exp=TR.seqExp exps', ty=lastTy} (*exps' in forward order*)
+                end
 
         |   trexp(A.LetExp{decs, body, pos}) =
                 let
                     val {venv=venv',tenv=tenv'} = foldl (fn (dec,{venv,tenv}) =>
                         let
-                            val {venv=venv1,tenv=tenv1} = transDec(venv,tenv,dec,lev)
+                            val {venv=venv1,tenv=tenv1} = transDec(venv,tenv,dec,lev,breakpoint)
                         in
                             {venv=venv1,tenv=tenv1}
                         end) {venv=venv, tenv=tenv} decs;
-                    val {exp=e,ty=bodyType} = transExp(venv',tenv', body,lev)
+                    val {exp=e,ty=bodyType} = transExp(venv',tenv', body,lev, breakpoint)
                 in
                     {exp=(), ty=bodyType}
                 end
-        |   trexp(A.ArrayExp{typ, size, init, pos}) = (
-                case S.look(tenv, typ) of
-                    SOME(at) => (
-                        case actual_ty(tenv,at,pos) of
-                            Types.ARRAY(t, u) =>
-                                if checkInt(trexp size, pos, true) andalso checkSameType(actual_ty(tenv,t,pos), #ty (trexp init)) then {exp=(), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
-                                else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
-                            | _ => (print(Int.toString(pos)^": Error: Type mismatch (should be array type): "^Symbol.name typ ^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
-                        )
-                |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
-            )
+        |   trexp(A.ArrayExp{typ, size, init, pos}) =
+                let
+                    val size' = trexp size
+                    val sizeExp = #exp size'
+                    val {exp=init', ty=initTy} = trexp init
+                in (case S.look(tenv, typ) of
+                        SOME(at) => (
+                            case actual_ty(tenv,at,pos) of
+                                Types.ARRAY(t, u) =>
+                                    if checkInt(size', pos, true) andalso checkSameType(actual_ty(tenv,t,pos), initTy) then {exp=TR.arrayExp(sizeExp, init'), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
+                                    else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                                | _ => (print(Int.toString(pos)^": Error: Type mismatch (should be array type): "^Symbol.name typ ^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                            )
+                    |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                )
+                end
         |   trexp(A.CallExp{func, args, pos}) = (
                 case S.look(venv, func) of
-                    SOME(Env.FunEntry{formals, result}) =>
+                    SOME(Env.FunEntry{level, label, formals, result}) =>
                     let
                         fun f(ty1, ty2, res) = res andalso checkSameType(ty1, ty2)
-						val args' = map (fn x => #ty (trexp x)) args
+                        val args' = map trexp args
+						val argTys = map #ty args'
+                        val argExps = map #exp args'
                     in
-						if (length args' = length formals) then (
-							if (ListPair.foldr f true (formals, args' )) then {exp=(), ty=result}
+						if (length argTys = length formals) then (
+							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps, result<>Types.UNIT), ty=result}
 							else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
 							else (print(Int.toString(pos) ^": Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^"\n");
                                                     {exp=TR.handleNil(), ty=Types.BOTTOM})
@@ -256,18 +280,18 @@ struct
      case ty of A.NameTy(s, p) => searchTy(tenv,s,p)
   			  | A.RecordTy(tl) => Types.RECORD(if tl=[] then [] else map (getRecordParam tenv) tl, ref (): Types.unique)
   		      | A.ArrayTy(s,p) => Types.ARRAY(searchTy(tenv,s,p), ref (): Types.unique )
-    and transVar (venv, tenv, node, lev): expty =
+    and transVar (venv, tenv, node, lev, breakpoint): expty =
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
-  							of SOME(Env.VarEntry{access, ty, write}) => {exp = (), ty = actual_ty (tenv,ty,pos)}
+  							of SOME(Env.VarEntry{access, ty, write}) => {exp = TR.simpleVar(access, lev), ty = actual_ty (tenv,ty,pos)}
                              | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^": Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
   							 | NONE => (print(Int.toString(pos)^": Error: undefined variable " ^ Symbol.name id^"\n");
   										{exp = TR.handleNil(), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
-							let val {exp = (), ty = ty} = trvar(v)
+							let val {exp=exp, ty=ty} = trvar(v)
 							in
 								(case ty of Types.RECORD(stl, u) => let fun searchField ((s,t)::m) id = if s = id then actual_ty (tenv,t,pos) else searchField m id
-																		  | searchField nil id  = (print(Int.toString(pos)^": Error: Field name is not defined in the record: " ^ Symbol.name (id)^"\n");
+																		  | searchField nil id  = (print(Int.toString(pos)^": Field named" ^ Symbol.name (id) ^ "is not defined in this record\n");
 																								   Types.BOTTOM)
 																	in
 																		{exp = (), ty = searchField stl id}
@@ -278,25 +302,32 @@ struct
 							end
 
   			  | trvar (A.SubscriptVar(v, exp, pos)) =  (*Do we have to check the bound?*)
-							let val {exp = (), ty = ty} = trvar(v)
+							let val {exp=exp', ty=ty} = trvar(v)
   							in
-								(case ty of Types.ARRAY(t, u) =>  (if checkInt(transExp (venv,tenv,exp,lev), pos, true)
-																	then {exp = (), ty = actual_ty (tenv,t,pos)}
-																	else (print(Int.toString(pos)^": Error: the index is not int "^"\n");
-																	{exp = TR.handleNil(), ty = Types.BOTTOM}))
-											| _               => (print(Int.toString(pos)^": Error: Variable is not defined as an array: "^"\n");
+								(case ty of
+                                    Types.ARRAY(t, u) =>
+                                        let
+                                            val translatedOffset = transExp (venv,tenv,exp,lev, breakpoint)
+                                            val offsetExp = #exp translatedOffset
+                                        in
+                                            (if checkInt(translatedOffset, pos, true)
+                                                then {exp = TR.subscriptVar(exp', offsetExp), ty = actual_ty (tenv,t,pos)}
+                                                else (print(Int.toString(pos)^": Provided index is not of type int"^"\n");
+                                                        {exp = TR.handleNil(), ty = Types.BOTTOM}))
+                                        end
+									| _               => (print(Int.toString(pos)^": Error: Variable is not defined as an array: "^"\n");
 																 {exp = TR.handleNil(), ty = Types.BOTTOM})
 								)
   							end
 		in
 		trvar node
 		end
-    and transDec (venv, tenv, A.VarDec{name, escape, typ, init, pos}, lev) =
+    and transDec (venv, tenv, A.VarDec{name, escape, typ, init, pos}, lev, breakpoint) =
 
-    (let val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev)
+    (let val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
 		in
 			case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv = Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev,escape), ty=Types.RECORD(tl,u),write=true}), tenv=tenv}
+								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv = Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=Types.RECORD(tl,u),write=true}), tenv=tenv}
 																							| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
 																											{venv=venv,tenv=tenv}))
 								 | NONE =>
@@ -304,17 +335,17 @@ struct
 															  {venv=venv,tenv=tenv}))
 					| _ =>
 							(case typ
-								of SOME((s,p)) => if checkLegacy({exp=(), ty=actual_ty(tenv,searchTy (tenv,s,p),p)}, {exp=exp, ty=ty})
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev,escape), ty=ty,write=true}), tenv=tenv}
+								of SOME((s,p)) => if checkSameType(actual_ty(tenv,searchTy(tenv,s,p),p), ty)
+														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=ty,write=true}), tenv=tenv}
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
 															  {venv=venv,tenv=tenv})
 								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev,escape),ty=ty,write=true}), tenv=tenv})
+									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv})
 
 		end
 		)
 
-	  | transDec (venv, tenv, A.TypeDec(l), lev) =
+	  | transDec (venv, tenv, A.TypeDec(l), lev, breakpoint) =
 			let
 				fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 				val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
@@ -336,7 +367,7 @@ struct
 				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,#2 a)) tenv'' ht)}
 			end
 
-	  | transDec (venv, tenv, A.FunctionDec(l), lev) =
+	  | transDec (venv, tenv, A.FunctionDec(l), lev, breakpoint) =
 		let
 			fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 			val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
@@ -354,7 +385,7 @@ struct
 													| NONE => (print(Int.toString(pos)^": Error: Undefined parameter type " ^ Symbol.name name^"\n");
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
-						val esc = map #escape params
+						val esc = map (fn x => !(#escape x)) params
 						val venv' = Symbol.enter(venv,name,Env.FunEntry{level= TR.newLevel({parent=lev, name=name, formals=esc}), label= Temp.newlabel(), formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
@@ -369,7 +400,7 @@ struct
 						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																										 | NONE => SOME Types.BOTTOM)
 														   | NONE => SOME Types.UNIT)
-						val formals = TR.getFormals(#level valOf(Symbol.look(venv'',name)))
+						val formals = TR.getFormals(#level (valOf(Symbol.look(venv'',name)))) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
 						fun transparam ({name, escape, typ, pos}, access) =(
 												case Symbol.look(tenv,typ)
 													of SOME t => {name=name, access=access, ty=t}
@@ -380,7 +411,7 @@ struct
 									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
 						val venv''' = foldl enterparam venv params'
 					in
-						if checkLegacy(transExp(venv''',tenv, body), {exp=(), ty=result_ty})
+						if checkLegacy(transExp(venv''',tenv, body, lev, breakpoint), {exp=e, ty=result_ty})
 										then {venv=venv,tenv=tenv}
 										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
 												{venv=venv,tenv=tenv})
@@ -391,6 +422,6 @@ struct
 			foldl oneFunc {venv=venv'',tenv=tenv} l
 		end
 
-    fun transProg(root) = (transExp(venv, tenv, root, TR.root); ())
+    fun transProg(root) = (transExp(venv, tenv, root, TR.root, Temp.newlabel()); ())
 
 end

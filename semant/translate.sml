@@ -253,8 +253,80 @@ struct
         |   (_,_) => raise SyntaxException "Disagreement of if/else types"
         end
 
-        fun ifWrapper(test, trueExp, falseExp) =
-            if (isSome falseExp) then ifThenElse(test, trueExp, (valOf falseExp))
-            else ifThen(test, trueExp)
+    fun ifWrapper(test, trueExp, falseExp) =
+        if (isSome falseExp) then ifThenElse(test, trueExp, (valOf falseExp))
+        else ifThen(test, trueExp)
+
+    fun recordExp(fields) =
+        let
+            val ret = Temp.newtemp()
+            val recSize = (length fields) * Frame.wordSize
+            val allocateRecord =
+                Tree.MOVE(
+                    Tree.TEMP ret,
+                    Frame.externalCall(
+                        "recAlloc", [Tree.CONST(recSize)]
+                    )
+                )
+            fun assignFields([], dex) = []
+            |   assignFields(exp'::tail, dex) =
+                    Tree.MOVE(
+                        calcMemOffset(
+                            Tree.TEMP ret,
+                            Tree.CONST(dex * Frame.wordSize)
+                        ),
+                        unEx(exp')
+                    ) :: assignFields(tail, dex+1)
+        in
+            Ex(Tree.ESEQ(
+                seq(
+                    allocateRecord :: assignFields(fields, 0)
+                ),
+                Tree.TEMP ret
+            ))
+        end
+
+    fun seqExp [] = handleNil()
+    |   seqExp [e] = e
+    |   seqExp exps =
+            let
+                val len = length exps
+                val tail = List.last exps
+                val rest = List.take( exps, len-1)
+            in
+                Ex(Tree.ESEQ(seq(map unNx rest), unEx tail))
+            end
+
+    fun arrayExp(size, init) = Ex(Frame.externalCall("arrAlloc", [unEx size, unEx init]))
+
+    fun diffLevel (Top) = 0
+    |   diffLevel (l as Lev({parent: level,frame: Frame.frame},u: Types.unique)) = 1 + diffLevel(parent)
+
+    fun traceSL (0, (lev: level)) = Tree.TEMP Frame.FP
+    |   traceSL (delta, (l as Lev({parent, frame}, u))) = Frame.find(hd (Frame.formals frame)) (traceSL(delta-1, parent))
+
+    (*Last arg is if the function has a result. If true, its a function,
+    if false, it's a procedure. *)
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Frame.externalCall(Symbol.name label, map unEx exps))
+    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Frame.externalCall(Symbol.name label, map unEx exps)))
+    |   callExp(funLev, currLev, label, exps, true) =
+            Ex(
+                Tree.CALL(
+                    Tree.NAME label,
+                    traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                        :: (map unEx exps)
+                )
+            )
+    |   callExp(funLev, currLev, label, exps, false) =
+            Nx(
+                Tree.EXP(
+                    Tree.CALL(
+                        Tree.NAME label,
+                        traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                            :: (map unEx exps)
+                    )
+                )
+            )
+
 
 end
