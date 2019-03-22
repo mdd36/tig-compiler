@@ -10,6 +10,8 @@ struct
     val frags = ref([] : frag list)
     type access = level * Frame.access
 
+    exception SyntaxException of string
+
     datatype exp = Ex of Tree.exp
                  | Nx of Tree.stm
                  | Cx of Temp.label * Temp.label -> Tree.stm
@@ -126,24 +128,36 @@ struct
             )
         end
 
+    fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
+
+    fun letExp([], body)   = body
+    |   letExp(decs, body) = Ex(Tree.ESEQ(seq(map unNx decs), unEx body))
+
     fun breakExp break = Nx (Tree.JUMP(Tree.NAME break, [break]))
 
-    fun binop(op', left, right) = Ex(Tree.BINOP(op', unEx left, unEx right))
+    fun packMath(op', left, right) = Ex(Tree.BINOP(op', unEx left, unEx right))
 
-    fun relop(left, right, operator) =
-        let
-            val translatedOp = case operator of
-                A.LeOp => Tree.LE
-            |   A.LtOp => Tree.LT
-            |   A.GeOp => Tree.GE
-            |   A.GtOp => Tree.GT
-            |   A.EqOp => Tree.EQ
-            |   A.NeqOp => Tree.NE
-        in
-            Cx( fn(true', false') => Tree.CJUMP(translatedOp, unEx(left), unEx(right), true', false') )
-        end
+    fun packCompare(op', left, right, NONE)   = Cx(fn(true', false') => Tree.CJUMP(op', unEx left, unEx right, true', false'))
+    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall(s, [unEx left, unEx right]))
 
-    fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
+    fun intBinOps(A.PlusOp,   left, right) = packMath(Tree.PLUS,  left, right)
+    |   intBinOps(A.MinusOp,  left, right) = packMath(Tree.MINUS, left, right)
+    |   intBinOps(A.TimesOp,  left, right) = packMath(Tree.MUL,   left, right)
+    |   intBinOps(A.DivideOp, left, right) = packMath(Tree.DIV,   left, right)
+    |   intBinOps(A.NeqOp,    left, right) = packCompare(Tree.NE, left, right, NONE)
+    |   intBinOps(A.EqOp,     left, right) = packCompare(Tree.EQ, left, right, NONE)
+    |   intBinOps(A.GeOp,     left, right) = packCompare(Tree.GE, left, right, NONE)
+    |   intBinOps(A.GtOp,     left, right) = packCompare(Tree.GT, left, right, NONE)
+    |   intBinOps(A.LeOp,     left, right) = packCompare(Tree.LE, left, right, NONE)
+    |   intBinOps(A.LtOp,     left, right) = packCompare(Tree.LT, left, right, NONE)
+
+    fun strBinOps(A.NeqOp,    left, right) = packCompare(Tree.NE, left, right, SOME("strNE"))
+    |   strBinOps(A.EqOp,     left, right) = packCompare(Tree.EQ, left, right, SOME("strE"))
+    |   strBinOps(A.GeOp,     left, right) = packCompare(Tree.GE, left, right, SOME("strGTE"))
+    |   strBinOps(A.GtOp,     left, right) = packCompare(Tree.GT, left, right, SOME("strGT"))
+    |   strBinOps(A.LeOp,     left, right) = packCompare(Tree.LE, left, right, SOME("strLTE"))
+    |   strBinOps(A.LtOp,     left, right) = packCompare(Tree.LT, left, right, SOME("strLT"))
+    |   strBinOps(_,_,_)                   = raise SyntaxException "Unsupported string operation"
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
 
@@ -175,7 +189,8 @@ struct
             |   indexOf(i, elem, a::l) = if elem = a then i else indexOf(i+1, elem, l)
             val index = indexOf(0, id, fields)
         in
-            Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, Tree.CONST index, Tree.CONST Frame.wordSize)))
+            if index > ~1 then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, Tree.CONST index, Tree.CONST Frame.wordSize)))
+                          else raise SyntaxException "No such field for record"
         end
 
     fun ifThen(test, trueExp) =
@@ -235,6 +250,11 @@ struct
                                 Tree.LABEL fal,
                                 unNx falseExp,
                                 Tree.LABEL fin])
+        |   (_,_) => raise SyntaxException "Disagreement of if/else types"
         end
+
+        fun ifWrapper(test, trueExp, falseExp) =
+            if (isSome falseExp) then ifThenElse(test, trueExp, (valOf falseExp))
+            else ifThen(test, trueExp)
 
 end

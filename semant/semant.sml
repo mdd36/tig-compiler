@@ -72,55 +72,88 @@ struct
       | getTypeByOperation(A.LeOp)     = SORT
       | getTypeByOperation(A.LtOp)     = SORT
 
-    and validateMath(left, right, pos) = if checkInt(trexp(left), pos, true) andalso checkInt(trexp(right), pos, true) then {exp=(), ty=Types.INT}
-                                    else {exp=(), ty=Types.BOTTOM}
-    and validateSort(left, right, pos) =
+    and validateMath(left, right, pos, oper) =
+        let
+            val r = trexp right
+            val l = trexp left
+        in
+            if checkInt(l, pos, true) andalso checkInt(r, pos, true) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT}
+                                            else {exp=TR.handleNil(), ty=Types.BOTTOM}
+        end
+
+    and validateSort(left, right, pos, oper) =
         let
             val l = trexp left
             val r = trexp right
         in
-            if checkLegacy(l, r) andalso (checkInt(l, pos, false) orelse checkStr(l, pos, false)) then {exp=(), ty=Types.INT}
-            else (print(Int.toString(pos)^": Error: Comparison Error: Malformed comparison \n"); {exp=(), ty=Types.BOTTOM})
+            if checkLegacy(l, r) andalso checkInt(l, pos, false) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT}
+            else ( if  checkLegacy(l, r) andalso checkStr(l, pos, false) then {exp=TR.strBinOps(oper, #exp l, #exp r), ty=Types.INT}
+                  else (print(Int.toString(pos)^": Error: Comparison Error: Malformed comparison \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
         end
 
-    and validateEquality(left, right, pos) =
+    and validateEquality(left, right, pos, oper) =
       let
         val l: expty = trexp left
         val r: expty = trexp right
       in
         case actual_ty(tenv,(#ty l),pos) of
-            Types.INT => if checkInt(r, pos, true) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-          | Types.STRING => if checkStr(r, pos, true) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-          | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-          | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-          | Types.NIL => if checkSameType(Types.NIL, #ty r) then {exp=(), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=(), ty=Types.BOTTOM})
-		  | _ => (print(Int.toString(pos)^": Error: Cannont campare structures: can only compare int, string, record, and array types \n"); {exp=(), ty=Types.BOTTOM})
+            Types.INT => if checkInt(r, pos, true) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.STRING => if checkStr(r, pos, true) then {exp=TR.strBinOps(oper, #exp l, #exp r), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.NIL => if checkSameType(Types.NIL, #ty r) then {exp=TR.handleInt 1, ty=Types.INT} else (print(Int.toString(pos)^": Error: Compared structures must be of same type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+		  | _ => (print(Int.toString(pos)^": Error: Cannont campare structures: can only compare int, string, record, and array types \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
       end
 
     and  trexp(A.IntExp i): expty = {exp=TR.handleInt i, ty=Types.INT}
         |   trexp(A.StringExp (s,pos)) = {exp=TR.handleStr s, ty=Types.STRING}
         |   trexp(A.NilExp) = {exp=TR.handleNil(), ty=Types.NIL}
         |   trexp(A.OpExp{left, oper, right, pos}) = (case getTypeByOperation oper of
-                                                      MATH     => validateMath(left, right, pos)
-                                                    | SORT     => validateSort(left, right, pos)
-                                                    | EQUALITY => validateEquality(left, right, pos)
+                                                      MATH     => validateMath(left, right, pos, oper)
+                                                    | SORT     => validateSort(left, right, pos, oper)
+                                                    | EQUALITY => validateEquality(left, right, pos, oper)
                                                 )
         |   trexp(A.IfExp{test, then', else', pos}) =
                 let
-                    val expty' = trexp then'
+                    val then_expty = trexp then'
+                    val test_expty = trexp test
+                    val else_expty: expty option = if isSome else' then SOME(trexp (valOf else')) else NONE
+
+                    val then_exp = #exp then_expty
+                    val test_exp = #exp test_expty
+                    val else_exp = if isSome(else_expty) then SOME(#exp (valOf(else_expty))) else NONE
                 in
-                    if checkInt(trexp test, pos, true) andalso checkLegacy(expty', trexp(getOpt(else', A.SeqExp([])))) then {exp=(), ty=(#ty expty')}
+                    if checkInt(test_expty, pos, true) andalso ( (isSome else_expty andalso checkLegacy(then_expty, valOf else_expty)) orelse checkSameType(#ty then_expty, Types.UNIT))
+                    then {exp=TR.ifWrapper(test_exp, then_exp, else_exp), ty=(#ty then_expty)}
                     else (print(Int.toString(pos)^": Error: Invalid if conditional statement \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
-        |   trexp(A.WhileExp{test, body, pos}) =  if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then ({exp=TR.whileExp(test, body, Temp.newlabel()), ty=Types.UNIT})
-                                                else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
-        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) = if checkInt(trexp lo, pos, true) andalso checkInt(trexp hi, pos, true)
-                                                            andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(Symbol.enter(venv,var,Env.VarEntry{ty=Types.INT,write=false}),
-                                                                Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body))))
-                                                            then ({exp=TR.forExp(Temp.newtemp(), Temp.newlabel(), TR.handleInt lo, TR.handleInt hi, body), ty=Types.UNIT})
-                                                    else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+        |   trexp(A.WhileExp{test, body, pos}) =
+                let
+                    val test' = trexp test
+                    val body' = trexp body
+                in
+                    if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(Symbol.enter(venv,Symbol.symbol "break",Env.VarEntry{ty=Types.INT,write=false}),tenv, body)))) then ({exp=TR.whileExp(#exp test', #exp  body', Temp.newlabel()), ty=Types.UNIT})
+                                                        else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                end
+        |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) =
+                let
+                    val level = Top (*Placeholder until levels are added*)
+                    val venv' = Symbol.enter(venv, var, Env.VarEntry({ty=Types.INT, write=false}))
+                    val venv'' = Symbol.enter(venv', Symbol.symbol "break", Env.VarEntry{ty=Types.INT,write=false})
 
-        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then () else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=TR.breakExp((*TODO how get jump label?*)), ty=Types.BOTTOM})
+                    val access = TR.allocLocal level (!escape)
+
+                    val {exp=low,   ty=lowTy}  = transExp(venv, tenv, lo)
+                    val {exp=high,  ty=highTy} = transExp(venv, tenv, hi)
+                    val {exp=body', ty=bodyTy} = transExp(venv'', tenv, body)
+                in
+                    if checkInt({exp=low, ty=lowTy}, pos, true) andalso checkInt({exp=high, ty=highTy}, pos, true)
+                                                                andalso (checkSameType(Types.UNIT, bodyTy))
+                                                                then ({exp=TR.forExp(TR.simpleVar(access, level), Temp.newlabel(), low, high, body'), ty=Types.UNIT})
+                                                        else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                end
+
+        |   trexp(A.BreakExp(pos)) = (if isSome(Symbol.look(venv,Symbol.symbol "break")) then (TR.breakExp(break)) else print(Int.toString(pos)^": Error: Unnested break statement \n");{exp=TR.breakExp((*TODO how get jump label?*)), ty=Types.BOTTOM})
         |   trexp(A.VarExp(v)) =
                 let
                     val {exp=exp', ty=ty'} = transVar(venv, tenv, v)
@@ -137,7 +170,7 @@ struct
 												| A.SubscriptVar(v, exp, pos) => getName v
                 in
 					case Symbol.look(venv,getName var) of SOME(Env.VarEntry{ty,write}) => if write then (
-																								if checkSameType(expTy, varTy) then {exp=(), ty = Types.UNIT}
+																								if checkSameType(expTy, varTy) then {exp=TR.assign(var, exp), ty = Types.UNIT}
 																								else (print(Int.toString(pos)^": Error: Illegal assign expression \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
 																							else (print(Int.toString(pos)^": Error: For loop id cannot be assigned \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
 														| _ => {exp=TR.handleNil(), ty=Types.BOTTOM}
@@ -160,20 +193,19 @@ struct
 								then (if ListPair.foldr g true (names, actualNames)
 										then {exp=(), ty=Types.RECORD(fieldTypes, unique')}
 										else (print(Int.toString(pos)^": Error: Record assignment field name unmatched error \n");
-											{exp=(), ty=Types.BOTTOM})
+											{exp=TR.handleNil(), ty=Types.BOTTOM})
 										)
 								else (print(Int.toString(pos)^": Error: Record assignment type error \n");
-									 {exp=(), ty=Types.BOTTOM}))
+									 {exp=TR.handleNil(), ty=Types.BOTTOM}))
 
 							else (print(Int.toString(pos)^": Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^"\n");
-                                                            {exp=(), ty=Types.BOTTOM})
+                                                            {exp=TR.handleNil(), ty=Types.BOTTOM})
                         end
-                    |   _ => (print(Int.toString(pos)^": Error: Type mismatch in record usage \n"); {exp=(), ty=Types.BOTTOM}))
-                |   NONE    => (print(Int.toString(pos)^": Error: Unknown type " ^ Symbol.name typ ^ "\n"); {exp=(), ty=Types.BOTTOM})
+                    |   _ => (print(Int.toString(pos)^": Error: Type mismatch in record usage \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
+                |   NONE    => (print(Int.toString(pos)^": Error: Unknown type " ^ Symbol.name typ ^ "\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
 
             )
         |   trexp(A.SeqExp(exps)) =
-
                 if List.null exps then {exp=(), ty=Types.UNIT} else List.last (map (fn x => trexp (#1 x) ) exps)
 
         |   trexp(A.LetExp{decs, body, pos}) =
@@ -194,10 +226,10 @@ struct
                         case actual_ty(tenv,at,pos) of
                             Types.ARRAY(t, u) =>
                                 if checkInt(trexp size, pos, true) andalso checkSameType(actual_ty(tenv,t,pos), #ty (trexp init)) then {exp=(), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
-                                else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=(), ty=Types.BOTTOM})
-                            | _ => (print(Int.toString(pos)^": Error: Type mismatch (should be array type): "^Symbol.name typ ^"\n"); {exp=(), ty=Types.BOTTOM})
+                                else (print(Int.toString(pos)^": Error: Invalid array expression "^Symbol.name typ ^" \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+                            | _ => (print(Int.toString(pos)^": Error: Type mismatch (should be array type): "^Symbol.name typ ^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                         )
-                |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=(), ty=Types.BOTTOM})
+                |   NONE => (print(Int.toString(pos)^": Error: Unknown type \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
             )
         |   trexp(A.CallExp{func, args, pos}) = (
                 case S.look(venv, func) of
@@ -208,14 +240,13 @@ struct
                     in
 						if (length args' = length formals) then (
 							if (ListPair.foldr f true (formals, args' )) then {exp=(), ty=result}
-							else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=(), ty=Types.BOTTOM}))
+							else (print(Int.toString(pos)^": Error: Type disagreement in function arguments \n"); {exp=TR.handleNil(), ty=Types.BOTTOM}))
 							else (print(Int.toString(pos) ^": Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^"\n");
-                                                    {exp=(), ty=Types.BOTTOM})
+                                                    {exp=TR.handleNil(), ty=Types.BOTTOM})
 
                     end
-                |   SOME(Env.VarEntry(_)) => (print(Int.toString(pos)^": Error: Expected a function idenifier, found a variable: pos \n");{exp=() ,ty=Types.BOTTOM})
-                |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ Symbol.name func^"\n"); {exp=(), ty=Types.BOTTOM})
-
+                |   SOME(Env.VarEntry(_)) => (print(Int.toString(pos)^": Error: Expected a function idenifier, found a variable: pos \n");{exp=TR.handleNil() ,ty=Types.BOTTOM})
+                |   NONE => (print(Int.toString(pos)^": Error: Unknown symbol " ^ Symbol.name func^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
             )
     in
       trexp(root)
@@ -229,9 +260,9 @@ struct
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{ty,write}) => {exp = (), ty = actual_ty (tenv,ty,pos)}
-                             | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^": Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^"\n"); {exp=(), ty=Types.BOTTOM})
+                             | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^": Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^"\n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
   							 | NONE => (print(Int.toString(pos)^": Error: undefined variable " ^ Symbol.name id^"\n");
-  										{exp = (), ty = Types.BOTTOM}))
+  										{exp = TR.handleNil(), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
 							let val {exp = (), ty = ty} = trvar(v)
 							in
@@ -252,9 +283,9 @@ struct
 								(case ty of Types.ARRAY(t, u) =>  (if checkInt(transExp (venv,tenv,exp), pos, true)
 																	then {exp = (), ty = actual_ty (tenv,t,pos)}
 																	else (print(Int.toString(pos)^": Error: the index is not int "^"\n");
-																	{exp = (), ty = Types.BOTTOM}))
+																	{exp = TR.handleNil(), ty = Types.BOTTOM}))
 											| _               => (print(Int.toString(pos)^": Error: Variable is not defined as an array: "^"\n");
-																 {exp = (), ty = Types.BOTTOM})
+																 {exp = TR.handleNil(), ty = Types.BOTTOM})
 								)
   							end
 		in
