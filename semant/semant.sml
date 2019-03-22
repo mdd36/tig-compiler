@@ -11,7 +11,7 @@ structure Semant :
     val transProg: A.exp -> unit;
     val transVar: venv * tenv * A.var * TR.level * Temp.label -> expty
     val transExp: venv * tenv * A.exp * TR.level * Temp.label -> expty
-    val transDec: venv * tenv * A.dec * TR.level * Temp.label -> {venv: venv, tenv: tenv}
+    val transDec: venv * tenv * A.dec * TR.level * Temp.label -> {venv: venv, tenv: tenv, exp: TR.exp}
     val transTy :        tenv * A.ty  -> Types.ty
 	val venv:venv
 	val tenv:tenv
@@ -162,7 +162,7 @@ struct
                 let
                     val {exp=exp', ty=ty'} = transVar(venv, tenv, v, lev, breakpoint)
                 in
-                    {exp=(), ty=ty'}
+                    {exp=exp' , ty=ty'}
                 end
 
         |   trexp(A.AssignExp{var, exp, pos}) =
@@ -227,15 +227,15 @@ struct
 
         |   trexp(A.LetExp{decs, body, pos}) =
                 let
-                    val {venv=venv',tenv=tenv'} = foldl (fn (dec,{venv,tenv}) =>
+                    val {venv=venv',tenv=tenv',exp=ee} = foldl (fn (dec,{venv,tenv,exp}) =>
                         let
-                            val {venv=venv1,tenv=tenv1} = transDec(venv,tenv,dec,lev,breakpoint)
+                            val {venv=venv1,tenv=tenv1,exp=exp'} = transDec(venv,tenv,dec,lev,breakpoint)
                         in
-                            {venv=venv1,tenv=tenv1}
-                        end) {venv=venv, tenv=tenv} decs;
+                            {venv=venv1,tenv=tenv1,exp=exp'::exp}
+                        end) {venv=venv, tenv=tenv, exp=[]} decs;
                     val {exp=e,ty=bodyType} = transExp(venv',tenv', body,lev, breakpoint)
                 in
-                    {exp=(), ty=bodyType}
+                    {exp=TR.letExp(ee, e), ty=bodyType}
                 end
         |   trexp(A.ArrayExp{typ, size, init, pos}) =
                 let
@@ -288,16 +288,16 @@ struct
   							 | NONE => (print(Int.toString(pos)^": Error: undefined variable " ^ Symbol.name id^"\n");
   										{exp = TR.handleNil(), ty = Types.BOTTOM}))
   			  | trvar (A.FieldVar(v, id, pos)) =
-							let val {exp=exp, ty=ty} = trvar(v)
+							let val {exp=exp', ty=ty} = trvar(v)
 							in
 								(case ty of Types.RECORD(stl, u) => let fun searchField ((s,t)::m) id = if s = id then actual_ty (tenv,t,pos) else searchField m id
 																		  | searchField nil id  = (print(Int.toString(pos)^": Field named" ^ Symbol.name (id) ^ "is not defined in this record\n");
 																								   Types.BOTTOM)
 																	in
-																		{exp = (), ty = searchField stl id}
+																		{exp = TR.fieldVar(exp', id, map #1 stl), ty = searchField stl id}
 																	end
 															 | _ => (print(Int.toString(pos)^": Error: Variable is not defined as a record: "^"\n");
-																	{exp = (), ty = Types.BOTTOM})
+																	{exp = TR.handleNil(), ty = Types.BOTTOM})
 															)
 							end
 
@@ -327,20 +327,20 @@ struct
     (let val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
 		in
 			case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv = Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=Types.RECORD(tl,u),write=true}), tenv=tenv}
+								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv = Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=Types.RECORD(tl,u),write=true}), tenv=tenv, exp = TR.assign(TR.getLabeled(name), exp)}
 																							| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-																											{venv=venv,tenv=tenv}))
+																											{venv=venv,tenv=tenv, exp= TR.handleNil()}))
 								 | NONE =>
 									(print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-															  {venv=venv,tenv=tenv}))
+															  {venv=venv,tenv=tenv, exp= TR.handleNil()}))
 					| _ =>
 							(case typ
 								of SOME((s,p)) => if checkSameType(actual_ty(tenv,searchTy(tenv,s,p),p), ty)
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=ty,write=true}), tenv=tenv}
+														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=ty,write=true}), tenv=tenv,exp = TR.assign(TR.getLabeled(name), exp)}
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
-															  {venv=venv,tenv=tenv})
+															  {venv=venv,tenv=tenv, exp= TR.handleNil()})
 								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv})
+									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv,exp= TR.handleNil()})
 
 		end
 		)
@@ -364,7 +364,8 @@ struct
 				val ht = foldl (fn (a,b) => (#1 a,getRidOfCycle(#1 a,(#2 a, #3 a, set.add(set.empty,#1 a)),tenv''))::b) [] l'
 			in
 				{venv=venv,
-				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,#2 a)) tenv'' ht)}
+				 tenv=(foldl (fn (a, tenv) => Symbol.enter(tenv,#1 a,#2 a)) tenv'' ht),
+				 exp=TR.handleNil()}
 			end
 
 	  | transDec (venv, tenv, A.FunctionDec(l), lev, breakpoint) =
@@ -393,14 +394,14 @@ struct
 				)
 			val {venv=venv'',tenv=tenv} = foldl passHeader {venv=venv,tenv=tenv} l
 
-			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
-				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv}
+			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv,exp=exp}) =
+				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv,exp=TR.handleNil()}
 				else (
 					let
 						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
 																										 | NONE => SOME Types.BOTTOM)
 														   | NONE => SOME Types.UNIT)
-						val formals = TR.getFormals(#level (valOf(Symbol.look(venv'',name)))) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
+						val formals = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => TR.getFormals(level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
 						fun transparam ({name, escape, typ, pos}, access) =(
 												case Symbol.look(tenv,typ)
 													of SOME t => {name=name, access=access, ty=t}
@@ -412,14 +413,14 @@ struct
 						val venv''' = foldl enterparam venv params'
 					in
 						if checkLegacy(transExp(venv''',tenv, body, lev, breakpoint), {exp=TR.handleNil(), ty=result_ty})
-										then {venv=venv,tenv=tenv}
+										then {venv=venv,tenv=tenv,exp=TR.handleNil()}
 										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
-												{venv=venv,tenv=tenv})
+												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 
 					end
 				)
 		in
-			foldl oneFunc {venv=venv'',tenv=tenv} l
+			foldl oneFunc {venv=venv'',tenv=tenv,exp=TR.handleNil()} l
 		end
 
     fun transProg(root) = (transExp(venv, tenv, root, TR.root, Temp.newlabel()); ())

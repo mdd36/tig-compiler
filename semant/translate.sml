@@ -327,6 +327,6 @@ struct
                     )
                 )
             )
-
+	fun getLabeled label = Ex (Tree.NAME(label))
 
 end
