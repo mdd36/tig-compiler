@@ -423,6 +423,11 @@ struct
 			foldl oneFunc {venv=venv'',tenv=tenv,exp=TR.handleNil()} l
 		end
 
-    fun transProg(root) = (transExp(venv, tenv, root, TR.root, Temp.newlabel()); ())
+    fun transProg(root) =
+        let
+            val mainLevel = TR.newLevel({parent=TR.root, name=Temp.namedlabel "main", formals=[]})
+        in
+            (transExp(venv, tenv, root, mainLevel, Temp.newlabel()); ())
+        end
 
 end

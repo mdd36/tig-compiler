@@ -38,15 +38,15 @@ struct
         Top => []
     |   Lev({parent=p, frame=f}, uniq') =>
             let
-                val sl::formals = Frame.formals f
+                val formals = tl (Frame.formals f)
                 fun f formal = (level, formal)
             in
                 map f formals
             end
     )
 
-    fun allocLocal(Top) = raise Match (*Y? let var x := 1 in x end*)
-    |   allocLocal(l as Lev({frame, parent}, uniq')) = (fn(x) => (l, Frame.allocLocal(frame)(x)))
+    fun allocLocal(lev) = case lev of
+        (l as Lev({frame, parent}, uniq')) => (fn(x) => (l, Frame.allocLocal(frame)(x)))
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
     |   seq([s])  = s
@@ -166,17 +166,19 @@ struct
     fun simpleVar(access, level) =
         let
             val (Lev(details, defref), defaccess) = access
-            fun traceLink (level, access) =
+            fun traceLink (level', access') =
                 let
-                    val Lev({parent, frame}, uniq') = level
+                    val Lev({parent, frame}, uniq') = level'
                 in
                     if uniq' = defref then
-                        Frame.find(defaccess)(access)
+                        Frame.find(defaccess)(access')
                     else
                         let
-                            val link::formals = Frame.formals frame
+                            val link = hd (Frame.formals frame)
+                            val x = 0
+                            val y = 0
                         in
-                            traceLink(parent, Frame.find(link)(access))
+                            traceLink(parent, Frame.find(link)(access'))
                         end
                 end
         in
@@ -304,6 +306,7 @@ struct
 
     fun traceSL (0, (lev: level)) = Tree.TEMP Frame.FP
     |   traceSL (delta, (l as Lev({parent, frame}, u))) = Frame.find(hd (Frame.formals frame)) (traceSL(delta-1, parent))
+    |   traceSL (delta, (t as Top)) = Tree.TEMP Frame.FP
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
