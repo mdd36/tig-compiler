@@ -192,7 +192,7 @@ struct
             val index = indexOf(0, id, fields)
         in
             if index > ~1 then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, Tree.CONST index, Tree.CONST Frame.wordSize)))
-                          else raise SyntaxException "No such field for record"
+                          else handleNil()
         end
 
     fun ifThen(test, trueExp) =
@@ -239,20 +239,46 @@ struct
                                         Tree.MOVE (Tree.TEMP ret, unEx falseExp),
                                         Tree.LABEL fin],
                                     Tree.TEMP ret))
+        (* Next two for & and | issue -- Choose Ex since & and | are done for uvale *)
+        |   (Ex _, Cx _) => Ex (Tree.ESEQ (seq [(cond) (tru, fal),
+                                    Tree.LABEL tru,
+                                    Tree.MOVE (Tree.TEMP ret, unEx trueExp),
+                                    Tree.JUMP (Tree.NAME fin, [fin]),
+                                    Tree.LABEL fal,
+                                    Tree.MOVE (Tree.TEMP ret, unEx falseExp),
+                                    Tree.LABEL fin],
+                                Tree.TEMP ret))
+        |   (Cx _, Ex _) => Ex (Tree.ESEQ (seq [(cond) (tru, fal),
+                                    Tree.LABEL tru,
+                                    Tree.MOVE (Tree.TEMP ret, unEx trueExp),
+                                    Tree.JUMP (Tree.NAME fin, [fin]),
+                                    Tree.LABEL fal,
+                                    Tree.MOVE (Tree.TEMP ret, unEx falseExp),
+                                    Tree.LABEL fin],
+                                Tree.TEMP ret))
         |   (Cx _, Cx _) => Cx (fn (t, f) =>
                                 seq [(cond) (tru, fal),
                                 Tree.LABEL tru,
                                 (unCx trueExp) (t, f),
                                 Tree.LABEL fal,
                                 (unCx falseExp) (t, f)])
-        |   (Nx _, Nx _) => Nx (seq [(cond) (tru, fal),
+        (* Since () is an Ex in our IR, it should be compadable with Nx's.
+        Choose Nx since it's impossible to do Nx for value, but possible to
+        ignore value from Ex *)
+        |   (Nx _, _) => Nx (seq [(cond) (tru, fal),
                                 Tree.LABEL tru,
                                 unNx trueExp,
                                 Tree.JUMP (Tree.NAME fin, [fin]),
                                 Tree.LABEL fal,
                                 unNx falseExp,
                                 Tree.LABEL fin])
-        |   (_,_) => raise SyntaxException "Disagreement of if/else types"
+        |   (_, Nx _) => Nx (seq [(cond) (tru, fal),
+                                Tree.LABEL tru,
+                                unNx trueExp,
+                                Tree.JUMP (Tree.NAME fin, [fin]),
+                                Tree.LABEL fal,
+                                unNx falseExp,
+                                Tree.LABEL fin])
         end
 
     fun ifWrapper(test, trueExp, falseExp) =
