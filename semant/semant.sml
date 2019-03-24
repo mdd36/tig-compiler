@@ -387,7 +387,7 @@ struct
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
-						val venv' = Symbol.enter(venv,name,Env.FunEntry{level= TR.newLevel({parent=lev, name=name, formals=esc}), label= Temp.newlabel(), formals = map #ty params', result=result_ty})
+						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= Temp.newlabel(), formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
 					end
@@ -395,30 +395,34 @@ struct
 			val {venv=venv'',tenv=tenv} = foldl passHeader {venv=venv,tenv=tenv} l
 
 			fun oneFunc ({name,params,body,pos,result}, {venv=venv,tenv=tenv,exp=exp}) =
-				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv,exp=TR.handleNil()}
-				else (
-					let
-						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
-																										 | NONE => SOME Types.BOTTOM)
-														   | NONE => SOME Types.UNIT)
-						val formals = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => TR.getFormals(level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
-						fun transparam ({name, escape, typ, pos}, access) =(
-												case Symbol.look(tenv,typ)
-													of SOME t => {name=name, access=access, ty=t}
-													| NONE =>  {name = name, access=access, ty = Types.BOTTOM})
-						val params' = ListPair.map transparam (params,formals)
+                let
+                    val SOME(Env.FunEntry{level=funLev, label, formals, result=result'}) = Symbol.look(venv,name)
+                in
+    				if valOf(mymap.find(namemap,name)) then {venv=venv,tenv=tenv,exp=TR.handleNil()}
+    				else (
+    					let
+    						val result_ty = (case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => t
+    																										 | NONE => Types.BOTTOM)
+    														   | NONE => Types.UNIT)
+    						val formals = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => TR.getFormals(level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
+    						fun transparam ({name, escape, typ, pos}, access) =(
+    												case Symbol.look(tenv,typ)
+    													of SOME t => {name=name, access=access, ty=t}
+    													| NONE =>  {name = name, access=access, ty = Types.BOTTOM})
+    						val params' = ListPair.map transparam (params,formals)
 
-						fun enterparam ({name=name,access=access, ty=ty}, venv) =
-									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
-						val venv''' = foldl enterparam venv params'
-					in
-						if checkLegacy(transExp(venv''',tenv, body, lev, breakpoint), {exp=TR.handleNil(), ty=result_ty})
-										then {venv=venv,tenv=tenv,exp=TR.handleNil()}
-										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
-												{venv=venv,tenv=tenv,exp=TR.handleNil()})
+    						fun enterparam ({name=name,access=access, ty=ty}, venv) =
+    									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
+    						val venv''' = foldl enterparam venv params'
+    					in
+    						if checkLegacy(transExp(venv''',tenv, body, funLev, breakpoint), {exp=TR.handleNil(), ty=result_ty})
+    										then {venv=venv,tenv=tenv,exp=TR.handleNil()}
+    										else  ( print(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
+    												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 
-					end
-				)
+    					end
+    				)
+                end
 		in
 			foldl oneFunc {venv=venv'',tenv=tenv,exp=TR.handleNil()} l
 		end
@@ -427,7 +431,7 @@ struct
         let
             val mainLevel = TR.newLevel({parent=TR.root, name=Temp.namedlabel "main", formals=[]})
         in
-            (transExp(venv, tenv, root, mainLevel, Temp.newlabel()); ())
+            Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(transExp(venv, tenv, root, mainLevel, Temp.newlabel()))))
         end
 
 end
