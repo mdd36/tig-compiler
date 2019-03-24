@@ -1,9 +1,8 @@
-/* error : variable not array */
-let 
-	type a = int
-	type b = int 
-	var d:=0
-	var e:=0
+/* a record type and a record variable */
+let
+	type  rectype = {name:string, age:int}
+	var rec1:rectype := rectype {name="Nobody", age=1000}
 in
-	d
+	rec1.name := "Somebody";
+	rec1
 end
