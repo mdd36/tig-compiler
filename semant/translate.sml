@@ -293,7 +293,7 @@ struct
                 Tree.MOVE(
                     Tree.TEMP ret,
                     Frame.externalCall(
-                        "recAlloc", [Tree.CONST(recSize)]
+                        "initRecord", [Tree.CONST(recSize)]
                     )
                 )
             fun assignFields([], dex) = []
@@ -325,7 +325,7 @@ struct
                 Ex(Tree.ESEQ(seq(map unNx rest), unEx tail))
             end
 
-    fun arrayExp(size, init) = Ex(Frame.externalCall("arrAlloc", [unEx size, unEx init]))
+    fun arrayExp(size, init) = Ex(Frame.externalCall("initArray", [unEx size, unEx init]))
 
     fun diffLevel (Top) = 0
     |   diffLevel (l as Lev({parent: level,frame: Frame.frame},u: Types.unique)) = 1 + diffLevel(parent)
