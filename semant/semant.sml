@@ -235,7 +235,7 @@ struct
                         end) {venv=venv, tenv=tenv, exp=[]} decs;
                     val {exp=e,ty=bodyType} = transExp(venv',tenv', body,lev, breakpoint)
                 in
-                    {exp=TR.letExp(ee, e), ty=bodyType}
+                    {exp=TR.letExp(rev ee, e), ty=bodyType}
                 end
         |   trexp(A.ArrayExp{typ, size, init, pos}) =
                 let
@@ -340,7 +340,7 @@ struct
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
 															  {venv=venv,tenv=tenv, exp= TR.handleNil()})
 								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv,exp= TR.handleNil()})
+									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv,exp= TR.assign(TR.getLabeled(name), exp)})
 
 		end
 		)
