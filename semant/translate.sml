@@ -129,7 +129,10 @@ struct
         end
 
     fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
-
+	
+	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
+														| _ => dec::lis) [] decs
+	
     fun letExp([], body)   = body
     |   letExp(decs, body) = Ex(Tree.ESEQ(seq(map unNx decs), unEx body))
 

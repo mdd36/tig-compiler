@@ -1,6 +1,9 @@
 /* error : variable not array */
 let 
+	type a = int
+	type b = int 
 	var d:=0
+	var e:=0
 in
-	d[3]
+	d
 end
