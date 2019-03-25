@@ -9,9 +9,9 @@ structure Semant :
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
     val transProg: A.exp -> unit;
-    val transVar: venv * tenv * A.var * TR.level * Temp.label -> expty
-    val transExp: venv * tenv * A.exp * TR.level * Temp.label -> expty
-    val transDec: venv * tenv * A.dec * TR.level * Temp.label -> {venv: venv, tenv: tenv, exp: TR.exp}
+    val transVar: venv * tenv * A.var * TR.level * TR.label -> expty
+    val transExp: venv * tenv * A.exp * TR.level * TR.label -> expty
+    val transDec: venv * tenv * A.dec * TR.level * TR.label -> {venv: venv, tenv: tenv, exp: TR.exp}
     val transTy :        tenv * A.ty  -> Types.ty
 	val venv:venv
 	val tenv:tenv
@@ -130,12 +130,12 @@ struct
                 let
                     val test' = trexp test
                     val body' = trexp body
-                    val breakpoint' = Temp.newlabel()
-                    val x = MipsFrame.allocLocal({name=Temp.newlabel(), formals=[], locals=(ref 0)})(false)
-                    val access = (TR.root, x) (*FIXME*)
+                    val breakpoint' = TR.getLabel()
+                    val access = TR.allocLocal(lev)(false)
+                    
                     val venv' = Symbol.enter(venv,Symbol.symbol "break", Env.VarEntry{ty=Types.INT, access=access, write=false})
                 in
-                    if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(venv',tenv, body, lev, breakpoint')))) then ({exp=TR.whileExp(#exp test', #exp  body', Temp.newlabel()), ty=Types.UNIT})
+                    if checkInt(trexp test, pos, true) andalso (checkSameType(Types.UNIT, #ty (transExp(venv',tenv, body, lev, breakpoint')))) then ({exp=TR.whileExp(#exp test', #exp  body', TR.getLabel()), ty=Types.UNIT})
                                                         else (print(Int.toString(pos)^": Error: While loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
         |   trexp(A.ForExp{var, lo, hi, body, escape, pos}) =
@@ -145,7 +145,7 @@ struct
                     val venv' = Symbol.enter(venv, var, Env.VarEntry({ty=Types.INT, access=access, write=false}))
                     val venv'' = Symbol.enter(venv', Symbol.symbol "break", Env.VarEntry{ty=Types.INT, access=access, write=false})
 
-                    val breakpoint' = Temp.newlabel()
+                    val breakpoint' = TR.getLabel()
 
                     val {exp=low,   ty=lowTy}  = transExp(venv, tenv, lo, lev, breakpoint')
                     val {exp=high,  ty=highTy} = transExp(venv, tenv, hi, lev, breakpoint')
@@ -153,7 +153,7 @@ struct
                 in
                     if checkInt({exp=low, ty=lowTy}, pos, true) andalso checkInt({exp=high, ty=highTy}, pos, true)
                                                                 andalso (checkSameType(Types.UNIT, bodyTy))
-                                                                then ({exp=TR.forExp(TR.simpleVar(access, lev), Temp.newlabel(), low, high, body'), ty=Types.UNIT})
+                                                                then ({exp=TR.forExp(TR.simpleVar(access, lev), TR.getLabel(), low, high, body'), ty=Types.UNIT})
                                                         else ( print(Int.toString(pos)^": Error: For loop construction error \n"); {exp=TR.handleNil(), ty=Types.BOTTOM})
                 end
 
@@ -391,7 +391,7 @@ struct
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
-						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= Temp.newlabel(), formals = map #ty params', result=result_ty})
+						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= TR.getLabel(), formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
 					end
@@ -433,9 +433,9 @@ struct
 
     fun transProg(root) =
         let
-            val mainLevel = TR.newLevel({parent=TR.root, name=Temp.namedlabel "main", formals=[]})
+            val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "main", formals=[]})
         in
-            Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(transExp(venv, tenv, root, mainLevel, Temp.newlabel()))))
+            Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(transExp(venv, tenv, root, mainLevel, TR.getLabel()))))
         end
 
 end

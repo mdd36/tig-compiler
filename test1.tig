@@ -1,7 +1,2 @@
-/* a record type and a record variable */
-let
-	type  a = array of int
-	var b:a := a[10] of 1
-in
-	b[11]
-end
+/* error : body of while not unit */
+while(10 > 5) do (5+6;())

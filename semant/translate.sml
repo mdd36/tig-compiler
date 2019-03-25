@@ -9,12 +9,14 @@ struct
     type frag = Frame.frag
     val frags = ref([] : frag list)
     type access = level * Frame.access
-
+	type label = Temp.label
     exception SyntaxException of string
 
     datatype exp = Ex of Tree.exp
                  | Nx of Tree.stm
                  | Cx of Temp.label * Temp.label -> Tree.stm
+	
+	val namedlabel=Temp.namedlabel
 
     fun handleInt(i: int) = Ex(Tree.CONST i)
 
@@ -25,7 +27,9 @@ struct
              frags := Frame.STRING (label, s) :: !frags;
              Ex (Tree.NAME label)
          end
-
+	
+	fun getLabel () = Temp.newlabel() 
+	
     fun handleNil() = Ex(Tree.CONST 0)
 
     fun newLevel({parent, name, formals}) = Lev(
@@ -169,7 +173,22 @@ struct
 	
 	fun compare (Tree.CONST a, Tree.CONST b) =  a<b
 	
-	fun subscriptVar(base, offset) = Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
+	fun subscriptVar(base, offset) = let 
+										val true' = Temp.newlabel()
+										val true'' = Temp.newlabel()
+										val false' = Temp.newlabel()
+									in
+									Ex(Tree.ESEQ(seq([
+									Tree.CJUMP(Tree.GT, calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)), unEx offset, true', false'),
+									Tree.LABEL true',
+									Tree.CJUMP(Tree.GE,unEx offset,Tree.CONST 0 , true'', false'),
+									Tree.LABEL false',
+									Tree.EXP(Frame.externalCall("exit", [])),
+									Tree.LABEL true''
+									]),
+									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
+									))
+									end 
 	
     (*fun subscriptVar(base, offset,size) = if (compare(Tree.CONST size,unEx offset) andalso compare(Tree.CONST ~1,Tree.CONST size)) 
 									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
@@ -370,6 +389,5 @@ struct
                     )
                 )
             )
-	fun getLabeled label = Ex (Tree.NAME(label))
 
 end
