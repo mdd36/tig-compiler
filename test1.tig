@@ -1,8 +1,7 @@
 /* a record type and a record variable */
 let
-	type  rectype = {name:string, age:int}
-	var rec1:rectype := rectype {name="Nobody", age=1000}
+	type  a = array of int
+	var b:a := a[10] of 1
 in
-	rec1.name := "Somebody";
-	rec1
+	b[1]
 end

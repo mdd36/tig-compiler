@@ -327,20 +327,24 @@ struct
     (let val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
 		in
 			case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => {venv = Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=Types.RECORD(tl,u),write=true}), tenv=tenv, exp = TR.assign(TR.getLabeled(name), exp)}
-																							| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-																											{venv=venv,tenv=tenv, exp= TR.handleNil()}))
+								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => let val access = TR.allocLocal(lev)(!escape) in 
+											{venv = Symbol.enter(venv,name,Env.VarEntry{access=access, ty=Types.RECORD(tl,u),write=true}), tenv=tenv,
+											exp = TR.getAssign(access, exp)} end
+										| _  => (print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
+											{venv=venv,tenv=tenv, exp= TR.handleNil()}))
 								 | NONE =>
 									(print(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-															  {venv=venv,tenv=tenv, exp= TR.handleNil()}))
-					| _ =>
+										{venv=venv,tenv=tenv, exp= TR.handleNil()}))
+					| _ =>  let val access = TR.allocLocal(lev)(!escape) in 
 							(case typ
 								of SOME((s,p)) => if checkSameType(actual_ty(tenv,searchTy(tenv,s,p),p), ty)
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape), ty=ty,write=true}), tenv=tenv,exp = TR.assign(TR.getLabeled(name), exp)}
+														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=access, ty=ty,write=true}), tenv=tenv,
+														exp = TR.getAssign(access, exp)}
 														else (print(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
 															  {venv=venv,tenv=tenv, exp= TR.handleNil()})
 								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=TR.allocLocal(lev)(!escape),ty=ty,write=true}), tenv=tenv,exp= TR.assign(TR.getLabeled(name), exp)})
+									{venv=Symbol.enter(venv,name,Env.VarEntry{access=access,ty=ty,write=true}), tenv=tenv,
+									exp= TR.getAssign(access, exp)}) end
 
 		end
 		)

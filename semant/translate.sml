@@ -87,6 +87,9 @@ struct
     |   unCx (Nx n) = raise ErrorMsg.Error
 
     fun assign (left, right) = Nx (Tree.MOVE (unEx left, unEx right))
+	
+	fun getAssign((Lev({parent = p,frame = f},u),a):access, exp) = case exp of Ex(Tree.ESEQ(e,r)) => Nx (Tree.MOVE ( (Frame.find a (Tree.TEMP Frame.FP)), Tree.MEM(unEx exp)))
+												| _ => Nx (Tree.MOVE ((Frame.find a (Tree.TEMP Frame.FP)), unEx exp))
 
     fun whileExp(test, body, escape) =
         let
@@ -163,8 +166,12 @@ struct
     |   strBinOps(_,_,_)                   = raise SyntaxException "Unsupported string operation"
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
-
-    fun subscriptVar(base, offset) = Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
+	
+	fun compare (Tree.CONST a, Tree.CONST b) = (print(Int.toString(b)); a<b)
+	
+    fun subscriptVar(base, offset) = if (compare(calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)),unEx offset) andalso compare(Tree.CONST ~1,calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)))) 
+									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
+									else handleNil()
 
     fun simpleVar(access, level) =
         let
