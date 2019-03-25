@@ -167,11 +167,13 @@ struct
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
 	
-	fun compare (Tree.CONST a, Tree.CONST b) = (print(Int.toString(b)); a<b)
+	fun compare (Tree.CONST a, Tree.CONST b) =  a<b
 	
-    fun subscriptVar(base, offset) = if (compare(calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)),unEx offset) andalso compare(Tree.CONST ~1,calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)))) 
+	fun subscriptVar(base, offset) = Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
+	
+    (*fun subscriptVar(base, offset,size) = if (compare(Tree.CONST size,unEx offset) andalso compare(Tree.CONST ~1,Tree.CONST size)) 
 									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
-									else handleNil()
+									else handleNil()*)
 
     fun simpleVar(access, level) =
         let
@@ -336,7 +338,9 @@ struct
             end
 
     fun arrayExp(size, init) = Ex(Frame.externalCall("initArray", [unEx size, unEx init]))
-
+	
+	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
+	
     fun diffLevel (Top) = 0
     |   diffLevel (l as Lev({parent: level,frame: Frame.frame},u: Types.unique)) = 1 + diffLevel(parent)
 

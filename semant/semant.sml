@@ -311,7 +311,7 @@ struct
                                             val offsetExp = #exp translatedOffset
                                         in
                                             (if checkInt(translatedOffset, pos, true)
-                                                then {exp = TR.subscriptVar(exp', offsetExp), ty = actual_ty (tenv,t,pos)}
+                                                then {exp = TR.subscriptVar(exp', offsetExp ), ty = actual_ty (tenv,t,pos)}
                                                 else (print(Int.toString(pos)^": Provided index is not of type int"^"\n");
                                                         {exp = TR.handleNil(), ty = Types.BOTTOM}))
                                         end
