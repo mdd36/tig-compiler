@@ -56,7 +56,7 @@ struct
 								jump = NONE})
 
 			  | munchStm (T.JUMP(e, labs)) =
-					emit(A.OPER{assem = "j 's0\n",
+					emit(A.OPER{assem = "j 'j0\n",
 								src = [munchExp e],
 								dst = [],
 								jump = labs})
