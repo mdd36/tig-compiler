@@ -12,7 +12,7 @@ int *initArray(int size, int init)
 int *allocRecord(int size)
 {int i;
  int *p, *a;
- p = a = (int *)malloc(size);
+ p = a = (int *) malloc(size);
  for(i=0;i<size;i+=sizeof(int)) *p++ = 0;
  return a;
 }
@@ -25,6 +25,38 @@ int stringEqual(struct string *s, struct string *t)
  if (s->length!=t->length) return 0;
  for(i=0;i<s->length;i++) if (s->chars[i]!=t->chars[i]) return 0;
  return 1;
+}
+
+int stringNotEqual(struct string *s, struct string *t){
+    return !stringEqual(s,t);
+}
+
+int stringCompare(struct string *s, struct string *t){
+    int i;
+    if (s == t) return 0;
+    for(i = 0; i < s->length; ++i) {
+        if(i < t.length){
+            if (s->chars[i] < t->chars[i]) return -1;
+            if (s->chars[i] > t->chars[i]) return  1;
+        } else return 1;
+    }
+    return i < t->length ? -1 : 0;
+}
+
+int stringGreaterThanEqual(struct string *s, struct string *t){
+    return stringCompare(s,t) >= 0;
+}
+
+int stringLessThanEqual(struct string *s, struct string *t){
+    return stringCompare(s,t) <= 0;
+}
+
+int stringGreaterThan(struct string *s, struct string *t){
+    return stringCompare(s,t) > 0;
+}
+
+int stringLessThan(struct string *s, struct string *t){
+    return stringCompare(s,t) < 0;
 }
 
 void print(struct string *s)
@@ -57,13 +89,13 @@ int ord(struct string *s)
 
 struct string *chr(int i)
 {
- if (i<0 || i>=256) 
+ if (i<0 || i>=256)
    {printf("chr(%d) out of range\n",i); exit(1);}
  return consts+i;
 }
 
 int size(struct string *s)
-{ 
+{
  return s->length;
 }
 
