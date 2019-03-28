@@ -23,3 +23,9 @@ ir/printtree.sml
 ir/temp.sig
 ir/temp.sml
 ir/tree.sml
+is/assem.sml
+is/canon.sml
+is/codegen.sml
+is/flowgraph.sml
+is/graph.sig
+is/graph.sml
