@@ -10,6 +10,7 @@ end
 structure Codegen :> CODEGEN =
 struct
     exception ArgCount of string
+    exception DivBy0 of string
     structure Frame = MipsFrame
 
     fun codegen (frame) (stm: Tree.stm) : Assem.instr list =
@@ -17,6 +18,19 @@ struct
             val ilist = ref []
             fun emit x = ilist := x :: !ilist
             fun result (gen) = let val t = Temp.newtemp() in gen t; t end
+
+            fun numBits x = Math.log10(real(x)) / Math.log10(real(2))
+
+            fun isShiftMult x  = (* Check if the immed for mult can be done as a shift instead *)
+                let
+                    val bin = numBits x
+                    val intBin = real (floor bin)
+                    val tol = 0.000000000001 (* Largest delta that still correctly works at 2^32 +/- 1 *)
+                in
+                    bin - intBin < tol
+                end
+
+
             fun munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
 
 			  | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
@@ -66,7 +80,7 @@ struct
 								 lab = lab})
 
 			  | munchStm (T.EXP e) = (munchExp e; ())
-
+                (* Memory expressions *)
             and munchExp(T.MEM(T.CONST immed)) = result(fn dest =>
                 emit(ASM.OPER{assem="lw `d0, " ^ Int.toString immed ^ "($0)",
                     src=[],dst=[dest],jump=NONE})
@@ -87,6 +101,32 @@ struct
                     emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~immed) ^ "(`s0)",
                     src=[munchExp rs], dst=[dest], jump=NONE})
                 )
+                (* Expression of two consts, just replace with a singe li *)
+            |   munchExp(T.BINOP(T.PLUS, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x+y),
+                    src=[], dst=[dest], jump=NONE})
+                )
+            |   munchExp(T.BINOP(T.MINUS, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x-y),
+                    src=[], dst=[dest], jump=NONE})
+                )
+            |   munchExp(T.BINOP(T.MUL, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x*y),
+                    src=[], dst=[dest], jump=NONE})
+                )
+            |   munchExp(T.BINOP(T.DIV, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (floor (real(x)/real(y))),
+                    src=[], dst=[dest], jump=NONE})
+                )
+            |   munchExp(T.BINOP(T.AND, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (if (x <> 0 andalso y <> 0) then 1 else 0),
+                    src=[], dst=[dest], jump=NONE})
+                )
+            |   munchExp(T.BINOP(T.OR, T.CONST x, T.CONST y)) = result(fn dest =>
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString (if (x <> 0 orelse y <> 0) then 1 else 0),
+                    src=[], dst=[dest], jump=NONE})
+                )
+                (* One immmediate expressions *)
             |   munchExp(T.BINOP(T.PLUS, rs, T.CONST immed)) = result(fn dest =>
                     emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString immed,
                     src=[munchExp rs], dst=[dest], jump=NONE})
@@ -103,12 +143,33 @@ struct
                     emit(ASM.OPER{assem="ori `d0, `s0, " ^ Int.toString immed,
                     src=[munchExp rs], dst=[dest], jump=NONE})
                 )
-            (* |   munchExp(T.BINOP(T.MUL, rs, T.CONST immed)) = result(result(fn dest =>
-
-                ) *)
-            (* |   munchExp(T.BINOP(T.MUL, rs, T.CONST immed)) = result(fn dest =>
-                    emit(ASM.OPER{assem="li "})
-                ) TODO muli?*)
+            |   munchExp(T.BINOP(T.MUL, rs, T.CONST immed)) =
+                    if immed = 0 then result(fn dest => (* Hey I know this one! *)
+                        emit(ASM.OPER{assem="li `d0, 0",
+                        src=[], dst=[dest], jump=NONE})
+                        )
+                    else (
+                        if immed > 0 andalso isShiftMult immed then result(fn dest => (* Dont mess with negative immmeds, that feels like a turing cliff problem *)
+                                emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString (floor(numBits(immed))),
+                                src=[munchExp rs], dst=[dest], jump=NONE})
+                            )
+                        else result(fn dest =>
+                            emit(ASM.OPER{assem="mul `d0, `s0, `s1",
+                            src=[munchExp rs, munchExp (T.CONST immed)], dst=[dest], jump=NONE})
+                            )
+                        )
+            |   munchExp(T.BINOP(T.DIV, rs, T.CONST immed)) =
+                    if immed = 0 then raise DivBy0 "Divide by zero found"
+                    else (
+                        if immed > 0 andalso isShiftMult immed then result(fn dest => (* Dont mess with negative immmeds, that feels like a turing cliff problem *)
+                                emit(ASM.OPER{assem="sra `d0, `s0, " ^ Int.toString (floor(numBits(immed))),
+                                src=[munchExp rs], dst=[dest], jump=NONE})
+                            )
+                        else result(fn dest =>
+                            emit(ASM.OPER{assem="div `d0, `s0, `s1",
+                            src=[munchExp rs, munchExp (T.CONST immed)], dst=[dest], jump=NONE})
+                            )
+                        )
             |   munchExp(T.BINOP(T.PLUS, T.CONST immed, rs)) = result(fn dest =>
                     emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString immed,
                     src=[munchExp rs], dst=[dest], jump=NONE})
@@ -125,7 +186,34 @@ struct
                     emit(ASM.OPER{assem="ori `d0, `s0, " ^ Int.toString immed,
                     src=[munchExp rs], dst=[dest], jump=NONE})
                 )
-
+            |   munchExp(T.BINOP(T.MUL, T.CONST immed, rs)) =
+                    if immed = 0 then result(fn dest =>(* Hey I know this one! *)
+                        emit(ASM.OPER{assem="li `d0, 0",
+                        src=[], dst=[dest], jump=NONE})
+                        )
+                    else (
+                        if immed > 0 andalso isShiftMult immed then result(fn dest => (* Dont mess with negative immmeds, that feels like a turing cliff problem *)
+                                emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString (floor(numBits(immed))),
+                                src=[munchExp rs], dst=[dest], jump=NONE})
+                            )
+                        else result(fn dest =>
+                            emit(ASM.OPER{assem="mul `d0, `s0, `s1",
+                            src=[munchExp rs, munchExp (T.CONST immed)], dst=[dest], jump=NONE})
+                            )
+                        )
+            |   munchExp(T.BINOP(T.DIV, T.CONST immed, rs)) =
+                    if immed = 0 then raise DivBy0 "Divide by zero found"
+                    else (
+                        if immed > 0 andalso isShiftMult immed then result(fn dest => (* Dont mess with negative immmeds, that feels like a turing cliff problem *)
+                                emit(ASM.OPER{assem="sra `d0, `s0, " ^ Int.toString (floor(numBits(immed))),
+                                src=[munchExp rs], dst=[dest], jump=NONE})
+                            )
+                        else result(fn dest =>
+                            emit(ASM.OPER{assem="div `d0, `s0, `s1",
+                            src=[munchExp rs, munchExp (T.CONST immed)], dst=[dest], jump=NONE})
+                            )
+                        )
+            (* Two register expressions *)
             |   munchExp(T.BINOP(T.PLUS, rs, rt)) = result(fn dest =>
                     emit(ASM.OPER{assem="add `d0, `s0, `s1",
                     src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
