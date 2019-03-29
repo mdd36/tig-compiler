@@ -5,6 +5,8 @@ struct
 
     val wordSize = 4
 
+
+
     fun newFrame {name, formals} = {name=name, formals=formals, locals=ref 0}
     fun formals {name, formals, locals} =
         let
@@ -32,6 +34,7 @@ struct
     val zero = Temp.newtemp()
 
     val v0 = Temp.newtemp()
+    val v1 = Temp.newtemp()
 
     val a0 = Temp.newtemp()
     val a1 = Temp.newtemp()
@@ -67,7 +70,7 @@ struct
     val temps = [t0, t1, t2, t3, t4, t5, t6, t7, t8, t9]
     val calleeSaves = [s0, s1, s2, s3, s4, s5, s6, s7]
     val callerSaves = [ra, FP, SP] @ temps
-    val returnReg = v0
+    val returnRegs = [v0, v1]
 
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
