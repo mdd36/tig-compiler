@@ -104,6 +104,7 @@ struct
 			  | munchStm (T.JUMP(e, labs)) =
 					emit(ASM.OPER{assem = "jr 's0\n",
 					src=[munchExp e], dst=[], jump=SOME labs})
+<<<<<<< HEAD
              (* Case where both are constants, help out our branch predictor *)
               | munchStm(T.CJUMP(T.LT, T.CONST i1, T.CONST i2, l1, l2)) =
                     if i1 < i2 then emit(ASM.OPER{assem="j `j0\n",
@@ -135,6 +136,9 @@ struct
                     src=[], dst=[], jump=SOME[l1]})
                     else emit(ASM.OPER{assem="j `j0\n",
                     src=[], dst=[], jump=SOME[l2]})
+=======
+             (* TODO Case where both are constants *)
+>>>>>>> 3763992dfcefb0c94e9312f3f8e7f65e0314c834
               | munchStm (T.CJUMP(T.LT, e1, T.CONST 0, l1, l2)) =
                     emit(ASM.OPER{assem="bltz `s0, `j0\n`j1\n",
                     src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
