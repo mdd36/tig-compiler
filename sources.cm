@@ -17,3 +17,9 @@ semant/types.sml
 semant/semant.sml
 semant/translate.sml
 semant/env.sml
+ir/frame.sig
+ir/mips-frame.sml
+ir/printtree.sml
+ir/temp.sig
+ir/temp.sml
+ir/tree.sml

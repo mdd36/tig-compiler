@@ -86,7 +86,7 @@ exp:   STRING                           (A.StringExp(STRING,STRINGleft))
 	|  exp GE exp                         (A.OpExp{left = exp1, oper = A.GeOp,     right = exp2,                pos = GEleft})
 	|  lvalue ASSIGN exp                  (A.AssignExp{var = lvalue,               exp = exp,                   pos = ASSIGNleft})
 	|  ID LPAREN explist RPAREN           (A.CallExp{func = Symbol.symbol ID,      args = rev explist,              pos = IDleft})
-  |  ID LPAREN RPAREN                   (A.CallExp{func = Symbol.symbol ID,      args = [],                        pos = IDleft})
+    |  ID LPAREN RPAREN                   (A.CallExp{func = Symbol.symbol ID,      args = [],                        pos = IDleft})
 	|  LPAREN expseq RPAREN               (A.SeqExp( rev expseq))
 	|  ID LBRACE field RBRACE             (A.RecordExp{fields = rev field, typ = Symbol.symbol ID,                  pos=IDleft})
 	|  ID LBRACK exp RBRACK OF exp        (A.ArrayExp{typ = Symbol.symbol ID, size = exp1, init = exp2,              pos = IDleft})
@@ -106,15 +106,15 @@ lvaluebody: DOT ID lvaluebody            (Sym(Symbol.symbol ID, DOTleft) ::lvalu
 
 
 expseq:   exp                 ((exp, expleft) :: [])
-	  | expseq SEMICOLON exp    ((exp, expleft) :: expseq)
-	  |                        ([])
+	  | expseq SEMICOLON exp  ((exp, expleft) :: expseq)
+	  |                       ([])
 
 
 explist:  exp           (exp :: [])
 		| explist COMMA exp (exp :: explist)
 
-declarationlist: declaration           (declaration :: [])
-				 | declarationlist declaration (declaration :: declarationlist)
+declarationlist:   declarationlist declaration (declaration :: declarationlist)
+                 | (*Derive empty*) ([])
 
 declaration: tyDecs %prec LOWPRIORITY (A.TypeDec(rev tyDecs))
 			| vardec       (vardec)

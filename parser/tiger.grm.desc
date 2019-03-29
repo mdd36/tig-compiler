@@ -16,7 +16,7 @@ state 0:
 	NIL	shift 3
 
 	exp	goto 2
-	program	goto 148
+	program	goto 147
 	lvalue	goto 1
 
 	.	error
@@ -88,26 +88,17 @@ state 5:
 
 	exp : LET . declarationlist IN expseq END 
 
-	FUNCTION	shift 36
-	VAR	shift 35
-	TYPE	shift 34
 
-	declarationlist	goto 33
-	declaration	goto 32
-	typedeclaration	goto 31
-	functiondeclaration	goto 30
-	tyDecs	goto 29
-	funDecs	goto 28
-	vardec	goto 27
+	declarationlist	goto 27
 
-	.	error
+	.	reduce by rule 40
 
 
 state 6:
 
 	exp : FOR . ID ASSIGN exp TO exp DO exp 
 
-	ID	shift 37
+	ID	shift 28
 
 
 	.	error
@@ -129,7 +120,7 @@ state 7:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 38
+	exp	goto 29
 	lvalue	goto 1
 
 	.	error
@@ -152,7 +143,7 @@ state 8:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 39
+	exp	goto 30
 	lvalue	goto 1
 
 	.	error
@@ -174,7 +165,7 @@ state 9:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 40
+	exp	goto 31
 	lvalue	goto 1
 
 	.	error
@@ -196,9 +187,9 @@ state 10:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 42
+	exp	goto 33
 	lvalue	goto 1
-	expseq	goto 41
+	expseq	goto 32
 
 	.	reduce by rule 36
 
@@ -229,12 +220,12 @@ state 13:
 	exp : ID . LBRACK exp RBRACK OF exp 
 	lvalue : ID . lvaluebody 
 
-	LPAREN	shift 47
-	LBRACK	shift 46
-	LBRACE	shift 45
-	DOT	shift 44
+	LPAREN	shift 38
+	LBRACK	shift 37
+	LBRACE	shift 36
+	DOT	shift 35
 
-	lvaluebody	goto 43
+	lvaluebody	goto 34
 
 	.	reduce by rule 33
 
@@ -255,7 +246,7 @@ state 14:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 48
+	exp	goto 39
 	lvalue	goto 1
 
 	.	error
@@ -277,7 +268,7 @@ state 15:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 49
+	exp	goto 40
 	lvalue	goto 1
 
 	.	error
@@ -299,7 +290,7 @@ state 16:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 50
+	exp	goto 41
 	lvalue	goto 1
 
 	.	error
@@ -321,7 +312,7 @@ state 17:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 51
+	exp	goto 42
 	lvalue	goto 1
 
 	.	error
@@ -343,7 +334,7 @@ state 18:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 52
+	exp	goto 43
 	lvalue	goto 1
 
 	.	error
@@ -365,7 +356,7 @@ state 19:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 53
+	exp	goto 44
 	lvalue	goto 1
 
 	.	error
@@ -387,7 +378,7 @@ state 20:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 54
+	exp	goto 45
 	lvalue	goto 1
 
 	.	error
@@ -409,7 +400,7 @@ state 21:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 55
+	exp	goto 46
 	lvalue	goto 1
 
 	.	error
@@ -431,7 +422,7 @@ state 22:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 56
+	exp	goto 47
 	lvalue	goto 1
 
 	.	error
@@ -453,7 +444,7 @@ state 23:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 57
+	exp	goto 48
 	lvalue	goto 1
 
 	.	error
@@ -475,7 +466,7 @@ state 24:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 58
+	exp	goto 49
 	lvalue	goto 1
 
 	.	error
@@ -497,7 +488,7 @@ state 25:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 59
+	exp	goto 50
 	lvalue	goto 1
 
 	.	error
@@ -519,7 +510,7 @@ state 26:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 60
+	exp	goto 51
 	lvalue	goto 1
 
 	.	error
@@ -527,129 +518,35 @@ state 26:
 
 state 27:
 
-	declaration : vardec .  (reduce by rule 42)
+	exp : LET declarationlist . IN expseq END 
+	declarationlist : declarationlist . declaration 
 
+	IN	shift 61
+	FUNCTION	shift 60
+	VAR	shift 59
+	TYPE	shift 58
 
+	declaration	goto 57
+	typedeclaration	goto 56
+	functiondeclaration	goto 55
+	tyDecs	goto 54
+	funDecs	goto 53
+	vardec	goto 52
 
-	.	reduce by rule 42
+	.	error
 
 
 state 28:
 
-	declaration : funDecs .  (reduce by rule 43)
-	funDecs : funDecs . functiondeclaration 
+	exp : FOR ID . ASSIGN exp TO exp DO exp 
 
-	FUNCTION	shift 36
+	ASSIGN	shift 62
 
-	functiondeclaration	goto 61
 
-	.	reduce by rule 43
+	.	error
 
 
 state 29:
-
-	declaration : tyDecs .  (reduce by rule 41)
-	tyDecs : tyDecs . typedeclaration 
-
-	TYPE	shift 34
-
-	typedeclaration	goto 62
-
-	.	reduce by rule 41
-
-
-state 30:
-
-	funDecs : functiondeclaration .  (reduce by rule 50)
-
-
-
-	.	reduce by rule 50
-
-
-state 31:
-
-	tyDecs : typedeclaration .  (reduce by rule 55)
-
-
-
-	.	reduce by rule 55
-
-
-state 32:
-
-	declarationlist : declaration .  (reduce by rule 39)
-
-
-
-	.	reduce by rule 39
-
-
-state 33:
-
-	exp : LET declarationlist . IN expseq END 
-	declarationlist : declarationlist . declaration 
-
-	IN	shift 64
-	FUNCTION	shift 36
-	VAR	shift 35
-	TYPE	shift 34
-
-	declaration	goto 63
-	typedeclaration	goto 31
-	functiondeclaration	goto 30
-	tyDecs	goto 29
-	funDecs	goto 28
-	vardec	goto 27
-
-	.	error
-
-
-state 34:
-
-	typedeclaration : TYPE . ID EQ ty 
-
-	ID	shift 65
-
-
-	.	error
-
-
-state 35:
-
-	vardec : VAR . ID ASSIGN exp 
-	vardec : VAR . ID COLON ID ASSIGN exp 
-
-	ID	shift 66
-
-
-	.	error
-
-
-state 36:
-
-	functiondeclaration : FUNCTION . ID LPAREN typefields RPAREN EQ exp 
-	functiondeclaration : FUNCTION . ID LPAREN RPAREN EQ exp 
-	functiondeclaration : FUNCTION . ID LPAREN typefields RPAREN COLON ID EQ exp 
-	functiondeclaration : FUNCTION . ID LPAREN RPAREN COLON ID EQ exp 
-
-	ID	shift 67
-
-
-	.	error
-
-
-state 37:
-
-	exp : FOR ID . ASSIGN exp TO exp DO exp 
-
-	ASSIGN	shift 68
-
-
-	.	error
-
-
-state 38:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -677,13 +574,13 @@ state 38:
 	GE	shift 17
 	AND	shift 16
 	OR	shift 15
-	DO	shift 69
+	DO	shift 63
 
 
 	.	error
 
 
-state 39:
+state 30:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -712,13 +609,13 @@ state 39:
 	GE	shift 17
 	AND	shift 16
 	OR	shift 15
-	THEN	shift 70
+	THEN	shift 64
 
 
 	.	error
 
 
-state 40:
+state 31:
 
 	exp : MINUS exp .  (reduce by rule 5)
 	exp : exp . PLUS exp 
@@ -739,19 +636,19 @@ state 40:
 	.	reduce by rule 5
 
 
-state 41:
+state 32:
 
 	exp : LPAREN expseq . RPAREN 
 	expseq : expseq . SEMICOLON exp 
 
-	SEMICOLON	shift 72
-	RPAREN	shift 71
+	SEMICOLON	shift 66
+	RPAREN	shift 65
 
 
 	.	error
 
 
-state 42:
+state 33:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -784,7 +681,7 @@ state 42:
 	.	reduce by rule 34
 
 
-state 43:
+state 34:
 
 	lvalue : ID lvaluebody .  (reduce by rule 30)
 
@@ -793,28 +690,28 @@ state 43:
 	.	reduce by rule 30
 
 
-state 44:
+state 35:
 
 	lvaluebody : DOT . ID lvaluebody 
 
-	ID	shift 73
+	ID	shift 67
 
 
 	.	error
 
 
-state 45:
+state 36:
 
 	exp : ID LBRACE . field RBRACE 
 
-	ID	shift 75
+	ID	shift 69
 
-	field	goto 74
+	field	goto 68
 
 	.	error
 
 
-state 46:
+state 37:
 
 	exp : ID LBRACK . exp RBRACK OF exp 
 	lvaluebody : LBRACK . exp RBRACK lvaluebody 
@@ -831,13 +728,13 @@ state 46:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 76
+	exp	goto 70
 	lvalue	goto 1
 
 	.	error
 
 
-state 47:
+state 38:
 
 	exp : ID LPAREN . explist RPAREN 
 	exp : ID LPAREN . RPAREN 
@@ -846,7 +743,7 @@ state 47:
 	INT	shift 12
 	STRING	shift 11
 	LPAREN	shift 10
-	RPAREN	shift 79
+	RPAREN	shift 73
 	MINUS	shift 9
 	IF	shift 8
 	WHILE	shift 7
@@ -855,14 +752,14 @@ state 47:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 78
+	exp	goto 72
 	lvalue	goto 1
-	explist	goto 77
+	explist	goto 71
 
 	.	error
 
 
-state 48:
+state 39:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -895,7 +792,7 @@ state 48:
 	.	reduce by rule 18
 
 
-state 49:
+state 40:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -927,7 +824,7 @@ state 49:
 	.	reduce by rule 11
 
 
-state 50:
+state 41:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -958,7 +855,7 @@ state 50:
 	.	reduce by rule 10
 
 
-state 51:
+state 42:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1000,7 +897,7 @@ state 51:
 	.	error
 
 
-state 52:
+state 43:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1042,7 +939,7 @@ state 52:
 	.	error
 
 
-state 53:
+state 44:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1084,7 +981,7 @@ state 53:
 	.	error
 
 
-state 54:
+state 45:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1126,7 +1023,7 @@ state 54:
 	.	error
 
 
-state 55:
+state 46:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1168,7 +1065,7 @@ state 55:
 	.	error
 
 
-state 56:
+state 47:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1210,7 +1107,7 @@ state 56:
 	.	error
 
 
-state 57:
+state 48:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1231,7 +1128,7 @@ state 57:
 	.	reduce by rule 9
 
 
-state 58:
+state 49:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1252,7 +1149,7 @@ state 58:
 	.	reduce by rule 8
 
 
-state 59:
+state 50:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1275,7 +1172,7 @@ state 59:
 	.	reduce by rule 7
 
 
-state 60:
+state 51:
 
 	exp : exp . PLUS exp 
 	exp : exp PLUS exp .  (reduce by rule 6)
@@ -1298,34 +1195,101 @@ state 60:
 	.	reduce by rule 6
 
 
+state 52:
+
+	declaration : vardec .  (reduce by rule 42)
+
+
+
+	.	reduce by rule 42
+
+
+state 53:
+
+	declaration : funDecs .  (reduce by rule 43)
+	funDecs : funDecs . functiondeclaration 
+
+	FUNCTION	shift 60
+
+	functiondeclaration	goto 74
+
+	.	reduce by rule 43
+
+
+state 54:
+
+	declaration : tyDecs .  (reduce by rule 41)
+	tyDecs : tyDecs . typedeclaration 
+
+	TYPE	shift 58
+
+	typedeclaration	goto 75
+
+	.	reduce by rule 41
+
+
+state 55:
+
+	funDecs : functiondeclaration .  (reduce by rule 50)
+
+
+
+	.	reduce by rule 50
+
+
+state 56:
+
+	tyDecs : typedeclaration .  (reduce by rule 55)
+
+
+
+	.	reduce by rule 55
+
+
+state 57:
+
+	declarationlist : declarationlist declaration .  (reduce by rule 39)
+
+
+
+	.	reduce by rule 39
+
+
+state 58:
+
+	typedeclaration : TYPE . ID EQ ty 
+
+	ID	shift 76
+
+
+	.	error
+
+
+state 59:
+
+	vardec : VAR . ID ASSIGN exp 
+	vardec : VAR . ID COLON ID ASSIGN exp 
+
+	ID	shift 77
+
+
+	.	error
+
+
+state 60:
+
+	functiondeclaration : FUNCTION . ID LPAREN typefields RPAREN EQ exp 
+	functiondeclaration : FUNCTION . ID LPAREN RPAREN EQ exp 
+	functiondeclaration : FUNCTION . ID LPAREN typefields RPAREN COLON ID EQ exp 
+	functiondeclaration : FUNCTION . ID LPAREN RPAREN COLON ID EQ exp 
+
+	ID	shift 78
+
+
+	.	error
+
+
 state 61:
-
-	funDecs : funDecs functiondeclaration .  (reduce by rule 51)
-
-
-
-	.	reduce by rule 51
-
-
-state 62:
-
-	tyDecs : tyDecs typedeclaration .  (reduce by rule 56)
-
-
-
-	.	reduce by rule 56
-
-
-state 63:
-
-	declarationlist : declarationlist declaration .  (reduce by rule 40)
-
-
-
-	.	reduce by rule 40
-
-
-state 64:
 
 	exp : LET declarationlist IN . expseq END 
 
@@ -1341,49 +1305,14 @@ state 64:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 42
+	exp	goto 33
 	lvalue	goto 1
-	expseq	goto 80
+	expseq	goto 79
 
 	.	reduce by rule 36
 
 
-state 65:
-
-	typedeclaration : TYPE ID . EQ ty 
-
-	EQ	shift 81
-
-
-	.	error
-
-
-state 66:
-
-	vardec : VAR ID . ASSIGN exp 
-	vardec : VAR ID . COLON ID ASSIGN exp 
-
-	COLON	shift 83
-	ASSIGN	shift 82
-
-
-	.	error
-
-
-state 67:
-
-	functiondeclaration : FUNCTION ID . LPAREN typefields RPAREN EQ exp 
-	functiondeclaration : FUNCTION ID . LPAREN RPAREN EQ exp 
-	functiondeclaration : FUNCTION ID . LPAREN typefields RPAREN COLON ID EQ exp 
-	functiondeclaration : FUNCTION ID . LPAREN RPAREN COLON ID EQ exp 
-
-	LPAREN	shift 84
-
-
-	.	error
-
-
-state 68:
+state 62:
 
 	exp : FOR ID ASSIGN . exp TO exp DO exp 
 
@@ -1399,13 +1328,13 @@ state 68:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 85
+	exp	goto 80
 	lvalue	goto 1
 
 	.	error
 
 
-state 69:
+state 63:
 
 	exp : WHILE exp DO . exp 
 
@@ -1421,13 +1350,13 @@ state 69:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 86
+	exp	goto 81
 	lvalue	goto 1
 
 	.	error
 
 
-state 70:
+state 64:
 
 	exp : IF exp THEN . exp 
 	exp : IF exp THEN . exp ELSE exp 
@@ -1444,13 +1373,13 @@ state 70:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 87
+	exp	goto 82
 	lvalue	goto 1
 
 	.	error
 
 
-state 71:
+state 65:
 
 	exp : LPAREN expseq RPAREN .  (reduce by rule 21)
 
@@ -1459,7 +1388,7 @@ state 71:
 	.	reduce by rule 21
 
 
-state 72:
+state 66:
 
 	expseq : expseq SEMICOLON . exp 
 
@@ -1475,47 +1404,47 @@ state 72:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 88
+	exp	goto 83
 	lvalue	goto 1
 
 	.	error
 
 
-state 73:
+state 67:
 
 	lvaluebody : DOT ID . lvaluebody 
 
-	LBRACK	shift 90
-	DOT	shift 44
+	LBRACK	shift 85
+	DOT	shift 35
 
-	lvaluebody	goto 89
+	lvaluebody	goto 84
 
 	.	reduce by rule 33
 
 
-state 74:
+state 68:
 
 	exp : ID LBRACE field . RBRACE 
 	field : field . COMMA ID EQ exp 
 
-	COMMA	shift 92
-	RBRACE	shift 91
+	COMMA	shift 87
+	RBRACE	shift 86
 
 
 	.	error
 
 
-state 75:
+state 69:
 
 	field : ID . EQ exp 
 
-	EQ	shift 93
+	EQ	shift 88
 
 
 	.	error
 
 
-state 76:
+state 70:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1532,7 +1461,7 @@ state 76:
 	exp : ID LBRACK exp . RBRACK OF exp 
 	lvaluebody : LBRACK exp . RBRACK lvaluebody 
 
-	RBRACK	shift 94
+	RBRACK	shift 89
 	PLUS	shift 26
 	MINUS	shift 25
 	TIMES	shift 24
@@ -1550,19 +1479,19 @@ state 76:
 	.	error
 
 
-state 77:
+state 71:
 
 	exp : ID LPAREN explist . RPAREN 
 	explist : explist . COMMA exp 
 
-	COMMA	shift 96
-	RPAREN	shift 95
+	COMMA	shift 91
+	RPAREN	shift 90
 
 
 	.	error
 
 
-state 78:
+state 72:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1595,7 +1524,7 @@ state 78:
 	.	reduce by rule 37
 
 
-state 79:
+state 73:
 
 	exp : ID LPAREN RPAREN .  (reduce by rule 20)
 
@@ -1604,80 +1533,72 @@ state 79:
 	.	reduce by rule 20
 
 
-state 80:
+state 74:
+
+	funDecs : funDecs functiondeclaration .  (reduce by rule 51)
+
+
+
+	.	reduce by rule 51
+
+
+state 75:
+
+	tyDecs : tyDecs typedeclaration .  (reduce by rule 56)
+
+
+
+	.	reduce by rule 56
+
+
+state 76:
+
+	typedeclaration : TYPE ID . EQ ty 
+
+	EQ	shift 92
+
+
+	.	error
+
+
+state 77:
+
+	vardec : VAR ID . ASSIGN exp 
+	vardec : VAR ID . COLON ID ASSIGN exp 
+
+	COLON	shift 94
+	ASSIGN	shift 93
+
+
+	.	error
+
+
+state 78:
+
+	functiondeclaration : FUNCTION ID . LPAREN typefields RPAREN EQ exp 
+	functiondeclaration : FUNCTION ID . LPAREN RPAREN EQ exp 
+	functiondeclaration : FUNCTION ID . LPAREN typefields RPAREN COLON ID EQ exp 
+	functiondeclaration : FUNCTION ID . LPAREN RPAREN COLON ID EQ exp 
+
+	LPAREN	shift 95
+
+
+	.	error
+
+
+state 79:
 
 	exp : LET declarationlist IN expseq . END 
 	expseq : expseq . SEMICOLON exp 
 
-	SEMICOLON	shift 72
-	END	shift 97
+	SEMICOLON	shift 66
+	END	shift 96
 
 
 	.	error
 
 
-state 81:
-
-	typedeclaration : TYPE ID EQ . ty 
-
-	ID	shift 101
-	LBRACE	shift 100
-	ARRAY	shift 99
-
-	ty	goto 98
-
-	.	error
-
-
-state 82:
-
-	vardec : VAR ID ASSIGN . exp 
-
-	ID	shift 13
-	INT	shift 12
-	STRING	shift 11
-	LPAREN	shift 10
-	MINUS	shift 9
-	IF	shift 8
-	WHILE	shift 7
-	FOR	shift 6
-	LET	shift 5
-	BREAK	shift 4
-	NIL	shift 3
-
-	exp	goto 102
-	lvalue	goto 1
-
-	.	error
-
-
-state 83:
-
-	vardec : VAR ID COLON . ID ASSIGN exp 
-
-	ID	shift 103
-
-
-	.	error
-
-
-state 84:
-
-	functiondeclaration : FUNCTION ID LPAREN . typefields RPAREN EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN . RPAREN EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN . typefields RPAREN COLON ID EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN . RPAREN COLON ID EQ exp 
-
-	ID	shift 107
-	RPAREN	shift 106
-
-	typefield	goto 105
-	typefields	goto 104
-
-	.	error
-
-
-state 85:
+state 80:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1705,13 +1626,13 @@ state 85:
 	GE	shift 17
 	AND	shift 16
 	OR	shift 15
-	TO	shift 108
+	TO	shift 97
 
 
 	.	error
 
 
-state 86:
+state 81:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1744,7 +1665,7 @@ state 86:
 	.	reduce by rule 26
 
 
-state 87:
+state 82:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1773,13 +1694,13 @@ state 87:
 	GE	shift 17
 	AND	shift 16
 	OR	shift 15
-	ELSE	shift 109
+	ELSE	shift 98
 
 
 	.	reduce by rule 24
 
 
-state 88:
+state 83:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -1812,7 +1733,7 @@ state 88:
 	.	reduce by rule 35
 
 
-state 89:
+state 84:
 
 	lvaluebody : DOT ID lvaluebody .  (reduce by rule 31)
 
@@ -1821,7 +1742,7 @@ state 89:
 	.	reduce by rule 31
 
 
-state 90:
+state 85:
 
 	lvaluebody : LBRACK . exp RBRACK lvaluebody 
 
@@ -1837,13 +1758,13 @@ state 90:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 110
+	exp	goto 99
 	lvalue	goto 1
 
 	.	error
 
 
-state 91:
+state 86:
 
 	exp : ID LBRACE field RBRACE .  (reduce by rule 22)
 
@@ -1852,17 +1773,17 @@ state 91:
 	.	reduce by rule 22
 
 
-state 92:
+state 87:
 
 	field : field COMMA . ID EQ exp 
 
-	ID	shift 111
+	ID	shift 100
 
 
 	.	error
 
 
-state 93:
+state 88:
 
 	field : ID EQ . exp 
 
@@ -1878,27 +1799,27 @@ state 93:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 112
+	exp	goto 101
 	lvalue	goto 1
 
 	.	error
 
 
-state 94:
+state 89:
 
 	exp : ID LBRACK exp RBRACK . OF exp 
 	lvaluebody : LBRACK exp RBRACK . lvaluebody 
 
-	LBRACK	shift 90
-	DOT	shift 44
-	OF	shift 114
+	LBRACK	shift 85
+	DOT	shift 35
+	OF	shift 103
 
-	lvaluebody	goto 113
+	lvaluebody	goto 102
 
 	.	reduce by rule 33
 
 
-state 95:
+state 90:
 
 	exp : ID LPAREN explist RPAREN .  (reduce by rule 19)
 
@@ -1907,9 +1828,101 @@ state 95:
 	.	reduce by rule 19
 
 
-state 96:
+state 91:
 
 	explist : explist COMMA . exp 
+
+	ID	shift 13
+	INT	shift 12
+	STRING	shift 11
+	LPAREN	shift 10
+	MINUS	shift 9
+	IF	shift 8
+	WHILE	shift 7
+	FOR	shift 6
+	LET	shift 5
+	BREAK	shift 4
+	NIL	shift 3
+
+	exp	goto 104
+	lvalue	goto 1
+
+	.	error
+
+
+state 92:
+
+	typedeclaration : TYPE ID EQ . ty 
+
+	ID	shift 108
+	LBRACE	shift 107
+	ARRAY	shift 106
+
+	ty	goto 105
+
+	.	error
+
+
+state 93:
+
+	vardec : VAR ID ASSIGN . exp 
+
+	ID	shift 13
+	INT	shift 12
+	STRING	shift 11
+	LPAREN	shift 10
+	MINUS	shift 9
+	IF	shift 8
+	WHILE	shift 7
+	FOR	shift 6
+	LET	shift 5
+	BREAK	shift 4
+	NIL	shift 3
+
+	exp	goto 109
+	lvalue	goto 1
+
+	.	error
+
+
+state 94:
+
+	vardec : VAR ID COLON . ID ASSIGN exp 
+
+	ID	shift 110
+
+
+	.	error
+
+
+state 95:
+
+	functiondeclaration : FUNCTION ID LPAREN . typefields RPAREN EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN . RPAREN EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN . typefields RPAREN COLON ID EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN . RPAREN COLON ID EQ exp 
+
+	ID	shift 114
+	RPAREN	shift 113
+
+	typefield	goto 112
+	typefields	goto 111
+
+	.	error
+
+
+state 96:
+
+	exp : LET declarationlist IN expseq END .  (reduce by rule 29)
+
+
+
+	.	reduce by rule 29
+
+
+state 97:
+
+	exp : FOR ID ASSIGN exp TO . exp DO exp 
 
 	ID	shift 13
 	INT	shift 12
@@ -1929,167 +1942,7 @@ state 96:
 	.	error
 
 
-state 97:
-
-	exp : LET declarationlist IN expseq END .  (reduce by rule 29)
-
-
-
-	.	reduce by rule 29
-
-
 state 98:
-
-	typedeclaration : TYPE ID EQ ty .  (reduce by rule 54)
-
-
-
-	.	reduce by rule 54
-
-
-state 99:
-
-	ty : ARRAY . OF ID 
-
-	OF	shift 116
-
-
-	.	error
-
-
-state 100:
-
-	ty : LBRACE . typefields RBRACE 
-	ty : LBRACE . RBRACE 
-
-	ID	shift 107
-	RBRACE	shift 118
-
-	typefield	goto 105
-	typefields	goto 117
-
-	.	error
-
-
-state 101:
-
-	ty : ID .  (reduce by rule 57)
-
-
-
-	.	reduce by rule 57
-
-
-state 102:
-
-	exp : exp . PLUS exp 
-	exp : exp . MINUS exp 
-	exp : exp . TIMES exp 
-	exp : exp . DIVIDE exp 
-	exp : exp . AND exp 
-	exp : exp . OR exp 
-	exp : exp . EQ exp 
-	exp : exp . NEQ exp 
-	exp : exp . LT exp 
-	exp : exp . LE exp 
-	exp : exp . GT exp 
-	exp : exp . GE exp 
-	vardec : VAR ID ASSIGN exp .  (reduce by rule 44)
-
-	PLUS	shift 26
-	MINUS	shift 25
-	TIMES	shift 24
-	DIVIDE	shift 23
-	EQ	shift 22
-	NEQ	shift 21
-	LT	shift 20
-	LE	shift 19
-	GT	shift 18
-	GE	shift 17
-	AND	shift 16
-	OR	shift 15
-
-
-	.	reduce by rule 44
-
-
-state 103:
-
-	vardec : VAR ID COLON ID . ASSIGN exp 
-
-	ASSIGN	shift 119
-
-
-	.	error
-
-
-state 104:
-
-	functiondeclaration : FUNCTION ID LPAREN typefields . RPAREN EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN typefields . RPAREN COLON ID EQ exp 
-	typefields : typefields . COMMA typefield 
-
-	COMMA	shift 121
-	RPAREN	shift 120
-
-
-	.	error
-
-
-state 105:
-
-	typefields : typefield .  (reduce by rule 61)
-
-
-
-	.	reduce by rule 61
-
-
-state 106:
-
-	functiondeclaration : FUNCTION ID LPAREN RPAREN . EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN RPAREN . COLON ID EQ exp 
-
-	COLON	shift 123
-	EQ	shift 122
-
-
-	.	error
-
-
-state 107:
-
-	typefield : ID . COLON ID 
-
-	COLON	shift 124
-
-
-	.	error
-
-
-state 108:
-
-	exp : FOR ID ASSIGN exp TO . exp DO exp 
-
-	ID	shift 13
-	INT	shift 12
-	STRING	shift 11
-	LPAREN	shift 10
-	MINUS	shift 9
-	IF	shift 8
-	WHILE	shift 7
-	FOR	shift 6
-	LET	shift 5
-	BREAK	shift 4
-	NIL	shift 3
-
-	exp	goto 125
-	lvalue	goto 1
-
-	.	error
-
-
-state 109:
 
 	exp : IF exp THEN exp ELSE . exp 
 
@@ -2105,13 +1958,13 @@ state 109:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 126
+	exp	goto 116
 	lvalue	goto 1
 
 	.	error
 
 
-state 110:
+state 99:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2127,7 +1980,7 @@ state 110:
 	exp : exp . GE exp 
 	lvaluebody : LBRACK exp . RBRACK lvaluebody 
 
-	RBRACK	shift 127
+	RBRACK	shift 117
 	PLUS	shift 26
 	MINUS	shift 25
 	TIMES	shift 24
@@ -2145,17 +1998,17 @@ state 110:
 	.	error
 
 
-state 111:
+state 100:
 
 	field : field COMMA ID . EQ exp 
 
-	EQ	shift 128
+	EQ	shift 118
 
 
 	.	error
 
 
-state 112:
+state 101:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2188,7 +2041,7 @@ state 112:
 	.	reduce by rule 52
 
 
-state 113:
+state 102:
 
 	lvaluebody : LBRACK exp RBRACK lvaluebody .  (reduce by rule 32)
 
@@ -2197,7 +2050,7 @@ state 113:
 	.	reduce by rule 32
 
 
-state 114:
+state 103:
 
 	exp : ID LBRACK exp RBRACK OF . exp 
 
@@ -2213,13 +2066,13 @@ state 114:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 129
+	exp	goto 119
 	lvalue	goto 1
 
 	.	error
 
 
-state 115:
+state 104:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2252,125 +2105,136 @@ state 115:
 	.	reduce by rule 38
 
 
-state 116:
+state 105:
 
-	ty : ARRAY OF . ID 
+	typedeclaration : TYPE ID EQ ty .  (reduce by rule 54)
 
-	ID	shift 130
+
+
+	.	reduce by rule 54
+
+
+state 106:
+
+	ty : ARRAY . OF ID 
+
+	OF	shift 120
 
 
 	.	error
 
 
-state 117:
+state 107:
 
+	ty : LBRACE . typefields RBRACE 
+	ty : LBRACE . RBRACE 
+
+	ID	shift 114
+	RBRACE	shift 122
+
+	typefield	goto 112
+	typefields	goto 121
+
+	.	error
+
+
+state 108:
+
+	ty : ID .  (reduce by rule 57)
+
+
+
+	.	reduce by rule 57
+
+
+state 109:
+
+	exp : exp . PLUS exp 
+	exp : exp . MINUS exp 
+	exp : exp . TIMES exp 
+	exp : exp . DIVIDE exp 
+	exp : exp . AND exp 
+	exp : exp . OR exp 
+	exp : exp . EQ exp 
+	exp : exp . NEQ exp 
+	exp : exp . LT exp 
+	exp : exp . LE exp 
+	exp : exp . GT exp 
+	exp : exp . GE exp 
+	vardec : VAR ID ASSIGN exp .  (reduce by rule 44)
+
+	PLUS	shift 26
+	MINUS	shift 25
+	TIMES	shift 24
+	DIVIDE	shift 23
+	EQ	shift 22
+	NEQ	shift 21
+	LT	shift 20
+	LE	shift 19
+	GT	shift 18
+	GE	shift 17
+	AND	shift 16
+	OR	shift 15
+
+
+	.	reduce by rule 44
+
+
+state 110:
+
+	vardec : VAR ID COLON ID . ASSIGN exp 
+
+	ASSIGN	shift 123
+
+
+	.	error
+
+
+state 111:
+
+	functiondeclaration : FUNCTION ID LPAREN typefields . RPAREN EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN typefields . RPAREN COLON ID EQ exp 
 	typefields : typefields . COMMA typefield 
-	ty : LBRACE typefields . RBRACE 
 
-	COMMA	shift 121
-	RBRACE	shift 131
-
-
-	.	error
-
-
-state 118:
-
-	ty : LBRACE RBRACE .  (reduce by rule 59)
-
-
-
-	.	reduce by rule 59
-
-
-state 119:
-
-	vardec : VAR ID COLON ID ASSIGN . exp 
-
-	ID	shift 13
-	INT	shift 12
-	STRING	shift 11
-	LPAREN	shift 10
-	MINUS	shift 9
-	IF	shift 8
-	WHILE	shift 7
-	FOR	shift 6
-	LET	shift 5
-	BREAK	shift 4
-	NIL	shift 3
-
-	exp	goto 132
-	lvalue	goto 1
-
-	.	error
-
-
-state 120:
-
-	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN . EQ exp 
-	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN . COLON ID EQ exp 
-
-	COLON	shift 134
-	EQ	shift 133
+	COMMA	shift 125
+	RPAREN	shift 124
 
 
 	.	error
 
 
-state 121:
+state 112:
 
-	typefields : typefields COMMA . typefield 
-
-	ID	shift 107
-
-	typefield	goto 135
-
-	.	error
+	typefields : typefield .  (reduce by rule 61)
 
 
-state 122:
 
-	functiondeclaration : FUNCTION ID LPAREN RPAREN EQ . exp 
-
-	ID	shift 13
-	INT	shift 12
-	STRING	shift 11
-	LPAREN	shift 10
-	MINUS	shift 9
-	IF	shift 8
-	WHILE	shift 7
-	FOR	shift 6
-	LET	shift 5
-	BREAK	shift 4
-	NIL	shift 3
-
-	exp	goto 136
-	lvalue	goto 1
-
-	.	error
+	.	reduce by rule 61
 
 
-state 123:
+state 113:
 
-	functiondeclaration : FUNCTION ID LPAREN RPAREN COLON . ID EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN RPAREN . EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN RPAREN . COLON ID EQ exp 
 
-	ID	shift 137
+	COLON	shift 127
+	EQ	shift 126
 
 
 	.	error
 
 
-state 124:
+state 114:
 
-	typefield : ID COLON . ID 
+	typefield : ID . COLON ID 
 
-	ID	shift 138
+	COLON	shift 128
 
 
 	.	error
 
 
-state 125:
+state 115:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2398,13 +2262,13 @@ state 125:
 	GE	shift 17
 	AND	shift 16
 	OR	shift 15
-	DO	shift 139
+	DO	shift 129
 
 
 	.	error
 
 
-state 126:
+state 116:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2437,19 +2301,19 @@ state 126:
 	.	reduce by rule 25
 
 
-state 127:
+state 117:
 
 	lvaluebody : LBRACK exp RBRACK . lvaluebody 
 
-	LBRACK	shift 90
-	DOT	shift 44
+	LBRACK	shift 85
+	DOT	shift 35
 
-	lvaluebody	goto 113
+	lvaluebody	goto 102
 
 	.	reduce by rule 33
 
 
-state 128:
+state 118:
 
 	field : field COMMA ID EQ . exp 
 
@@ -2465,13 +2329,13 @@ state 128:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 140
+	exp	goto 130
 	lvalue	goto 1
 
 	.	error
 
 
-state 129:
+state 119:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2504,7 +2368,180 @@ state 129:
 	.	reduce by rule 23
 
 
+state 120:
+
+	ty : ARRAY OF . ID 
+
+	ID	shift 131
+
+
+	.	error
+
+
+state 121:
+
+	typefields : typefields . COMMA typefield 
+	ty : LBRACE typefields . RBRACE 
+
+	COMMA	shift 125
+	RBRACE	shift 132
+
+
+	.	error
+
+
+state 122:
+
+	ty : LBRACE RBRACE .  (reduce by rule 59)
+
+
+
+	.	reduce by rule 59
+
+
+state 123:
+
+	vardec : VAR ID COLON ID ASSIGN . exp 
+
+	ID	shift 13
+	INT	shift 12
+	STRING	shift 11
+	LPAREN	shift 10
+	MINUS	shift 9
+	IF	shift 8
+	WHILE	shift 7
+	FOR	shift 6
+	LET	shift 5
+	BREAK	shift 4
+	NIL	shift 3
+
+	exp	goto 133
+	lvalue	goto 1
+
+	.	error
+
+
+state 124:
+
+	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN . EQ exp 
+	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN . COLON ID EQ exp 
+
+	COLON	shift 135
+	EQ	shift 134
+
+
+	.	error
+
+
+state 125:
+
+	typefields : typefields COMMA . typefield 
+
+	ID	shift 114
+
+	typefield	goto 136
+
+	.	error
+
+
+state 126:
+
+	functiondeclaration : FUNCTION ID LPAREN RPAREN EQ . exp 
+
+	ID	shift 13
+	INT	shift 12
+	STRING	shift 11
+	LPAREN	shift 10
+	MINUS	shift 9
+	IF	shift 8
+	WHILE	shift 7
+	FOR	shift 6
+	LET	shift 5
+	BREAK	shift 4
+	NIL	shift 3
+
+	exp	goto 137
+	lvalue	goto 1
+
+	.	error
+
+
+state 127:
+
+	functiondeclaration : FUNCTION ID LPAREN RPAREN COLON . ID EQ exp 
+
+	ID	shift 138
+
+
+	.	error
+
+
+state 128:
+
+	typefield : ID COLON . ID 
+
+	ID	shift 139
+
+
+	.	error
+
+
+state 129:
+
+	exp : FOR ID ASSIGN exp TO exp DO . exp 
+
+	ID	shift 13
+	INT	shift 12
+	STRING	shift 11
+	LPAREN	shift 10
+	MINUS	shift 9
+	IF	shift 8
+	WHILE	shift 7
+	FOR	shift 6
+	LET	shift 5
+	BREAK	shift 4
+	NIL	shift 3
+
+	exp	goto 140
+	lvalue	goto 1
+
+	.	error
+
+
 state 130:
+
+	exp : exp . PLUS exp 
+	exp : exp . MINUS exp 
+	exp : exp . TIMES exp 
+	exp : exp . DIVIDE exp 
+	exp : exp . AND exp 
+	exp : exp . OR exp 
+	exp : exp . EQ exp 
+	exp : exp . NEQ exp 
+	exp : exp . LT exp 
+	exp : exp . LE exp 
+	exp : exp . GT exp 
+	exp : exp . GE exp 
+	field : field COMMA ID EQ exp .  (reduce by rule 53)
+
+	PLUS	shift 26
+	MINUS	shift 25
+	TIMES	shift 24
+	DIVIDE	shift 23
+	EQ	shift 22
+	NEQ	shift 21
+	LT	shift 20
+	LE	shift 19
+	GT	shift 18
+	GE	shift 17
+	AND	shift 16
+	OR	shift 15
+
+
+	.	reduce by rule 53
+
+
+state 131:
 
 	ty : ARRAY OF ID .  (reduce by rule 60)
 
@@ -2513,7 +2550,7 @@ state 130:
 	.	reduce by rule 60
 
 
-state 131:
+state 132:
 
 	ty : LBRACE typefields RBRACE .  (reduce by rule 58)
 
@@ -2522,7 +2559,7 @@ state 131:
 	.	reduce by rule 58
 
 
-state 132:
+state 133:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2555,7 +2592,7 @@ state 132:
 	.	reduce by rule 45
 
 
-state 133:
+state 134:
 
 	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN EQ . exp 
 
@@ -2577,7 +2614,7 @@ state 133:
 	.	error
 
 
-state 134:
+state 135:
 
 	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN COLON . ID EQ exp 
 
@@ -2587,7 +2624,7 @@ state 134:
 	.	error
 
 
-state 135:
+state 136:
 
 	typefields : typefields COMMA typefield .  (reduce by rule 62)
 
@@ -2596,7 +2633,7 @@ state 135:
 	.	reduce by rule 62
 
 
-state 136:
+state 137:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2629,7 +2666,7 @@ state 136:
 	.	reduce by rule 47
 
 
-state 137:
+state 138:
 
 	functiondeclaration : FUNCTION ID LPAREN RPAREN COLON ID . EQ exp 
 
@@ -2639,35 +2676,13 @@ state 137:
 	.	error
 
 
-state 138:
+state 139:
 
 	typefield : ID COLON ID .  (reduce by rule 63)
 
 
 
 	.	reduce by rule 63
-
-
-state 139:
-
-	exp : FOR ID ASSIGN exp TO exp DO . exp 
-
-	ID	shift 13
-	INT	shift 12
-	STRING	shift 11
-	LPAREN	shift 10
-	MINUS	shift 9
-	IF	shift 8
-	WHILE	shift 7
-	FOR	shift 6
-	LET	shift 5
-	BREAK	shift 4
-	NIL	shift 3
-
-	exp	goto 144
-	lvalue	goto 1
-
-	.	error
 
 
 state 140:
@@ -2684,7 +2699,7 @@ state 140:
 	exp : exp . LE exp 
 	exp : exp . GT exp 
 	exp : exp . GE exp 
-	field : field COMMA ID EQ exp .  (reduce by rule 53)
+	exp : FOR ID ASSIGN exp TO exp DO exp .  (reduce by rule 27)
 
 	PLUS	shift 26
 	MINUS	shift 25
@@ -2700,7 +2715,7 @@ state 140:
 	OR	shift 15
 
 
-	.	reduce by rule 53
+	.	reduce by rule 27
 
 
 state 141:
@@ -2740,7 +2755,7 @@ state 142:
 
 	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN COLON ID . EQ exp 
 
-	EQ	shift 145
+	EQ	shift 144
 
 
 	.	error
@@ -2762,46 +2777,13 @@ state 143:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 146
+	exp	goto 145
 	lvalue	goto 1
 
 	.	error
 
 
 state 144:
-
-	exp : exp . PLUS exp 
-	exp : exp . MINUS exp 
-	exp : exp . TIMES exp 
-	exp : exp . DIVIDE exp 
-	exp : exp . AND exp 
-	exp : exp . OR exp 
-	exp : exp . EQ exp 
-	exp : exp . NEQ exp 
-	exp : exp . LT exp 
-	exp : exp . LE exp 
-	exp : exp . GT exp 
-	exp : exp . GE exp 
-	exp : FOR ID ASSIGN exp TO exp DO exp .  (reduce by rule 27)
-
-	PLUS	shift 26
-	MINUS	shift 25
-	TIMES	shift 24
-	DIVIDE	shift 23
-	EQ	shift 22
-	NEQ	shift 21
-	LT	shift 20
-	LE	shift 19
-	GT	shift 18
-	GE	shift 17
-	AND	shift 16
-	OR	shift 15
-
-
-	.	reduce by rule 27
-
-
-state 145:
 
 	functiondeclaration : FUNCTION ID LPAREN typefields RPAREN COLON ID EQ . exp 
 
@@ -2817,13 +2799,13 @@ state 145:
 	BREAK	shift 4
 	NIL	shift 3
 
-	exp	goto 147
+	exp	goto 146
 	lvalue	goto 1
 
 	.	error
 
 
-state 146:
+state 145:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2856,7 +2838,7 @@ state 146:
 	.	reduce by rule 49
 
 
-state 147:
+state 146:
 
 	exp : exp . PLUS exp 
 	exp : exp . MINUS exp 
@@ -2889,7 +2871,7 @@ state 147:
 	.	reduce by rule 48
 
 
-state 148:
+state 147:
 
 
 	EOF	accept
@@ -2897,5 +2879,5 @@ state 148:
 
 	.	error
 
-560 of 1107 action table entries left after compaction
-108 goto table entries
+557 of 1103 action table entries left after compaction
+102 goto table entries

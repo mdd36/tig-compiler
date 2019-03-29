@@ -1,4 +1,6 @@
-*.cm/*
-*.cm/
+.cm/*
 .DS_Store
-parser/.cm/*
+test/*
+*/.cm/*
+*.x86*
+*.tig
