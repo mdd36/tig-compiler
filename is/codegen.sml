@@ -33,53 +33,134 @@ struct
 
             fun munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
 
-			  | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
-					emit(ASM.OPER{assem = "sw 's1, " ^ Int.toString i ^ "('s0)\n",
+			| munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
+					emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
 								dst = [],
 								jump = NONE})
 
 			  | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, T.CONST i, e1)),e2)) =
-					emit(ASM.OPER{assem = "sw 's1, " ^ Int.toString i ^ "('s0)\n",
+					emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
 								dst = [],
 								jump = NONE})
 
-			  | munchStm (T.MOVE(T.MEM(e1), T.MEM(e2))) =
-					emit(ASM.OPER{assem = "move 's0, 's1\n",
+              | munchStm (T.MOVE(T.MEM(T.BINOP(T.MINUS, e1, T.CONST i)),e2)) =
+                    emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString (~i) ^ "(`s0)\n",
+                                src = [munchExp e1, munchExp e2],
+                                dst = [],
+                                jump = NONE})
+
+              | munchStm (T.MOVE(T.MEM(T.BINOP(T.MINUS, T.CONST i, e1)),e2)) =
+                  emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString (~i) ^ "(`s0)\n",
+                              src = [munchExp e1, munchExp e2],
+                              dst = [],
+                              jump = NONE})
+
+              | munchStm (T.MOVE(T.MEM(T.CONST i), e2)) =
+                    emit(ASM.OPER{assem = "sw 's0, " ^ Int.toString i ^ "($0)\n",
+                                src = [munchExp e2],
+                                dst = [],
+                                jump = NONE})
+
+              | munchStm(T.MOVE(T.MEM(e1), e2)) =
+                    emit(ASM.OPER{assem="sw `s0, 0(`s1)\n",
+                    src=[munchExp e2, munchExp e1], dst=[], jump=NONE})
+			  (* MIPS doesn't allow moves between memory address.
+                This has to be munched as a lw, then a sw
+              | munchStm (T.MOVE(T.MEM(e1), T.MEM(e2))) =
+					emit(ASM.OPER{assem = "move `s0, `s1\n",
 								src = [munchExp e1, munchExp e2],
 								dst = [],
-								jump = NONE})
+								jump = NONE}) *)
+              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, e2, T.CONST e3)))) =
+                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
+                    src=[munchExp e2], dst=[e1], jump=NONE})
 
-			  | munchStm (T.MOVE(T.MEM(T.CONST i), e2)) =
-					emit(ASM.OPER{assem = "sw 's0, " ^ Int.toString i ^ "($0)\n",
-								src = [munchExp e2],
-								dst = [],
-								jump = NONE})
+              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, T.CONST e3, e2)))) =
+                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
+                    src=[munchExp e2], dst=[e1], jump=NONE})
 
-			  | munchStm (T.MOVE(T.MEM(e1), e2)) =
-					emit(ASM.OPER{assem = "sw 's1, 0('s0)\n",
-								src = [munchExp e1, munchExp e2],
-								dst = [],
-								jump = NONE})
+              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, e2, T.CONST e3)))) =
+                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
+                    src=[munchExp e2], dst=[e1], jump=NONE})
 
-			  | munchStm (T.MOVE(T.TEMP i, e2)) =
-					emit(ASM.OPER{assem = "sw 's1, 0('s0)\n",
-								src = [munchExp e2],
-								dst = [i],
-								jump = NONE})
+              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, T.CONST e3, e2)))) =
+                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
+                    src=[munchExp e2], dst=[e1], jump=NONE})
+
+              | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
+                    emit(ASM.OPER{assem="li `d0" ^ Int.toString i ^ "\n",
+                    src=[], dst=[e1], jump=NONE})
+
+              | munchStm (T.MOVE(T.TEMP rd, e2)) =
+                    emit(ASM.MOVE{assem="move `d0, `s0\n",
+                    src= munchExp e2, dst=rd})
+
+              | munchStm (T.JUMP(T.NAME label, _)) =
+                    emit(ASM.OPER{assem="j `j0\n",
+                    src=[], dst=[], jump=SOME [label]})
 
 			  | munchStm (T.JUMP(e, labs)) =
-					emit(ASM.OPER{assem = "j 'j0\n",
-								src = [munchExp e],
-								dst = [],
-								jump = SOME labs})
+					emit(ASM.OPER{assem = "jr 's0\n",
+					src=[munchExp e], dst=[], jump=SOME labs})
+             (* TODO Case where both are constants *)
+              | munchStm (T.CJUMP(T.LT, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="bltz `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.LE, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="blez `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.GT, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="bgtz `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.GE, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="bgez `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.EQ, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="beqz `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.NE, e1, T.CONST 0, l1, l2)) =
+                    emit(ASM.OPER{assem="bnez `s0, `j0\n`j1\n",
+                    src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
+
+              | munchStm (T.CJUMP(T.LT, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="blt `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.LE, e1, e2, l1, l2)) =
+                     emit(ASM.OPER{assem="ble `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.ULT, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bltu `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.ULE, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bleu `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.GT, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bgt `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.GE, e1, e2, l1, l2)) =
+                     emit(ASM.OPER{assem="bge `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.UGT, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bgtu `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.UGE, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bgeu `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.EQ, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="beq `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
+              | munchStm (T.CJUMP(T.NE, e1, e2, l1, l2)) =
+                    emit(ASM.OPER{assem="bne `s0, `s1, `j0\nj `j1\n",
+                    src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
 
 			  | munchStm (T.LABEL lab) =
 					emit(ASM.LABEL{assem = Symbol.name lab ^ ":\n",
 								 lab = lab})
 
 			  | munchStm (T.EXP e) = (munchExp e; ())
+
                 (* Memory expressions *)
             and munchExp(T.MEM(T.CONST immed)) = result(fn dest =>
                 emit(ASM.OPER{assem="lw `d0, " ^ Int.toString immed ^ "($0)\n",
@@ -318,7 +399,6 @@ struct
                             munchArgs(i+1, l)
 
                         end
-                        (* raise ArgCount "More than 4 arguments provided") FIXME This compiler would be garbage if this isn't added *)
         in (
             munchStm stm;
             rev (!ilist))
