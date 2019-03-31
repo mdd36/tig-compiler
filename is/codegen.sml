@@ -73,21 +73,6 @@ struct
 								src = [munchExp e1, munchExp e2],
 								dst = [],
 								jump = NONE}) *)
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, e2, T.CONST e3)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, T.CONST e3, e2)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, e2, T.CONST e3)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, T.CONST e3, e2)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
 
               | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
                     emit(ASM.OPER{assem="li `d0" ^ Int.toString i ^ "\n",
@@ -104,7 +89,7 @@ struct
 			  | munchStm (T.JUMP(e, labs)) =
 					emit(ASM.OPER{assem = "jr 's0\n",
 					src=[munchExp e], dst=[], jump=SOME labs})
-<<<<<<< HEAD
+
              (* Case where both are constants, help out our branch predictor *)
               | munchStm(T.CJUMP(T.LT, T.CONST i1, T.CONST i2, l1, l2)) =
                     if i1 < i2 then emit(ASM.OPER{assem="j `j0\n",
@@ -136,9 +121,8 @@ struct
                     src=[], dst=[], jump=SOME[l1]})
                     else emit(ASM.OPER{assem="j `j0\n",
                     src=[], dst=[], jump=SOME[l2]})
-=======
+
              (* TODO Case where both are constants *)
->>>>>>> 3763992dfcefb0c94e9312f3f8e7f65e0314c834
               | munchStm (T.CJUMP(T.LT, e1, T.CONST 0, l1, l2)) =
                     emit(ASM.OPER{assem="bltz `s0, `j0\n`j1\n",
                     src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
@@ -352,6 +336,14 @@ struct
             |   munchExp(T.BINOP(T.OR, rs, rt)) = result(fn dest =>
                     emit(ASM.OPER{assem="or `d0, `s0, `s1\n",
                     src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
+                )
+			|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
+                    emit(ASM.OPER{assem="xor `d0, `s0, `s1\n",
+                    src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
+                )
+			|   munchExp(T.BINOP(T.XOR, rs, T.CONST immed)) = result(fn dest =>
+                    emit(ASM.OPER{assem="xor `d0, `s0, " ^ Int.toString immed ^ "\n",
+                    src=[munchExp rs], dst=[dest], jump=NONE})
                 )
             |   munchExp(T.BINOP(T.LSHIFT, rs, T.CONST immed)) = result(fn dest =>
                     emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString immed ^ "\n",
