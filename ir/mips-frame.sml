@@ -32,7 +32,7 @@ struct
                 | STRING of Temp.label * string
 				
 	fun string (STRING(lab,s)) = s
-
+	
     val zero = Temp.newtemp()
 
     val v0 = Temp.newtemp()
@@ -102,37 +102,38 @@ struct
 					Temp.enter(
 					Temp.enter(
                     Temp.enter(
-                        Temp.empty, zero, "$zero" :register
-                        ), v0, "$v0" :register
-                    ), v1, "$v1" :register
-					), a0, "$a0" :register
-					), a1, "$a1" :register
-					), a2, "$a2" :register
-					), a3, "$a3" :register
-					), t0, "$t0" :register
-					), t1, "$t1" :register
-					), t2, "$t2" :register
-					), t3, "$t3" :register
-					), t4, "$t4" :register
-					), t5, "$t5" :register
-					), t6, "$t6" :register
-					), t7, "$t7" :register
-					), t8, "$t8" :register
-					), t9, "$t9" :register
-					), s0, "$s0" :register
-					), s1, "$s1" :register
-					), s2, "$s2" :register
-					), s3, "$s3" :register
-					), s4, "$s4" :register
-					), s5, "$s5" :register
-					), s6, "$s6" :register
-					), s7, "$s7" :register
-					), SP, "$sp" :register
-					), FP, "$fp" :register
-					), ra, "$ra" :register
+                        Temp.empty, zero, "zero" :register
+                        ), v0, "v0" :register
+                    ), v1, "v1" :register
+					), a0, "a0" :register
+					), a1, "a1" :register
+					), a2, "a2" :register
+					), a3, "a3" :register
+					), t0, "t0" :register
+					), t1, "t1" :register
+					), t2, "t2" :register
+					), t3, "t3" :register
+					), t4, "t4" :register
+					), t5, "t5" :register
+					), t6, "t6" :register
+					), t7, "t7" :register
+					), t8, "t8" :register
+					), t9, "t9" :register
+					), s0, "s0" :register
+					), s1, "s1" :register
+					), s2, "s2" :register
+					), s3, "s3" :register
+					), s4, "s4" :register
+					), s5, "s5" :register
+					), s6, "s6" :register
+					), s7, "s7" :register
+					), SP, "sp" :register
+					), FP, "fp" :register
+					), ra, "ra" :register
 					)
 					
-	
+	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
+
 	fun name {name, formals, locals} = Symbol.name name
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))

@@ -9,6 +9,7 @@ sig
     val externalCall : string * Tree.exp list -> Tree.exp
     val find : access -> Tree.exp -> Tree.exp
     val name : frame -> string
+	val makestring : Temp.temp -> string
 	val tempMap: register Temp.Table.table
     val SP : Temp.temp
     val FP : Temp.temp

@@ -1,19 +1,19 @@
-L236:
-li t308, 0
-sw t308, 0(t126)
-move t309, t127
-subi t310, t125, 0
-move t125, t310
-lw t313, 0(t126)
-lw t312, 0(t313)
-move t103, t312
-lw t314, 0(t126)
-move t104, t314
-jal L234
-move t127, t309
-j L235
-L235:
-L238:
-lw t315, 4(t126)
-j L237
-L237:
+L284:
+li $t428, 0
+sw $t428, 0($fp)
+move $t429, $ra
+subi $t430, $sp, 0
+move $sp, $t430
+lw $t433, 0($fp)
+lw $t432, 0($t433)
+move $a0, $t432
+lw $t434, 0($fp)
+move $a1, $t434
+jal L282
+move $ra, $t429
+j L283
+L283:
+L286:
+lw $t435, 4($fp)
+j L285
+L285:
