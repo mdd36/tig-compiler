@@ -7,6 +7,10 @@ struct
 
     structure Table = IntMapTable(type key = int
 				  fun getInt n = n)
+	type 'a table= 'a Table.table
+	val empty = Table.empty
+	val enter = Table.enter
+	val look = Table.look
 
     fun makestring t = "t" ^ Int.toString t
 

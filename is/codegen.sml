@@ -7,7 +7,7 @@ sig
     val codegen : Frame.frame -> Tree.stm -> Assem.instr list
 end
 
-structure Codegen :> CODEGEN =
+structure Mipsgen : CODEGEN =
 struct
     exception ArgCount of string
     exception DivBy0 of string
@@ -337,13 +337,13 @@ struct
                     emit(ASM.OPER{assem="or `d0, `s0, `s1\n",
                     src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
                 )
-			|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
-                    emit(ASM.OPER{assem="xor `d0, `s0, `s1\n",
-                    src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
-                )
 			|   munchExp(T.BINOP(T.XOR, rs, T.CONST immed)) = result(fn dest =>
                     emit(ASM.OPER{assem="xor `d0, `s0, " ^ Int.toString immed ^ "\n",
                     src=[munchExp rs], dst=[dest], jump=NONE})
+                )
+			|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
+                    emit(ASM.OPER{assem="xor `d0, `s0, `s1\n",
+                    src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
                 )
             |   munchExp(T.BINOP(T.LSHIFT, rs, T.CONST immed)) = result(fn dest =>
                     emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString immed ^ "\n",

@@ -389,5 +389,16 @@ struct
                     )
                 )
             )
-
+			
+	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body = exp} = (frags := Frame.PROC{body=unNx exp, frame= frame} :: !frags;())
+														
+														
+	
+	fun getResult () = let val hd::l = !frags
+						in
+							hd::(rev l)
+						end
+	
+	fun reset () = frags := []
+	
 end
