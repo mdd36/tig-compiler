@@ -394,10 +394,12 @@ struct
                         val spOffset = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST argumentSpace)) (* Minus since moving down the stack *)
                     in (
                         munchStm(T.MOVE(T.TEMP raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
-                        munchStm(spOffset); (* And move our SP if we pushed args onto the stack *)
+                        (if argumentSpace > 0
+                            then munchStm(spOffset)(* And move our SP if we pushed args onto the stack *)
+                        else ()); (* No args => don't move the sp. Worry about spilling ra in reg allocation *)
                         result(fn dest =>
                                 emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
-                                dst=Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
+                                dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
                                 src=(munchArgs(0, args)), jump=NONE})
                             );
                         munchStm(T.MOVE(T.TEMP Frame.ra, T.TEMP raSaveLoc));
