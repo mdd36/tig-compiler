@@ -8,7 +8,7 @@ structure Semant :
     type expty = {exp: TR.exp, ty: Types.ty}
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
-    val transProg: A.exp -> bool;
+    val transProg: A.exp -> TR.frag list;
     val transVar: venv * tenv * A.var * TR.level * TR.label -> expty
     val transExp: venv * tenv * A.exp * TR.level * TR.label -> expty
     val transDec: venv * tenv * A.dec * TR.level * TR.label -> {venv: venv, tenv: tenv, exp: TR.exp}
@@ -388,7 +388,7 @@ struct
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
-						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= TR.getLabel(), formals = map #ty params', result=result_ty})
+						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= name, formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
 					end
@@ -405,7 +405,7 @@ struct
     						val result_ty = (case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => t
     																										 | NONE => Types.BOTTOM)
     														   | NONE => Types.UNIT)
-    						val formals = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => TR.getFormals(level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
+    						val (formals, levv) = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => (TR.getFormals(level), level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
     						fun transparam ({name, escape, typ, pos}, access) =(
     												case Symbol.look(tenv,typ)
     													of SOME t => {name=name, access=access, ty=t}
@@ -415,10 +415,13 @@ struct
     						fun enterparam ({name=name,access=access, ty=ty}, venv) =
     									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
     						val venv''' = foldl enterparam venv params'
+							val {exp=expp, ty=ty'} = transExp(venv''',tenv, body, funLev, breakpoint)
+							
     					in
-    						if checkLegacy(transExp(venv''',tenv, body, funLev, breakpoint), {exp=TR.handleNil(), ty=result_ty})
-    										then {venv=venv,tenv=tenv,exp=TR.handleNil()}
+    						if checkLegacy({exp=expp, ty=ty'}, {exp=TR.handleNil(), ty=result_ty})
+    										then (TR.procEntryExit {level = levv, body = expp}; {venv=venv,tenv=tenv,exp=TR.handleNil()})
     										else  ( handleFail(Int.toString(pos)^": Error: return type do not match " ^ Symbol.name name^"\n");
+													TR.procEntryExit{level = levv, body = expp};
     												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 
     					end
@@ -431,12 +434,14 @@ struct
     fun transProg(root) =
         let
             val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "main", formals=[]})
-            val translated = transExp(venv, tenv, root, mainLevel, TR.getLabel())
+            val translated = transExp(venv, tenv, root, mainLevel, TR.namedlabel "main")
+			val _ = TR.procEntryExit{level = mainLevel, body = #exp translated};
             val failures' = !failures
         in
             Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(translated)));
             failures := 0;
-            if failures' = 0 then (true) else (print("Compilation failed with " ^ Int.toString (failures') ^ " errors\n"); false)
+            if failures' >0 then print("Compilation failed with " ^ Int.toString (failures') ^ " errors\n") else ();
+			TR.getResult()
 
         end
 

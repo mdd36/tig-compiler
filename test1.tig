@@ -1,9 +1,12 @@
-/* error : body of while not unit */
+/* define valid mutually recursive procedures */
 let
-    type intArr = array of int
-    var x := intArr [10] of 1
+
+function do_nothing1(a: int, b: string)=
+		do_nothing2(a+1)
+
+function do_nothing2(d: int) =
+		do_nothing1(d, "str")
+
 in
-    for index := 0 to 10 do (
-        if x[index] < 0 then () else ()
-    )
+	do_nothing1(0, "str2")
 end

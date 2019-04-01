@@ -7,7 +7,7 @@ sig
     val codegen : Frame.frame -> Tree.stm -> Assem.instr list
 end
 
-structure Codegen :> CODEGEN =
+structure Mipsgen : CODEGEN =
 struct
     exception ArgCount of string
     exception DivBy0 of string
@@ -73,21 +73,6 @@ struct
 								src = [munchExp e1, munchExp e2],
 								dst = [],
 								jump = NONE}) *)
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, e2, T.CONST e3)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, T.CONST e3, e2)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString e3 ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, e2, T.CONST e3)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
-
-              | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.MINUS, T.CONST e3, e2)))) =
-                    emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~e3) ^ "(`s0)\n",
-                    src=[munchExp e2], dst=[e1], jump=NONE})
 
               | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
                     emit(ASM.OPER{assem="li `d0" ^ Int.toString i ^ "\n",
@@ -347,6 +332,14 @@ struct
                 )
             |   munchExp(T.BINOP(T.OR, rs, rt)) = result(fn dest =>
                     emit(ASM.OPER{assem="or `d0, `s0, `s1\n",
+                    src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
+                )
+			|   munchExp(T.BINOP(T.XOR, rs, T.CONST immed)) = result(fn dest =>
+                    emit(ASM.OPER{assem="xor `d0, `s0, " ^ Int.toString immed ^ "\n",
+                    src=[munchExp rs], dst=[dest], jump=NONE})
+                )
+			|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
+                    emit(ASM.OPER{assem="xor `d0, `s0, `s1\n",
                     src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
                 )
             |   munchExp(T.BINOP(T.LSHIFT, rs, T.CONST immed)) = result(fn dest =>
