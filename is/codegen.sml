@@ -75,7 +75,7 @@ struct
 								jump = NONE}) *)
 
               | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
-                    emit(ASM.OPER{assem="li `d0" ^ Int.toString i ^ "\n",
+                    emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
                     src=[], dst=[e1], jump=NONE})
 
               | munchStm (T.MOVE(T.TEMP rd, e2)) =

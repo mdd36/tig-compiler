@@ -1,41 +1,42 @@
-L357:
-move $t546, $ra
-subi $t547, $sp, 0
-move $sp, $t547
-lw $t550, 0($fp)
-lw $t549, 0($t550)
-move $a0, $t549
-li $t551, 0
-move $a1, $t551
-la $t552, L355
-move $a2, $t552 
-jal do_nothing1
-move $ra, $t546
-j L356
-L356:
-L359:
-move $t553, $ra
-subi $t554, $sp, 0
-move $sp, $t554
+L93:
+move $t239, $ra
+subi $t240, $sp, 0
+move $sp, $t240
 move $a0, $fp
-lw $t557, 4($fp)
-addi $t556, $t557, 1
-move $a1, $t556
+lw $t243, 4($fp)
+addi $t242, $t243, 1
+move $a1, $t242
 jal do_nothing2
-move $ra, $t553
-j L358
-L358:
-strL361:
-move $t558, $ra
-subi $t559, $sp, 0
-move $sp, $t559
+move $ra, $t239
+j L92
+L92:
+str
+L95:
+move $t244, $ra
+subi $t245, $sp, 0
+move $sp, $t245
 move $a0, $fp
-lw $t561, 4($fp)
-move $a1, $t561
-la $t562, L354
-move $a2, $t562
+lw $t247, 4($fp)
+move $a1, $t247
+la $t248, L90
+move $a2, $t248
 jal do_nothing1
-move $ra, $t558
-j L360
-L360:
+move $ra, $t244
+j L94
+L94:
 str2
+L97:
+move $t249, $ra
+subi $t250, $sp, 0
+move $sp, $t250
+lw $t253, 0($fp)
+lw $t252, 0($t253)
+move $a0, $t252
+li $t254, 0
+move $a1, $t254
+la $t255, L91
+move $a2, $t255
+jal do_nothing1
+move $ra, $t249
+j L96
+L96:

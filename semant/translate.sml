@@ -394,11 +394,12 @@ struct
 														
 														
 	
-	fun getResult () = let val hd::l = !frags
+	(*fun getResult () = let val hd::l = !frags
 						in
 							hd::(rev l)
 						end
-	
+	*)
+	fun getResult () = rev (!frags)
 	fun reset () = frags := []
 	
 end

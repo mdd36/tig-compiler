@@ -16,7 +16,7 @@ structure Main = struct
          val format0 = Assem.format(F.makestring)
       in  app (fn i => TextIO.output(out,format0 i)) instrs
      end
-    | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s)))
+    | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")
 
    fun withOpenFile fname f = 
        let val out = TextIO.openOut fname
