@@ -428,7 +428,7 @@ struct
                             munchStm(T.MOVE(
                                 T.MEM(
                                     T.BINOP(
-                                        T.MINUS, T.TEMP Frame.SP, T.CONST Frame.wordSize
+                                        T.PLUS, T.TEMP Frame.SP, T.CONST Frame.wordSize
                                         )
                                     ), T.TEMP oldReg));
 

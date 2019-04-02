@@ -78,7 +78,7 @@ struct
     val calleeSaves = [s0, s1, s2, s3, s4, s5, s6, s7]
     val callerSaves = [ra, FP, SP] @ temps
     val returnRegs = [v0, v1]
-    val reserved = [at, k0, k1]
+    val sysReseverd = [at, k0, k1]
 
 	val tempMap = Temp.enter(
 					Temp.enter(
@@ -197,7 +197,7 @@ struct
 
     fun procEntryExit2(frame, body) =
         body @ [
-            Assem.OPER{assem="", src=(calleeSaves @ reserved), dst=[], jump=NONE}
+            Assem.OPER{assem="", src=(calleeSaves @ sysReseverd), dst=[], jump=NONE}
         ]
 
     fun procEntryExit3(frame: frame, body) =
