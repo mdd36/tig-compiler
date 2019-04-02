@@ -13,7 +13,7 @@ structure Main = struct
          (* val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
          val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
-     
+
          val format0 = Assem.format(F.makestring)
       in  app (fn i => TextIO.output(out,format0 i)) instrs
      end
@@ -29,7 +29,7 @@ structure Main = struct
        let
 	       val _ = Tr.reset()
 		   val absyn = Parse.parse filename
-           val tup = ((*FindEscape.prog absyn; *)Semant.transProg absyn)
+           val tup = (FindEscape.findEscape absyn; Semant.transProg absyn)
            val frags = #1 tup
            val errors = #2 tup
         in

@@ -29,3 +29,4 @@ is/codegen.sml
 is/flowgraph.sml
 is/graph.sig
 is/graph.sml
+is/findescape.sml
