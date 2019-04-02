@@ -387,23 +387,20 @@ struct
             )
 
 	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
-        frags := Frame.PROC({
+        frags := !frags @ [Frame.PROC({
                 body=Frame.procEntryExit1(
                         frame,
                         Tree.MOVE(
                             Tree.TEMP(
-                                List.nth(Frame.returnRegs, 0)
+                                hd Frame.returnRegs
                             ),
                             unEx exp
                         )
                     ),
                 frame=frame
-            }) :: !frags
+            })]
 
-	fun getResult () = let val hd::l = !frags
-						in
-							hd::(rev l)
-						end
+	fun getResult () = !frags
 
 	fun reset () = frags := []
 

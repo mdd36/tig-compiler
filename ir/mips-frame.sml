@@ -35,6 +35,8 @@ struct
 
     val zero = Temp.newtemp()
 
+    val at = Temp.newtemp()
+
     val v0 = Temp.newtemp()
     val v1 = Temp.newtemp()
 
@@ -64,6 +66,9 @@ struct
     val t8 = Temp.newtemp()
     val t9 = Temp.newtemp()
 
+    val k0 = Temp.newtemp()
+    val k1 = Temp.newtemp()
+
     val SP = Temp.newtemp()
     val FP = Temp.newtemp()
     val ra = Temp.newtemp()
@@ -73,6 +78,7 @@ struct
     val calleeSaves = [s0, s1, s2, s3, s4, s5, s6, s7]
     val callerSaves = [ra, FP, SP] @ temps
     val returnRegs = [v0, v1]
+    val reserved = [at, k0, k1]
 
 	val tempMap = Temp.enter(
 					Temp.enter(
@@ -187,5 +193,15 @@ struct
             end
 
     fun procEntryExit1(frame, body) =
-            seq(Tree.LABEL (#name frame) :: munchArgs(0, formals(frame), argregs) @ [body])
+        seq(Tree.LABEL (#name frame) :: munchArgs(0, formals(frame), argregs) @ [body])
+
+    fun procEntryExit2(frame, body) =
+        body @ [
+            Assem.OPER{assem="", src=(calleeSaves @ reserved), dst=[], jump=NONE}
+        ]
+
+    fun procEntryExit3(frame: frame, body) =
+        {prolog= "PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
+         body=body @ [Assem.OPER{assem="jr `s0\n", src=[ra], dst=[], jump=NONE}],
+         epilog="END " ^ Symbol.name(#name frame) ^ "\n"}
 end
