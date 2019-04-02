@@ -400,7 +400,7 @@ struct
                 frame=frame
             })]
 
-	fun getResult () = !frags
+	fun getResult () = rev (!frags)
 
 	fun reset () = frags := []
 
