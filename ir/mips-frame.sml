@@ -30,9 +30,9 @@ struct
 
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
-				
+
 	fun string (STRING(lab,s)) = s
-	
+
     val zero = Temp.newtemp()
 
     val v0 = Temp.newtemp()
@@ -73,7 +73,7 @@ struct
     val calleeSaves = [s0, s1, s2, s3, s4, s5, s6, s7]
     val callerSaves = [ra, FP, SP] @ temps
     val returnRegs = [v0, v1]
-	
+
 	val tempMap = Temp.enter(
 					Temp.enter(
 					Temp.enter(
@@ -131,7 +131,7 @@ struct
 					), FP, "fp" :register
 					), ra, "ra" :register
 					)
-					
+
 	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
 
 	fun name {name, formals, locals} = Symbol.name name
@@ -140,5 +140,52 @@ struct
 
     fun externalCall(name, args) = Tree.CALL(Tree.NAME(Temp.namedlabel name), args)
 
+    fun seq([])   = Tree.EXP (Tree.CONST 0) (* Just copying this here to avoid circular dependencies -- TODO literally anything but this *)
+    |   seq([s])  = s
+    |   seq(s::l) = Tree.SEQ(s, seq(l))
 
+    fun munchArgs(i, [], _) = []
+    |   munchArgs(i, InReg(t)::l, argReg::a) =
+            Tree.MOVE(Tree.TEMP argReg, Tree.TEMP t) :: munchArgs(i+1, l, a)
+    |   munchArgs(i, InReg(t)::l, []) =
+            let
+                val offSet = (i + 1 - (length argregs)) * wordSize
+            in
+                Tree.MOVE(
+                    Tree.MEM(
+                        Tree.BINOP(
+                            Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
+                            )
+                        ), Tree.TEMP t
+                    ) :: munchArgs(i+1, l, [])
+            end
+    |   munchArgs(i, InFrame(j)::l, argReg::a) =
+            Tree.MOVE(
+                Tree.TEMP argReg,
+                Tree.MEM(
+                    Tree.BINOP(
+                        Tree.PLUS, Tree.TEMP FP, Tree.CONST j
+                        )
+                    )
+                ) :: munchArgs(i+1, l, a)
+    |   munchArgs(i, InFrame(j)::l, []) =
+            let
+                val offSet = (i + 1 - (length argregs)) * wordSize
+            in
+                Tree.MOVE(
+                        Tree.MEM(
+                            Tree.BINOP(
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
+                                )
+                            ),
+                        Tree.MEM(
+                            Tree.BINOP(
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST j
+                                )
+                            )
+                    ) :: munchArgs(i+1, l, [])
+            end
+
+    fun procEntryExit1(frame, body) =
+            seq(Tree.LABEL (#name frame) :: munchArgs(0, formals(frame), argregs) @ [body])
 end

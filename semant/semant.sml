@@ -8,7 +8,7 @@ structure Semant :
     type expty = {exp: TR.exp, ty: Types.ty}
     type venv = Env.enventry Symbol.table
     type tenv = Types.ty Symbol.table
-    val transProg: A.exp -> TR.frag list;
+    val transProg: A.exp -> TR.frag list * bool;
     val transVar: venv * tenv * A.var * TR.level * TR.label -> expty
     val transExp: venv * tenv * A.exp * TR.level * TR.label -> expty
     val transDec: venv * tenv * A.dec * TR.level * TR.label -> {venv: venv, tenv: tenv, exp: TR.exp}
@@ -416,7 +416,7 @@ struct
     									Symbol.enter(venv,name,Env.VarEntry{access =access ,ty=ty, write=true})
     						val venv''' = foldl enterparam venv params'
 							val {exp=expp, ty=ty'} = transExp(venv''',tenv, body, funLev, breakpoint)
-							
+
     					in
     						if checkLegacy({exp=expp, ty=ty'}, {exp=TR.handleNil(), ty=result_ty})
     										then (TR.procEntryExit {level = levv, body = expp}; {venv=venv,tenv=tenv,exp=TR.handleNil()})
@@ -440,9 +440,8 @@ struct
         in
             Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(translated)));
             failures := 0;
-            if failures' >0 then print("Compilation failed with " ^ Int.toString (failures') ^ " errors\n") else ();
-			TR.getResult()
-
+            if failures' > 0 then print("Compilation failed with " ^ Int.toString (failures') ^ " errors\n") else ();
+			(TR.getResult(), failures' > 0)
         end
 
 end

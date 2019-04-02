@@ -21,6 +21,8 @@ sig
     val callerSaves : Temp.temp list
     val returnRegs : Temp.temp list
 
+    val procEntryExit1 : frame * Tree.stm -> Tree.stm
+
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 	val string : frag -> string

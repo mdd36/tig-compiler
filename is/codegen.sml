@@ -382,14 +382,11 @@ struct
             |   munchExp(T.CALL(T.NAME funLabel, args)) =
                     let
                         val raSaveLoc = Temp.newtemp()
-                        val argDelta = length args - (length Frame.argregs)
+                        (* val argDelta = length args - (length Frame.argregs)
                         val argumentSpace = if argDelta > 0 then argDelta * Frame.wordSize else 0 (* We need numArgsSpilled * wordSize space on the stack *)
-                        val spOffset = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST argumentSpace)) (* Minus since moving down the stack *)
+                        val spOffset = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST argumentSpace)) (* Minus since moving down the stack *) *)
                     in (
                         munchStm(T.MOVE(T.TEMP raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
-                        (if argumentSpace > 0
-                            then munchStm(spOffset)(* And move our SP if we pushed args onto the stack *)
-                        else ()); (* No args => don't move the sp. Worry about spilling ra in reg allocation *)
                         result(fn dest =>
                                 emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
                                 dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
@@ -400,6 +397,13 @@ struct
                     end
 
             and munchArgs(i, []) = []
+                (* let
+                    val spOffset = (i - (length Frame.argregs)) * Frame.wordSize
+                    val offsetExp = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST spOffset))
+                in
+                    (if spOffset > 0 then munchStm(offsetExp) else ()); (* And move our SP if we pushed args onto the stack *)
+                    []
+                end *)
             |   munchArgs(i, exp::l) =
                     if i < length Frame.argregs then
                         let
@@ -416,13 +420,19 @@ struct
                             val oldReg = munchExp exp
                         in
                             munchStm(T.MOVE(
+                                    T.TEMP Frame.SP,
+                                    T.BINOP(
+                                            T.MINUS, T.TEMP Frame.SP, T.CONST Frame.wordSize
+                                        )
+                                ));
+                            munchStm(T.MOVE(
                                 T.MEM(
                                     T.BINOP(
-                                        T.PLUS, T.TEMP Frame.SP, T.CONST byteOffset
+                                        T.MINUS, T.TEMP Frame.SP, T.CONST Frame.wordSize
                                         )
                                     ), T.TEMP oldReg));
-                            munchArgs(i+1, l)
 
+                            munchArgs(i+1, l)
                         end
         in (
             munchStm stm;

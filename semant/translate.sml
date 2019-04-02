@@ -135,8 +135,6 @@ struct
             )
         end
 
-    fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
-
 	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
 														| _ => dec::lis) [] decs
 
@@ -170,8 +168,6 @@ struct
     |   strBinOps(_,_,_)                   = raise SyntaxException "Unsupported string operation"
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
-
-	fun compare (Tree.CONST a, Tree.CONST b) =  a<b
 
 	fun subscriptVar(base, offset) = let
 										val true' = Temp.newlabel()
@@ -369,8 +365,8 @@ struct
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Frame.externalCall(Symbol.name label, map unEx exps))
-    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Frame.externalCall(Symbol.name label, map unEx exps)))
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Tree.CALL(Tree.NAME label, map unEx exps))
+    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(
                 Tree.CALL(
@@ -389,16 +385,26 @@ struct
                     )
                 )
             )
-			
-	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body = exp} = (frags := Frame.PROC{body=unNx exp, frame= frame} :: !frags;())
-														
-														
-	
+
+	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
+        frags := Frame.PROC({
+                body=Frame.procEntryExit1(
+                        frame,
+                        Tree.MOVE(
+                            Tree.TEMP(
+                                List.nth(Frame.returnRegs, 0)
+                            ),
+                            unEx exp
+                        )
+                    ),
+                frame=frame
+            }) :: !frags
+
 	fun getResult () = let val hd::l = !frags
 						in
 							hd::(rev l)
 						end
-	
+
 	fun reset () = frags := []
-	
+
 end

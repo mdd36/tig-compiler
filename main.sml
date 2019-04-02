@@ -8,33 +8,35 @@ structure Main = struct
 
    fun emitproc out (F.PROC{body,frame}) =
      let val _ = print ("emit " ^ F.name frame ^ "\n")
-(*         val _ = Printtree.printtree(out,body); *)
+         (* val _ = Printtree.printtree(out,body);*)
 	 val stms = Canon.linearize body
-(*         val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
+         (* val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
          val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
-	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms') 
+	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
          val format0 = Assem.format(F.makestring)
       in  app (fn i => TextIO.output(out,format0 i)) instrs
      end
     | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s)))
 
-   fun withOpenFile fname f = 
+   fun withOpenFile fname f =
        let val out = TextIO.openOut fname
-        in (f out before TextIO.closeOut out) 
+        in (f out before TextIO.closeOut out)
 	    handle e => (TextIO.closeOut out; raise e)
-       end 
+       end
 
-   fun compile filename = 
-       let 
+   fun compile filename =
+       let
 	       val _ = Tr.reset()
 		   val absyn = Parse.parse filename
-           val frags = ((*FindEscape.prog absyn; *)Semant.transProg absyn)
-        in 
-            withOpenFile (filename ^ ".s") 
-	     (fn out => (app (emitproc out) frags))
+           val tup = ((*FindEscape.prog absyn; *)Semant.transProg absyn)
+           val frags = #1 tup
+           val errors = #2 tup
+        in
+            if errors then ()
+            else (
+                withOpenFile (filename ^ ".s") 
+    	     (fn out => (app (emitproc out) frags))
+            )
        end
 
 end
-
-
-
