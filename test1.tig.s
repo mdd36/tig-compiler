@@ -1,33 +1,27 @@
-g:
-lw $t385, 0($fp)
-move $a0, $t385
-move $a1, $t381
-move $v0, $t380
-j L56
-L56:
-f:
-lw $t386, 0($fp)
-move $a0, $t386
-move $a1, $t383
-move $t387, $ra
-move $a0, $fp
-move $a1, $t382
-jal g
-move $ra, $t387
-move $v0, $v0
-j L57
-L57:
 main:
-lw $t389, 0($fp)
-move $a0, $t389
-move $t390, $ra
-lw $t393, 0($fp)
-lw $t392, 0($t393)
-move $a0, $t392
-li $t394, 3
-move $a1, $t394
+move $t370, $ra
+lw $t373, 0($fp)
+lw $t372, 0($t373)
+move $a0, $t372
+li $t374, 3
+move $a1, $t374
 jal f
-move $ra, $t390
+move $ra, $t370
 move $v0, $v0
-j L58
-L58:
+j L26
+L26:
+f:
+move $t376, $ra
+move $a0, $fp
+move $a1, $t368
+jal g
+move $ra, $t376
+move $t375, $v0
+addi $t378, $t375, 1
+move $v0, $t378
+j L27
+L27:
+g:
+move $v0, $t367
+j L28
+L28:

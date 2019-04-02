@@ -192,8 +192,8 @@ struct
                     ) :: munchArgs(i+1, l, [])
             end
 
-    fun procEntryExit1(frame, body) =
-        seq(Tree.LABEL (#name frame) :: munchArgs(0, formals(frame), argregs) @ [body])
+    fun procEntryExit1(frame as {name=name, formals=formals, locals=locals}, body) =
+        seq([Tree.LABEL (name)] @[body])
 
     fun procEntryExit2(frame, body) =
         body @ [
