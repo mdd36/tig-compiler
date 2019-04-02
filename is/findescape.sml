@@ -27,7 +27,7 @@ struct
             |   travExp(Ab.NilExp) = ()
             |   travExp(Ab.IntExp _) = ()
             |   travExp(Ab.SeqExp(l)) = app (fn (exp, _) => travExp exp) l
-			|   travExp(Ab.OpExp{left, oper, right, pos}) = (travExp left; travExp right; ())
+			|   travExp(Ab.OpExp{left, oper, right, pos}) = (travExp left; travExp right)
             |   travExp(Ab.AssignExp{var, exp, pos}) = (traverseVar(env, depth', var); travExp(exp))
             |   travExp(Ab.IfExp{test, then', else'=SOME(exp), pos}) = (travExp(test); travExp(then'); travExp(exp))
             |   travExp(Ab.IfExp{test, then', else'=NONE, pos}) = (travExp(test); travExp(then'))
@@ -73,4 +73,4 @@ struct
             foldl travDec env sym
         end
     fun findEscape(prog) = traverseExp(Symbol.empty, 0, prog)
-end    
+end

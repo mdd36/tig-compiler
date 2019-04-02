@@ -196,12 +196,12 @@ struct
         seq([Tree.LABEL (name)] @[body])
 
     fun procEntryExit2(frame, body) =
-        body @ [
+        List.take(body, length body - 2) @ [List.last body] @ [
             Assem.OPER{assem="", src=(calleeSaves @ sysReseverd), dst=[], jump=NONE}
         ]
 
     fun procEntryExit3(frame: frame, body) =
-        {prolog= "PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
+        {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
          body=body @ [Assem.OPER{assem="jr `s0\n", src=[ra], dst=[], jump=NONE}],
-         epilog="END " ^ Symbol.name(#name frame) ^ "\n"}
+         epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 end
