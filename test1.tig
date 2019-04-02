@@ -1,7 +1,0 @@
-/* define valid mutually recursive procedures */
-let
-    function g(b: int):int = b
-    function f(a: int):int = g(a)+1
-in
-    f(3)
-end
