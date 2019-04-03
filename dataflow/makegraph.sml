@@ -5,7 +5,7 @@ struct
     type node_id = Key.ord_key
     structure NodeMap = RedBlackMapFn(NodeKey)
     structure NodeSet = RedBlackSetFn(NodeKey)
-
+	structure A = Assem
     structure EdgeKey =
     struct
         type ord_key = {src: node_id, dst: node_id}
@@ -21,12 +21,31 @@ struct
     type 'a edge  = {src: node_id, dst: node_id}
 
     val empty = NodeMap.empty
-
+	val edgeset = 
     fun empty_node(node_id', dat) = (node_id', dat, NodeSet.empty, NodeSet.empty)
     fun mk_node(graph', node_id', dat) =
         NodeMap.insert(graph', node_id', empty_node(node_id', dat))
     fun mk_edge(graph', {src,dst}) = graph' (*TODO*)
     fun rm_edge(graph', {src,dst}) = graph' (*TODO*)
+	
+	
+	
+	fun instr2graph assemlist = 
+			let 
+				fun instr (A.MOVE{assem, dst, src}, {control = g, def = deft, use = uset, ismove = mt}) = 
+						if dst = src 
+							then {control = g, def = deft, use = uset, ismove = mt}
+							else {control = g, def = deft, use = uset, ismove = mt}
+				
+				  | instr (A.LABEL{assem, lab}, {control = g, def = deft, use = uset, ismove = mt}) = 
+				  
+				  | instr (A.OPER{assem, dst, src, jump}, {control = g, def = deft, use = uset, ismove = mt}) = if 
+				  
+			in
+			  foldl instr Flow.FGRAPH{control = Graph.newGraph(),
+				    def = Graph.Table.empty,
+				    use = Graph.Table.empty,
+				    ismove = Graph.Table.empty} assemlist 
 
     
 end
