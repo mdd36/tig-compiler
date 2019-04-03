@@ -29,13 +29,15 @@ struct
     fun rm_edge(graph', {src,dst}) = graph' (*TODO*)
 	
 	
-	
+	fun genter (g, k, tl) = foldl (fn (a, g') => Graph.Table.enter(g', k, a)) g tl 
 	fun instr2graph assemlist = 
 			let 
 				fun instr (A.MOVE{assem, dst, src}, {control = g, def = deft, use = uset, ismove = mt}) = 
 						if dst = src 
 							then {control = g, def = deft, use = uset, ismove = mt}
-							else {control = g, def = deft, use = uset, ismove = mt}
+							else (let val newnode = Graph.newNode g
+									in {control = g, def = genter(deft, newnode, [dst]), use = genter(uset, newnode, [src]), ismove =genter(mt, newnode, [true])}
+									end)
 				
 				  | instr (A.LABEL{assem, lab}, {control = g, def = deft, use = uset, ismove = mt}) = 
 				  
