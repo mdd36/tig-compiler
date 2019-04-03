@@ -280,7 +280,7 @@ struct
   	and  transTy(tenv,ty) =
      case ty of A.NameTy(s, p) => searchTy(tenv,s,p)
   			  | A.RecordTy(tl) => Types.RECORD(if tl=[] then [] else map (getRecordParam tenv) tl, ref (): Types.unique)
-  		      | A.ArrayTy(s,p) => Types.ARRAY(searchTy(tenv,s,p), ref (): Types.unique )
+  		    | A.ArrayTy(s,p) => Types.ARRAY(searchTy(tenv,s,p), ref (): Types.unique )
     and transVar (venv, tenv, node, lev, breakpoint): expty =
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)

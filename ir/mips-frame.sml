@@ -152,27 +152,28 @@ struct
 
     fun munchArgs(i, [], _) = []
     |   munchArgs(i, InReg(t)::l, argReg::a) =
-            Tree.MOVE(Tree.TEMP argReg, Tree.TEMP t) :: munchArgs(i+1, l, a)
+            Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InReg(t)::l, []) =
             let
                 val offSet = (i + 1 - (length argregs)) * wordSize
             in
                 Tree.MOVE(
+                    Tree.TEMP t,
                     Tree.MEM(
                         Tree.BINOP(
                             Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
                             )
-                        ), Tree.TEMP t
+                        )
                     ) :: munchArgs(i+1, l, [])
             end
     |   munchArgs(i, InFrame(j)::l, argReg::a) =
             Tree.MOVE(
-                Tree.TEMP argReg,
                 Tree.MEM(
                     Tree.BINOP(
                         Tree.PLUS, Tree.TEMP FP, Tree.CONST j
                         )
-                    )
+                    ),
+                Tree.TEMP argReg
                 ) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InFrame(j)::l, []) =
             let
@@ -181,27 +182,31 @@ struct
                 Tree.MOVE(
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST j
                                 )
                             ),
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST j
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
                                 )
                             )
                     ) :: munchArgs(i+1, l, [])
             end
 
-    fun procEntryExit1(frame as {name=name, formals=formals, locals=locals}, body) =
-        seq([Tree.LABEL (name)] @[body])
+    fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
+          let
+            val offset = (length f) * (~wordSize)
+          in
+            seq(Tree.LABEL name :: munchArgs(0, formals(frame), argregs) @ [body])
+          end
 
     fun procEntryExit2(frame, body) =
         List.take(body, length body - 2) @ [List.last body] @ [
-            Assem.OPER{assem="", src=(calleeSaves @ sysReseverd), dst=[], jump=NONE}
+            Assem.OPER{assem="", src=(calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ]
 
     fun procEntryExit3(frame: frame, body) =
         {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-         body=body @ [Assem.OPER{assem="jr `s0\n", src=[ra], dst=[], jump=NONE}],
+         body=body @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
          epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 end

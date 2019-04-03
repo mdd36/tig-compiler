@@ -9,7 +9,7 @@ struct
     type frag = Frame.frag
     val frags = ref([] : frag list)
     type access = level * Frame.access
-	type label = Temp.label
+	  type label = Temp.label
     exception SyntaxException of string
 
     datatype exp = Ex of Tree.exp
@@ -28,7 +28,7 @@ struct
              Ex (Tree.NAME label)
          end
 
-	fun getLabel () = Temp.newlabel()
+  	fun getLabel () = Temp.newlabel()
 
     fun handleNil() = Ex(Tree.CONST 0)
 
@@ -43,14 +43,18 @@ struct
     |   Lev({parent=p, frame=f}, uniq') =>
             let
                 val formals = tl (Frame.formals f)
-                fun f formal = (level, formal)
+                fun f' formal = (level, formal)
             in
-                map f formals
+                map f' formals
             end
     )
 
-    fun allocLocal(lev) = case lev of
-        (l as Lev({frame, parent}, uniq')) => (fn(x) => (l, Frame.allocLocal(frame)(x)))
+    fun allocLocal( Lev({parent, frame}, uniq)) (esc) =
+      let
+        val a = Frame.allocLocal(frame)(esc)
+      in
+        (Lev({parent=parent, frame=frame}, uniq), a)
+      end
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
     |   seq([s])  = s
@@ -135,7 +139,7 @@ struct
             )
         end
 
-	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
+	  fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
 														| _ => dec::lis) [] decs
 
     fun letExp([], body)   = body
@@ -185,10 +189,6 @@ struct
 									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
 									))
 									end
-
-    (*fun subscriptVar(base, offset,size) = if (compare(Tree.CONST size,unEx offset) andalso compare(Tree.CONST ~1,Tree.CONST size))
-									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
-									else handleNil()*)
 
     fun simpleVar(access, level) =
         let
@@ -387,7 +387,7 @@ struct
             )
 
 	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
-        frags := !frags @ [Frame.PROC({
+        frags := !frags @ [Frame.PROC{
                 body=Frame.procEntryExit1(
                         frame,
                         Tree.MOVE(
@@ -398,7 +398,7 @@ struct
                         )
                     ),
                 frame=frame
-            })]
+            }]
 
 	fun getResult () = rev (!frags)
 

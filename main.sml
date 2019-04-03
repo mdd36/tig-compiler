@@ -8,9 +8,9 @@ structure Main = struct
 
    fun emitproc out (F.PROC{body,frame}) =
      let val _ = print ("emit " ^ F.name frame ^ "\n")
-         (* val _ = Printtree.printtree(out,body);*)
+         (* val _ = Printtree.printtree(out,body); *)
 	 val stms = Canon.linearize body
-         (* val _ = app (fn s => Printtree.printtree(out,s)) stms; *)
+         val _ = app (fn s => Printtree.printtree(out,s)) stms;
          val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
