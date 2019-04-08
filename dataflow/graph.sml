@@ -22,7 +22,7 @@ struct
 
   type node = graph * node'
   
-  val errorNode (g: graph) = (g, ~1)
+  fun errorNode (g: graph) = (g, ~1)
   
   fun compare (nodei:node, nodej:node) = Int.compare ((#2 nodei), (#2 nodej))
   
