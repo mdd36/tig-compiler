@@ -21,6 +21,11 @@ struct
   type graph = A.array
 
   type node = graph * node'
+  
+  val errorNode (g: graph) = (g, ~1)
+  
+  fun compare (nodei:node, nodej:node) = Int.compare ((#2 nodei), (#2 nodej))
+  
   fun eq((_,a),(_,b)) = a=b
 
   fun augment (g: graph) (n: node') : node = (g,n)
