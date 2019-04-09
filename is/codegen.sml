@@ -44,8 +44,8 @@ struct
             else (
               emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
               src=[], dst=[e1], jump=NONE});
-              emit(ASM.OPER{assem="move `d0, `s0\n",
-              src=[e3], dst=[e2], jump=NONE});
+              emit(ASM.MOVE{assem="move `d0, `s0\n",
+              src=e3, dst=e2});
               munchStm b
               )
       | munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)

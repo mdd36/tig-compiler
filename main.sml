@@ -7,7 +7,7 @@ structure Main = struct
  fun getsome (SOME x) = x
 
    fun emitproc out (F.PROC{body,frame}) =
-     let val _ = print ("emit " ^ F.name frame ^ "\n")
+     let val _ = print ("\nemit " ^ F.name frame ^ "\n")
          (* val _ = Printtree.printtree(out,body); *)
 	 val stms = Canon.linearize body
          val _ = app (fn s => Printtree.printtree(out,s)) stms;
