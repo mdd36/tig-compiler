@@ -108,6 +108,9 @@ struct
 					Temp.enter(
 					Temp.enter(
                     Temp.enter(
+					Temp.enter(
+					Temp.enter(
+					Temp.enter(
                         Temp.empty, zero, "zero" :register
                         ), v0, "v0" :register
                     ), v1, "v1" :register
@@ -136,6 +139,9 @@ struct
 					), SP, "sp" :register
 					), FP, "fp" :register
 					), ra, "ra" :register
+					), at, "at" :register
+					), k0, "k0" :register
+					), k1, "k1" :register
 					)
 
 	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
@@ -202,7 +208,8 @@ struct
 
     fun procEntryExit2(frame, body) =
         List.take(body, length body - 2) @ [List.last body] @ [
-            Assem.OPER{assem="", src=(calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
+            Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
+
         ]
 
     fun procEntryExit3(frame: frame, body) =

@@ -19,6 +19,8 @@ struct
             fun emit x = ilist := x :: !ilist
             fun result (gen) = let val t = Temp.newtemp() in gen t; t end
 
+            fun removeSquiggle x = if x < 0 then "-" ^ Int.toString (~x) else Int.toString x
+
             fun numBits x = Math.log10(real(x)) / Math.log10(real(2))
 
             fun isShiftMult x  = (* Check if the immed for mult can be done as a shift instead *)
@@ -35,6 +37,12 @@ struct
             |   oper2str(T.MUL)   = "mul"
             |   oper2str(T.DIV)   = "div"
 
+			(*fun munchStm (T.SEQ(T.EXP (T.CONST immed), T.SEQ(T.MOVE(T.TEMP r2, T.TEMP r3), b))) =
+          (emit(Assem.OPER{assem="li, `d0, " ^ removeSquiggle immed,
+            src=[], dst=[r2], jump=NONE});
+          munchStm b)*)
+      fun munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
+(*=======
 			fun munchStm (T.SEQ(T.MOVE(T.TEMP e1, T.CONST i), T.SEQ(T.MOVE(T.TEMP e2, T.TEMP e3), b))) =
             if e1 = e3 then(
               emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
@@ -44,37 +52,38 @@ struct
             else (
               emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
               src=[], dst=[e1], jump=NONE});
-              emit(ASM.OPER{assem="move `d0, `s0\n",
-              src=[e3], dst=[e2], jump=NONE});
+              emit(ASM.MOVE{assem="move `d0, `s0\n",
+              src=e3, dst=e2});
               munchStm b
               )
       | munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
+>>>>>>> 32f48fc8b5f0dfa0509ef50a21c18dc8272679ff*)
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
-					emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString i ^ "(`s0)\n",
+					emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
 								dst = [],
 								jump = NONE})
 
 		  | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, T.CONST i, e1)),e2)) =
-				emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString i ^ "(`s0)\n",
+				emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle i ^ "(`s0)\n",
 							src = [munchExp e1, munchExp e2],
 							dst = [],
 							jump = NONE})
 
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.MINUS, e1, T.CONST i)),e2)) =
-            emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString (~i) ^ "(`s0)\n",
+            emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle (~i) ^ "(`s0)\n",
                         src = [munchExp e1, munchExp e2],
                         dst = [],
                         jump = NONE})
 
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.MINUS, T.CONST i, e1)),e2)) =
-          emit(ASM.OPER{assem = "sw `s1, " ^ Int.toString (~i) ^ "(`s0)\n",
+          emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle (~i) ^ "(`s0)\n",
                       src = [munchExp e1, munchExp e2],
                       dst = [],
                       jump = NONE})
 
       | munchStm (T.MOVE(T.MEM(T.CONST i), e2)) =
-            emit(ASM.OPER{assem = "sw 's0, " ^ Int.toString i ^ "($0)\n",
+            emit(ASM.OPER{assem = "sw 's0, " ^ removeSquiggle i ^ "($0)\n",
                         src = [munchExp e2],
                         dst = [],
                         jump = NONE})
@@ -85,25 +94,40 @@ struct
 
         (* Cut out some moves by looking ahead one level *)
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.PLUS, e2, T.CONST i))) =
-              emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString i ^ "\n",
+              emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle i ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.PLUS, T.CONST i, e2))) =
-              emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString i ^ "\n",
+              emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle i ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.MINUS, e2, T.CONST i))) =
-              emit(ASM.OPER{assem="subi `d0, `s0, " ^ Int.toString i ^ "\n",
+              emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle i ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.MINUS, T.CONST i, e2))) =
-              emit(ASM.OPER{assem="subi `d0, `s0, " ^ Int.toString i ^ "\n",
+              emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle i ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(oper, e2, e3))) =
               emit(ASM.OPER{assem=oper2str oper ^ " `d0, `s0, `s1\n",
               src=[munchExp e2, munchExp e3], dst=[e1], jump=NONE})
+        | munchStm (T.MOVE(T.TEMP e1, T.MEM(T.CONST immed))) = 
+              emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "($0)\n",
+              src=[], dst=[e1], jump=NONE})
+        | munchStm(T.MOVE(T.TEMP e1, T.MEM(T.BINOP(T.PLUS, rs, T.CONST immed)))) =
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "(`s0)\n",
+                src=[munchExp rs], dst=[e1], jump=NONE})
+        |   munchStm(T.MOVE(T.TEMP dest, T.MEM(T.BINOP(T.MINUS, rs, T.CONST immed)))) =
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle (~immed) ^ "(`s0)\n",
+                src=[munchExp rs], dst=[dest], jump=NONE})
+        |   munchStm(T.MOVE(T.TEMP dest, T.MEM(T.BINOP(T.PLUS, T.CONST immed, rs)))) =
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "(`s0)\n",
+                src=[munchExp rs], dst=[dest], jump=NONE})
+        |   munchStm(T.MOVE(T.TEMP dest, T.MEM(T.BINOP(T.MINUS, T.CONST immed, rs)))) =
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle (~immed) ^ "(`s0)\n",
+                src=[munchExp rs], dst=[dest], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
-              emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
+              emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle i ^ "\n",
               src=[], dst=[e1], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP rd, e2)) =
@@ -206,65 +230,65 @@ struct
 
             (* Memory expressions *)
         and munchExp(T.MEM(T.CONST immed)) = result(fn dest =>
-            emit(ASM.OPER{assem="lw `d0, " ^ Int.toString immed ^ "($0)\n",
+            emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "($0)\n",
                 src=[],dst=[dest],jump=NONE})
             )
         |   munchExp(T.MEM(T.BINOP(T.PLUS, rs, T.CONST immed))) = result(fn dest =>
-                emit(ASM.OPER{assem="lw `d0, " ^ Int.toString immed ^ "(`s0)\n",
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "(`s0)\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.MEM(T.BINOP(T.MINUS, rs, T.CONST immed))) = result(fn dest =>
-                emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~immed) ^ "(`s0)\n",
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle (~immed) ^ "(`s0)\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.MEM(T.BINOP(T.PLUS, T.CONST immed, rs))) = result(fn dest =>
-                emit(ASM.OPER{assem="lw `d0, " ^ Int.toString immed ^ "(`s0)\n",
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle immed ^ "(`s0)\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.MEM(T.BINOP(T.MINUS, T.CONST immed, rs))) = result(fn dest =>
-                emit(ASM.OPER{assem="lw `d0, " ^ Int.toString (~immed) ^ "(`s0)\n",
+                emit(ASM.OPER{assem="lw `d0, " ^ removeSquiggle (~immed) ^ "(`s0)\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
             (* Expression of two consts, just replace with a singe li *)
         |   munchExp(T.BINOP(T.PLUS, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x+y) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (x+y) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MINUS, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x-y) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (x-y) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MUL, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (x*y) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (x*y) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.DIV, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (floor (real(x)/real(y))) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (floor (real(x)/real(y))) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.AND, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (if (x <> 0 andalso y <> 0) then 1 else 0) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (if (x <> 0 andalso y <> 0) then 1 else 0) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.OR, T.CONST x, T.CONST y)) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString (if (x <> 0 orelse y <> 0) then 1 else 0) ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle (if (x <> 0 orelse y <> 0) then 1 else 0) ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
             (* One immmediate expressions *)
         |   munchExp(T.BINOP(T.PLUS, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MINUS, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="subi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.AND, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="andi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="andi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.OR, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="ori `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="ori `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MUL, rs, T.CONST immed)) =
@@ -274,7 +298,7 @@ struct
                     )
                 else (
                     if immed > 0 andalso isShiftMult immed then result(fn dest => (* Dont mess with negative immmeds, that feels like a turing cliff problem *)
-                            emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString (floor(numBits(immed))) ^ "\n",
+                            emit(ASM.OPER{assem="sll `d0, `s0, " ^ removeSquiggle (floor(numBits(immed))) ^ "\n",
                             src=[munchExp rs], dst=[dest], jump=NONE})
                         )
                     else result(fn dest =>
@@ -286,7 +310,7 @@ struct
                 if immed = 0 then raise DivBy0 "Divide by zero found" (* Why wait till runtime to catch this? *)
                 else (
                     if immed > 0 andalso isShiftMult immed then result(fn dest =>
-                            emit(ASM.OPER{assem="sra `d0, `s0, " ^ Int.toString (floor(numBits(immed))) ^ "\n",
+                            emit(ASM.OPER{assem="sra `d0, `s0, " ^ removeSquiggle (floor(numBits(immed))) ^ "\n",
                             src=[munchExp rs], dst=[dest], jump=NONE})
                         )
                     else result(fn dest =>
@@ -295,19 +319,19 @@ struct
                         )
                     )
         |   munchExp(T.BINOP(T.PLUS, T.CONST immed, rs)) = result(fn dest =>
-                emit(ASM.OPER{assem="addi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MINUS, T.CONST immed, rs)) = result(fn dest =>
-                emit(ASM.OPER{assem="subi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.AND, T.CONST immed, rs)) = result(fn dest =>
-                emit(ASM.OPER{assem="andi `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="andi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.OR, T.CONST immed, rs)) = result(fn dest =>
-                emit(ASM.OPER{assem="ori `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="ori `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MUL, T.CONST immed, rs)) =
@@ -317,7 +341,7 @@ struct
                     )
                 else (
                     if immed > 0 andalso isShiftMult immed then result(fn dest =>
-                            emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString (floor(numBits(immed))) ^ "\n",
+                            emit(ASM.OPER{assem="sll `d0, `s0, " ^ removeSquiggle (floor(numBits(immed))) ^ "\n",
                             src=[munchExp rs], dst=[dest], jump=NONE})
                         )
                     else result(fn dest =>
@@ -329,7 +353,7 @@ struct
                 if immed = 0 then raise DivBy0 "Divide by zero found"
                 else (
                     if immed > 0 andalso isShiftMult immed then result(fn dest =>
-                            emit(ASM.OPER{assem="sra `d0, `s0, " ^ Int.toString (floor(numBits(immed))) ^ "\n",
+                            emit(ASM.OPER{assem="sra `d0, `s0, " ^ removeSquiggle (floor(numBits(immed))) ^ "\n",
                             src=[munchExp rs], dst=[dest], jump=NONE})
                         )
                     else result(fn dest =>
@@ -363,7 +387,7 @@ struct
                 src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
             )
       	|   munchExp(T.BINOP(T.XOR, rs, T.CONST immed)) = result(fn dest =>
-                      emit(ASM.OPER{assem="xor `d0, `s0, " ^ Int.toString immed ^ "\n",
+                      emit(ASM.OPER{assem="xor `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                       src=[munchExp rs], dst=[dest], jump=NONE})
             )
       	|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
@@ -371,7 +395,7 @@ struct
                       src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.LSHIFT, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="sll `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="sll `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.LSHIFT, rs, rt)) = result(fn dest =>
@@ -379,7 +403,7 @@ struct
                 src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.RSHIFT, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="srl `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="srl `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.RSHIFT, rs, rt)) = result(fn dest =>
@@ -387,7 +411,7 @@ struct
                 src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.ARSHIFT, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="sra `d0, `s0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="sra `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.ARSHIFT, rs, rt)) = result(fn dest =>
@@ -400,7 +424,7 @@ struct
             )
         |   munchExp(T.TEMP reg) = reg
         |   munchExp(T.CONST immed) = result(fn dest =>
-                emit(ASM.OPER{assem="li `d0, " ^ Int.toString immed ^ "\n",
+                emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle immed ^ "\n",
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.NAME label) = result(fn dest =>
@@ -433,17 +457,14 @@ struct
                 if i < length Frame.argregs then
                     let
                         val argReg = List.nth (Frame.argregs, i)
-                        val oldReg = munchExp exp
                     in
-                        munchStm(T.MOVE(T.TEMP argReg, T.TEMP oldReg));
+                        munchStm(T.MOVE(T.TEMP argReg, exp)); (* Putting exp here prevents unnecessary moves *)
                         argReg :: munchArgs(i+1,l)
                     end
                 else
                     let
                         val remainingArgs = length l
                         val byteOffset = remainingArgs * Frame.wordSize
-                        (* val allocatedArgs = i + 1 - (length Frame.argregs)
-                        val byteOffset = allocatedArgs * Frame.wordSize (* We need to allocat at sp + (allocatedArgs * 4) *) *)
                         val oldReg = munchExp exp
                     in
                         munchStm(T.MOVE(
@@ -451,7 +472,7 @@ struct
                                 T.BINOP(
                                     T.MINUS, T.TEMP Frame.SP, T.CONST byteOffset
                                     )
-                                ), T.TEMP oldReg));
+                                ), T.TEMP oldReg)); (*have to move anyway (sw), no point in passing exp directly*)
                         munchArgs(i+1, l)
                     end
         in (

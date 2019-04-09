@@ -5,3 +5,4 @@ test/*
 *.tig
 *.s
 parser/tiger.grm.sml
+/bugs/
