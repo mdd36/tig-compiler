@@ -42,6 +42,22 @@ struct
             src=[], dst=[r2], jump=NONE});
           munchStm b)*)
       fun munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
+(*=======
+			fun munchStm (T.SEQ(T.MOVE(T.TEMP e1, T.CONST i), T.SEQ(T.MOVE(T.TEMP e2, T.TEMP e3), b))) =
+            if e1 = e3 then(
+              emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
+              src=[], dst=[e2], jump=NONE});
+              munchStm b
+              )
+            else (
+              emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
+              src=[], dst=[e1], jump=NONE});
+              emit(ASM.MOVE{assem="move `d0, `s0\n",
+              src=e3, dst=e2});
+              munchStm b
+              )
+      | munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
+>>>>>>> 32f48fc8b5f0dfa0509ef50a21c18dc8272679ff*)
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
 					emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
