@@ -153,11 +153,7 @@ struct
 						st^IGraph.nodename node^": "^ emitadjs adjs ^"\n"
 					end
 			in
-
                 TextIO.output(outs,  foldl emit "" nodes)
 			end
 	
-
-
-
 end
