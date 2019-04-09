@@ -41,7 +41,6 @@ struct
 	fun getStart (node, mymap) = NodeMap.insert(mymap, node, (TempSet.empty, TempSet.empty))
 	
 	fun getLive (b, mymap, deft, uset, nodea::nodes) = let 
-														
 														val defs = case Flow.Graph.Table.look(deft, nodea) of NONE => []
 																										| SOME tmps => tmps
 														
