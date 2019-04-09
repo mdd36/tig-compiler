@@ -9,7 +9,7 @@ struct
     type frag = Frame.frag
     val frags = ref([] : frag list)
     type access = level * Frame.access
-	type label = Temp.label
+	  type label = Temp.label
     exception SyntaxException of string
 
     datatype exp = Ex of Tree.exp
@@ -28,7 +28,7 @@ struct
              Ex (Tree.NAME label)
          end
 
-	fun getLabel () = Temp.newlabel()
+  	fun getLabel () = Temp.newlabel()
 
     fun handleNil() = Ex(Tree.CONST 0)
 
@@ -43,14 +43,18 @@ struct
     |   Lev({parent=p, frame=f}, uniq') =>
             let
                 val formals = tl (Frame.formals f)
-                fun f formal = (level, formal)
+                fun f' formal = (level, formal)
             in
-                map f formals
+                map f' formals
             end
     )
 
-    fun allocLocal(lev) = case lev of
-        (l as Lev({frame, parent}, uniq')) => (fn(x) => (l, Frame.allocLocal(frame)(x)))
+    fun allocLocal( Lev({parent, frame}, uniq)) (esc) =
+      let
+        val a = Frame.allocLocal(frame)(esc)
+      in
+        (Lev({parent=parent, frame=frame}, uniq), a)
+      end
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
     |   seq([s])  = s
@@ -135,9 +139,7 @@ struct
             )
         end
 
-    fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
-
-	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
+	  fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
 														| _ => dec::lis) [] decs
 
     fun letExp([], body)   = body
@@ -171,8 +173,6 @@ struct
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
 
-	fun compare (Tree.CONST a, Tree.CONST b) =  a<b
-
 	fun subscriptVar(base, offset) = let
 										val true' = Temp.newlabel()
 										val true'' = Temp.newlabel()
@@ -189,10 +189,6 @@ struct
 									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
 									))
 									end
-
-    (*fun subscriptVar(base, offset,size) = if (compare(Tree.CONST size,unEx offset) andalso compare(Tree.CONST ~1,Tree.CONST size))
-									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
-									else handleNil()*)
 
     fun simpleVar(access, level) =
         let
@@ -369,8 +365,8 @@ struct
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Frame.externalCall(Symbol.name label, map unEx exps))
-    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Frame.externalCall(Symbol.name label, map unEx exps)))
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Tree.CALL(Tree.NAME label, map unEx exps))
+    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(
                 Tree.CALL(
@@ -389,5 +385,23 @@ struct
                     )
                 )
             )
+
+	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
+        frags := !frags @ [Frame.PROC{
+                body=Frame.procEntryExit1(
+                        frame,
+                        Tree.MOVE(
+                            Tree.TEMP(
+                                hd Frame.returnRegs
+                            ),
+                            unEx exp
+                        )
+                    ),
+                frame=frame
+            }]
+
+	fun getResult () = rev (!frags)
+
+	fun reset () = frags := []
 
 end
