@@ -10,8 +10,8 @@ structure Main = struct
      let val _ = print ("emit " ^ F.name frame ^ "\n")
          (* val _ = Printtree.printtree(out,body); *)
 	 val stms = Canon.linearize body
-         val _ = app (fn s => Printtree.printtree(out,s)) stms;
-         val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
+(*         val _ = app (fn s => Printtree.printtree(out,s)) stms;
+*)         val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
@@ -20,6 +20,7 @@ structure Main = struct
      val format0 = Assem.format(F.makestring)
       in
 		Liveness.show(TextIO.stdOut, ig);
+    print("\n");
         app (fn i => TextIO.output(out,format0 i)) body
 		
      end

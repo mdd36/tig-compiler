@@ -159,8 +159,8 @@ struct
 																	else findmove (nodei, nodej) m
 						  | findmove (nodei, nodej) nil = false
 						  
-						fun emitadjs (a::m::l) = if findmove (a, node) moves then (IGraph.nodename a)^ "(moveEdge), " ^ emitadjs(m::l) else (IGraph.nodename a)^ ", " ^ emitadjs(m::l)
-						  | emitadjs (a::m) = if findmove(a, node) moves then (IGraph.nodename a)^ "(moveEdge)" else IGraph.nodename a
+						fun emitadjs (a::m::l) = if findmove (a, node) moves then (IGraph.nodename a ^ "(" ^ MipsFrame.makestring (gtemp a) ^ ")")^ "(moveEdge), " ^ emitadjs(m::l) else (IGraph.nodename a ^ "(" ^ MipsFrame.makestring (gtemp a) ^ ")")^ ", " ^ emitadjs(m::l)
+						  | emitadjs (a::m) = if findmove(a, node) moves then (IGraph.nodename a ^ "(" ^ MipsFrame.makestring (gtemp a) ^ ")")^ "(moveEdge)" else IGraph.nodename a ^ "(" ^ MipsFrame.makestring (gtemp a) ^ ")"
 						  | emitadjs nil = ""
 					in
 
