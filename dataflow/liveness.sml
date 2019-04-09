@@ -75,7 +75,6 @@ struct
 				val nodes = Flow.Graph.nodes cfg
 
 				val mymap = iteration(true, foldl getStart NodeMap.empty nodes, deft, uset, rev nodes)
-
 				val ig = IGraph.newGraph()
 
 				fun getMapping (nodea, (ntm, tnm)) =
@@ -93,7 +92,7 @@ struct
 
 				val (ntmap, tnmap) = foldl getMapping (NtMap.empty, TnMap.empty) nodes
 
-				fun tnode tmp = case TnMap.find(tnmap, tmp) of NONE => (print("ERROR: No such temp found: t"^Int.toString tmp^"\n"); IGraph.errorNode ig)
+				fun tnode tmp = case TnMap.find(tnmap, tmp) of NONE => (print("ERROR: No such temp found: "^MipsFrame.makestring tmp^"\n"); IGraph.errorNode ig)
 														| SOME node => node
 
 				fun gtemp (nde:IGraph.node) = case NtMap.find(ntmap, nde) of NONE => (print("ERROR: No such node found: "^IGraph.nodename nde^"\n"); ~1: Temp.temp)
@@ -165,7 +164,7 @@ struct
 						  | emitadjs nil = ""
 					in
 
-						st^IGraph.nodename node^": "^ emitadjs adjs ^"\n"
+						st^IGraph.nodename node^"("^MipsFrame.makestring (gtemp node)^")"^": "^ emitadjs adjs ^"\n"
 					end
 			in
                 TextIO.output(outs,  foldl emit "" nodes)
