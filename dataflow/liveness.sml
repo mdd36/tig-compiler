@@ -41,8 +41,13 @@ struct
 	fun getStart (node, mymap) = NodeMap.insert(mymap, node, (TempSet.empty, TempSet.empty))
 	
 	fun getLive (b, mymap, deft, uset, nodea::nodes) = let 
-														val defs = valOf(Flow.Graph.Table.look(deft, nodea)) 
-														val uses = valOf(Flow.Graph.Table.look(uset, nodea))
+														
+														val defs = case Flow.Graph.Table.look(deft, nodea) of NONE => []
+																										| SOME tmps => tmps
+														
+														val uses = case Flow.Graph.Table.look(uset, nodea) of NONE => []
+																										| SOME tmps => tmps
+														
 														val defset = TempSet.addList(TempSet.empty, defs)
 														val useset = TempSet.addList(TempSet.empty, uses)
 														val (livein', liveout') = valOf(NodeMap.find(mymap, nodea))
@@ -65,15 +70,19 @@ struct
 												  
 	fun interferenceGraph (fg as Flow.FGRAPH{control = cfg,def = deft, use = uset, ismove = imt}) =
 			let
+				
 				val nodes = Flow.Graph.nodes cfg
+				
 				val mymap = iteration(true, foldl getStart NodeMap.empty nodes, deft, uset, rev nodes)
 				
-				val ig = IGraph.newGraph();			
+				val ig = IGraph.newGraph()		
 														
 				fun getMapping (nodea, (ntm, tnm)) = 
 					let 
-						val defs = valOf(Flow.Graph.Table.look(deft, nodea)) 
-						val uses = valOf(Flow.Graph.Table.look(uset, nodea))
+						val defs = case Flow.Graph.Table.look(deft, nodea) of NONE => ([])
+																		| SOME tmps => tmps
+						val uses = case Flow.Graph.Table.look(uset, nodea) of NONE => ([])
+																		| SOME tmps => tmps
 						
 						fun addNode (a, (ntm', tnm')) = case TnMap.find(tnm', a) of NONE => (let val newn = IGraph.newNode ig 
 																			in (NtMap.insert(ntm', newn, a), TnMap.insert(tnm', a, newn))
@@ -84,17 +93,25 @@ struct
 					end
 					
 				val (ntmap, tnmap) = foldl getMapping (NtMap.empty, TnMap.empty) nodes
+				
+				fun tnode tmp = case TnMap.find(tnmap, tmp) of NONE => (print("ERROR: No such temp found: t"^Int.toString tmp^"\n"); IGraph.errorNode ig)
+														| SOME node => node
+				
+				fun gtemp (nde:IGraph.node) = case NtMap.find(ntmap, nde) of NONE => (print("ERROR: No such node found: "^IGraph.nodename nde^"\n"); ~1: Temp.temp)
+														 | SOME tmp => tmp
 																			
 				fun addEdge (node, eset) = 
 						let
-							val LOs = TempSet.listItems(#2 (valOf(NodeMap.find(mymap, node))))
-							val defs = valOf(Flow.Graph.Table.look(deft, node))
+							val LOs = case NodeMap.find(mymap, node) of SOME (lis, los) => TempSet.listItems(los)
+																	| NONE => (print("ERROR: No such node found: "^IGraph.nodename node^"\n"); [])
+							val defs = case Flow.Graph.Table.look(deft, node) of NONE => ([])
+																		| SOME tmps => tmps
 							fun addOneDef (tmp, ese) = 
 								let 
-									val mynode = valOf(TnMap.find(tnmap, tmp))
+									val mynode = tnode tmp
 									fun addOneLO (lotmp, ese') =
 										let 
-											val lonode = valOf(TnMap.find(tnmap, lotmp))
+											val lonode = tnode lotmp
 											val edge = {from = mynode, to = lonode}
 											val edge' ={from = lonode, to = mynode}
 										in
@@ -110,20 +127,14 @@ struct
 						
 				val _ = foldl addEdge EdgeSet.empty nodes
 				
-				fun getMoves (node, l) = if valOf(Flow.Graph.Table.look(imt, node)) 
+				fun getMoves (node, l) = if isSome(Flow.Graph.Table.look(imt, node)) andalso valOf(Flow.Graph.Table.look(imt, node)) 
 											then (let val deftemp = hd (valOf(Flow.Graph.Table.look(deft, node)))
 													  val usetemp = hd (valOf(Flow.Graph.Table.look(uset, node)))
-													in (valOf(TnMap.find(tnmap, deftemp)), valOf(TnMap.find(tnmap, usetemp)))::l
+													in (tnode deftemp, tnode usetemp)::l
 													end)
 													  
 											else l
 				val moves = foldl getMoves [] nodes
-				
-				fun tnode tmp = case TnMap.find(tnmap, tmp) of NONE => (print("ERROR: No such temp found: t"^Int.toString tmp^"\n"); IGraph.errorNode ig)
-														| SOME node => node
-				
-				fun gtemp (nde:IGraph.node) = case NtMap.find(ntmap, nde) of NONE => (print("ERROR: No such node found: "^IGraph.nodename nde^"\n"); ~1: Temp.temp)
-														 | SOME tmp => tmp
 				
 				fun getLO node = case NodeMap.find(mymap, node) of NONE => (print("ERROR: No such node found: "^IGraph.nodename node^"\n"); [])
 																| SOME (li, lo) => TempSet.listItems lo
