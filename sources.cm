@@ -26,6 +26,7 @@ ir/tree.sml
 is/assem.sml
 is/canon.sml
 is/codegen.sml
+is/findescape.sml
 dataflow/flowgraph.sml
 dataflow/graph.sig
 dataflow/graph.sml
