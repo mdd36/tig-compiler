@@ -7,5 +7,8 @@ sig
   type label = Symbol.symbol
   val newlabel : unit -> label
   val namedlabel : string -> label
+  val empty : 'a Table.table
+  val enter : 'a Table.table * temp * 'a -> 'a Table.table
+  val look  : 'a Table.table * temp -> 'a option
 end
 

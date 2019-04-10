@@ -1,6 +1,7 @@
-.cm/*
 .DS_Store
 test/*
-*/.cm/*
+**/.cm/
 *.x86*
 *.tig
+*.s
+parser/tiger.grm.sml

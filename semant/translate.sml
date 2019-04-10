@@ -9,13 +9,13 @@ struct
     type frag = Frame.frag
     val frags = ref([] : frag list)
     type access = level * Frame.access
-	type label = Temp.label
+	  type label = Temp.label
     exception SyntaxException of string
 
     datatype exp = Ex of Tree.exp
                  | Nx of Tree.stm
                  | Cx of Temp.label * Temp.label -> Tree.stm
-	
+
 	val namedlabel=Temp.namedlabel
 
     fun handleInt(i: int) = Ex(Tree.CONST i)
@@ -27,9 +27,9 @@ struct
              frags := Frame.STRING (label, s) :: !frags;
              Ex (Tree.NAME label)
          end
-	
-	fun getLabel () = Temp.newlabel() 
-	
+
+  	fun getLabel () = Temp.newlabel()
+
     fun handleNil() = Ex(Tree.CONST 0)
 
     fun newLevel({parent, name, formals}) = Lev(
@@ -43,14 +43,18 @@ struct
     |   Lev({parent=p, frame=f}, uniq') =>
             let
                 val formals = tl (Frame.formals f)
-                fun f formal = (level, formal)
+                fun f' formal = (level, formal)
             in
-                map f formals
+                map f' formals
             end
     )
 
-    fun allocLocal(lev) = case lev of
-        (l as Lev({frame, parent}, uniq')) => (fn(x) => (l, Frame.allocLocal(frame)(x)))
+    fun allocLocal( Lev({parent, frame}, uniq)) (esc) =
+      let
+        val a = Frame.allocLocal(frame)(esc)
+      in
+        (Lev({parent=parent, frame=frame}, uniq), a)
+      end
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
     |   seq([s])  = s
@@ -91,7 +95,7 @@ struct
     |   unCx (Nx n) = raise ErrorMsg.Error
 
     fun assign (left, right) = Nx (Tree.MOVE (unEx left, unEx right))
-	
+
 	fun getAssign((Lev({parent = p,frame = f},u),a):access, exp) = case exp of Ex(Tree.ESEQ(e,r)) => Nx (Tree.MOVE ( (Frame.find a (Tree.TEMP Frame.FP)), Tree.MEM(unEx exp)))
 												| _ => Nx (Tree.MOVE ((Frame.find a (Tree.TEMP Frame.FP)), unEx exp))
 
@@ -135,11 +139,9 @@ struct
             )
         end
 
-    fun callExp (level: level, label, exps:exp list) = Ex(Tree.CALL(Tree.NAME(label), map unEx exps))
-	
-	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
+	  fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
 														| _ => dec::lis) [] decs
-	
+
     fun letExp([], body)   = body
     |   letExp(decs, body) = Ex(Tree.ESEQ(seq(map unNx decs), unEx body))
 
@@ -161,19 +163,17 @@ struct
     |   intBinOps(A.LeOp,     left, right) = packCompare(Tree.LE, left, right, NONE)
     |   intBinOps(A.LtOp,     left, right) = packCompare(Tree.LT, left, right, NONE)
 
-    fun strBinOps(A.NeqOp,    left, right) = packCompare(Tree.NE, left, right, SOME("strNE"))
-    |   strBinOps(A.EqOp,     left, right) = packCompare(Tree.EQ, left, right, SOME("strE"))
-    |   strBinOps(A.GeOp,     left, right) = packCompare(Tree.GE, left, right, SOME("strGTE"))
-    |   strBinOps(A.GtOp,     left, right) = packCompare(Tree.GT, left, right, SOME("strGT"))
-    |   strBinOps(A.LeOp,     left, right) = packCompare(Tree.LE, left, right, SOME("strLTE"))
-    |   strBinOps(A.LtOp,     left, right) = packCompare(Tree.LT, left, right, SOME("strLT"))
+    fun strBinOps(A.NeqOp,    left, right) = packCompare(Tree.NE, left, right, SOME("stringNotEqual"))
+    |   strBinOps(A.EqOp,     left, right) = packCompare(Tree.EQ, left, right, SOME("stringEqual"))
+    |   strBinOps(A.GeOp,     left, right) = packCompare(Tree.GE, left, right, SOME("stringGreaterThanEqual"))
+    |   strBinOps(A.GtOp,     left, right) = packCompare(Tree.GT, left, right, SOME("stringGreaterThan"))
+    |   strBinOps(A.LeOp,     left, right) = packCompare(Tree.LE, left, right, SOME("stringLessThanEqual"))
+    |   strBinOps(A.LtOp,     left, right) = packCompare(Tree.LT, left, right, SOME("stringLessThan"))
     |   strBinOps(_,_,_)                   = raise SyntaxException "Unsupported string operation"
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
-	
-	fun compare (Tree.CONST a, Tree.CONST b) =  a<b
-	
-	fun subscriptVar(base, offset) = let 
+
+	fun subscriptVar(base, offset) = let
 										val true' = Temp.newlabel()
 										val true'' = Temp.newlabel()
 										val false' = Temp.newlabel()
@@ -188,11 +188,7 @@ struct
 									]),
 									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
 									))
-									end 
-	
-    (*fun subscriptVar(base, offset,size) = if (compare(Tree.CONST size,unEx offset) andalso compare(Tree.CONST ~1,Tree.CONST size)) 
-									then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize)))
-									else handleNil()*)
+									end
 
     fun simpleVar(access, level) =
         let
@@ -357,9 +353,9 @@ struct
             end
 
     fun arrayExp(size, init) = Ex(Frame.externalCall("initArray", [unEx size, unEx init]))
-	
+
 	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
-	
+
     fun diffLevel (Top) = 0
     |   diffLevel (l as Lev({parent: level,frame: Frame.frame},u: Types.unique)) = 1 + diffLevel(parent)
 
@@ -369,8 +365,8 @@ struct
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Frame.externalCall(Symbol.name label, map unEx exps))
-    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Frame.externalCall(Symbol.name label, map unEx exps)))
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Tree.CALL(Tree.NAME label, map unEx exps))
+    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(
                 Tree.CALL(
@@ -389,5 +385,23 @@ struct
                     )
                 )
             )
+
+	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
+        frags := !frags @ [Frame.PROC{
+                body=Frame.procEntryExit1(
+                        frame,
+                        Tree.MOVE(
+                            Tree.TEMP(
+                                hd Frame.returnRegs
+                            ),
+                            unEx exp
+                        )
+                    ),
+                frame=frame
+            }]
+
+	fun getResult () = rev (!frags)
+
+	fun reset () = frags := []
 
 end
