@@ -14,6 +14,13 @@ end
 structure Color :> COLOR =
 struct
 
+	fun color {interference = ig, initial = initial, spillCost = spillCost, registers= regs} =
+		let
+		
+		in
+		
+		end
+
 
 
 end
