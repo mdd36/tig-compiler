@@ -43,9 +43,7 @@ struct
 			val worklistMoves = Worklist.array(0, L.IGraph.errorNode ig)
 			val freezeWorklist = Worklist.array(0, L.IGraph.errorNode ig)
 			val spillWorklist = Worklist.array(0, L.IGraph.errorNode ig)
-			
-			
-			
+	
 			fun build () = 
 				let
 					val nodes = L.IGraph.nodes ig
@@ -55,6 +53,7 @@ struct
 																	then MoveSet.add(s, edge) else s) MoveSet.empty moves)
 					
 					val moveLists = foldl search NodeMap.empty nodes
+					val adjList = foldl (fn (a, m) => NodeMap.insert(m, a, ref (NodeSet.addList(NodeSet.empty, L.IGraph.adj a)))) NodeMap.empty nodes
 					
 					fun addedge (node, s) = 
 						let 
@@ -72,14 +71,34 @@ struct
 					
 					val adjSet = foldl addedge MoveEdge.empty nodes
 				in
-					(degreeMap, moveLists, adjSet)
+					(degreeMap, moveLists, adjSet, adjList)
 				end
+				
+			val (degreeMap, moveLists, adjSet, adjList) = build()
+			val adjSet = ref adjSet
+			
 				
 			fun NodeMoves node = NodeSet.intersection(valOf(NodeMap.find(moveLists, node)), NodeSet.union(worklistMoves, activeMoves))
 			
 			fun MoveRelated node = NodeSet.isEmpty (NodeMoves node)	
 			
 			fun AddEdge (u, v) = 
+				if MoveEdge.member(!adjSet, (u, v))
+				then ()
+				else (adjSet := MoveEdge.add(MoveEdge.add(!adjSet, (v, u)), (u, v));
+						case (NodeSet.member(precolored, u), NodeSet.member(precolored, v)) 
+						of (true, true) => ()
+						| (false, true) => (valOf(NodeMap.find(addList, u)) := NodeSet.add(!(valOf(NodeMap.find(addList, u))), v);
+											valOf(NodeMap.find(degreeMap, u)) := !(valOf(NodeMap.find(degreeMap, u)))+1)
+						| (true, false) => (valOf(NodeMap.find(addList, v)) := NodeSet.add(!(valOf(NodeMap.find(addList, v))), u);
+											valOf(NodeMap.find(degreeMap, v)) := !(valOf(NodeMap.find(degreeMap, v)))+1)
+						| (false, false) => (valOf(NodeMap.find(addList, u)) := NodeSet.add(!(valOf(NodeMap.find(addList, u))), v);
+											valOf(NodeMap.find(degreeMap, u)) := !(valOf(NodeMap.find(degreeMap, u)))+1;
+											valOf(NodeMap.find(addList, v)) := NodeSet.add(!(valOf(NodeMap.find(addList, v))), u);
+											valOf(NodeMap.find(degreeMap, v)) := !(valOf(NodeMap.find(degreeMap, v)))+1)
+						)
+						
+						
 			
 			fun Adjacent n =
 			
