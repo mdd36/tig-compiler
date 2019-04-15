@@ -78,7 +78,7 @@ struct
 			 				in
 			 					lwCode @ A.OPER{assem=assem, dst=dst', src=src'} @ swCode
 			 				end
-			 		| 	singleInstr x => x :: []
+			 		| 	singleInstr x = x :: []
 
 			 		fun f (instr, rest) = rest @ singleInstr instr
 

@@ -87,10 +87,18 @@ struct
 					
 					val moveLists = foldl search NodeMap.empty nodes
 					val adjList = foldl (fn (a, m) => NodeMap.insert(m, a, ref (NodeSet.addList(NodeSet.empty, L.IGraph.adj a)))) NodeMap.empty nodes
-					val (precolored, initial) = foldl (fn (n, (pre, ini)) => (let val tmp = gtemp n in
-																				if isSome(Temp.look(MipsFrame.tempMap, tmp))
-																				then (NodeSet.add(pre, n), ini)
-																				else (pre, NodeSet.add(ini, n)))) (NodeSet.empty, NodeSet.empty) nodes
+					val (precolored, initial) = let
+						fun f (m, (pre, ini)) = 
+							let 
+								val tmp = gtemp n 
+							in
+								if isSome(Temp.look(MipsFrame.tempMap, tmp))
+								then (NodeSet.add(pre, n), ini)
+								else (pre, NodeSet.add(ini, n))
+							end
+						in
+							foldl f (NodeSet.empty, NodeSet.empty) nodes 
+						end
 					fun addedge (node, s) = 
 						let 
 							val adjs = L.IGraph.adj ig
@@ -180,7 +188,7 @@ struct
 							else (
 								if MoveRelated node
 								then freezeWorklist := NodeSet.add(!freezeWorklist, node)
-								else simplifyWorklist := NodeSet.add(!simplifyWorklist, node))
+								else simplifyWorklist := NodeSet.add(!simplifyWorklist, node)
 								)
 				in
 					foldl insert () items
@@ -366,13 +374,13 @@ struct
 
 							val availColors = foldr f allRegisters adj'
 						in
-							selectStack := tail
-							if RegSet.isEmpty availColors then
+							selectStack := tail;
+							(if RegSet.isEmpty (availColors) then
 								spilledNodes := NodeSet.add(!spilledNodes, node)
 							else (
 								coloredNodes := coloredNodes.add(!coloredNodes, node);
 								colorMap := Temp.Table.enter(!colorMap, tmp, (hd (RegSet.listItems availColors)))
-								)
+								));
 							tryColoring()
 						end
 				)
@@ -380,6 +388,6 @@ struct
 			build();
 			MakeWorklist();
 			repeat();
-			(tryColoring(), map gtemp (NodeSet.listItems (!spillNS))
+			(tryColoring(), map gtemp (NodeSet.listItems (!spillNS)))
 		end
 end
