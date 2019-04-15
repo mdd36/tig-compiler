@@ -29,5 +29,6 @@ sig
                 | STRING of Temp.label * string
 	val string : frag -> string
     val wordSize : int
+    val K: int
 
 end
