@@ -31,4 +31,6 @@ sig
     val wordSize : int
     val K: int
 
+    val registerColors : unit -> string list 
+
 end

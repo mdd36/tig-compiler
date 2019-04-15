@@ -19,6 +19,7 @@ struct
 	exception NotEnoughColors of string
 
 	structure L = Liveness
+	structure Frame = MipsFrame
 	structure NodeMap = RedBlackMapFn(type ord_key=L.IGraph.node val compare=L.IGraph.compare) 
 	structure NodeSet = RedBlackSetFn(type ord_key=L.IGraph.node val compare=L.IGraph.compare)
 	
@@ -26,8 +27,8 @@ struct
 	struct
         type ord_key = L.IGraph.node * L.IGraph.node
         fun compare((ni, nj), (ni', nj')) =
-            (case IGraph.compare(ni, ni') of
-                EQUAL => IGraph.compare(nj, nj') 
+            (case L.IGraph.compare(ni, ni') of
+                EQUAL => L.IGraph.compare(nj, nj') 
                 | LESS => LESS
 				| GREATER => GREATER)
     end
@@ -35,36 +36,35 @@ struct
     structure RegSetKey = 
     struct
     	type ord_key = Frame.register
-    	fun compare = String.compare
+    	val compare = String.compare
     end
 
 	structure MoveSet = RedBlackSetFn(MoveEdge) 
-	structure RegSet = ListSetFn()
+	structure RegSet = ListSetFn(RegSetKey)
 	structure Stack =
 	struct 
-		type stack =  L.IGraph.node * int list
+		type stack =  (L.IGraph.node * int) list (* FIXME Is this the grouping you wanted, or are just int's a list? *)
 		
-		val empty = ref [] : stack ref
+		val empty: stack ref = ref [] 
 		fun push (a, s) = s:=a::(!s)
 		fun pop (ref []) = NONE
 		  | pop s  = let val a::m = (!s)
 						in
 						(s:= m; SOME a)
 						end
-		fun items s = NodeSet.addList(NodeSet.empty, !s) 
+		fun items s = NodeSet.addList(NodeSet.empty, map (#1) ((!s): stack)) (* FIXME Changed this to match the new (Node * int) list type *)
 	end
 
 	val K = 9 (* 9 temp reg's in MIPS *)
 
 	
-	fun color {interference as IGRAPH.Liveness{graph, tnode, gtemp, moves}, initial, spillCost, registers} =
-
+	fun color {interference as Liveness.IGRAPH{graph=ig, tnode, gtemp, moves}, initial, spillCost, registers} =
 		let
 
-			val (L.IGRAPH{graph = ig,
+			(*val (L.IGraph{graph = ig,
 			   tnode = tnode,
 			   gtemp = gtemp,	
-			   moves = moves}, node2tmps) = L.interferenceGraph(#1 (Makegraph.instr2graph assemlist))
+			   moves = moves}, node2tmps) = L.interferenceGraph(#1 (Makegraph.instr2graph assemlist))*)
 
 			val simplifyWorklist = ref (NodeSet.empty) (*1*)
 			val freezeWorklist = ref (NodeSet.empty) (*2*)
@@ -88,7 +88,7 @@ struct
 					val moveLists = foldl search NodeMap.empty nodes
 					val adjList = foldl (fn (a, m) => NodeMap.insert(m, a, ref (NodeSet.addList(NodeSet.empty, L.IGraph.adj a)))) NodeMap.empty nodes
 					val (precolored, initial) = let
-						fun f (m, (pre, ini)) = 
+						fun f (n, (pre, ini)) = 
 							let 
 								val tmp = gtemp n 
 							in
@@ -101,19 +101,19 @@ struct
 						end
 					fun addedge (node, s) = 
 						let 
-							val adjs = L.IGraph.adj ig
+							val adjs = L.IGraph.adj ig (* FIXME BUG I think this should be node? *)
 							fun addoneedge (adj, s') = 
 								let 
 									val e1 = (node, adj)
 									val e2 = (adj, node)
 								in 
-									if MoveEdge.member(s', e1) then s' else MoveEdge.add(MoveEdge.add(s', e1), e2)
+									if MoveSet.member(s', e1) then s' else MoveSet.add(MoveSet.add(s', e1), e2)
 								end
 						in 
 							foldl addoneedge s adjs
 						end
 					
-					val adjSet = foldl addedge MoveEdge.empty nodes
+					val adjSet = foldl addedge MoveSet.empty nodes
 				in
 					(degreeMap, moveLists, adjSet, adjList, precolored, initial)
 				end
@@ -129,24 +129,24 @@ struct
 			val alias = ref (NodeMap.empty)
 			val realias = ref (NodeMap.empty)
 			
-			fun NodeMoves node = case NodeMap.find(realias, node) of NONE => MoveEdge.intersection(valOf(NodeMap.find(moveLists, node)), MoveEdge.union(!worklistMoves, !activeMoves))
-																| SOME m =>MoveEdge.union(NodeMoves m, MoveEdge.intersection(valOf(NodeMap.find(moveLists, node)), MoveEdge.union(!worklistMoves, !activeMoves)))
+			fun NodeMoves node = case NodeMap.find(!realias, node) of NONE => MoveSet.intersection(valOf(NodeMap.find(moveLists, node)), MoveSet.union(!worklistMoves, !activeMoves))
+																| SOME m =>MoveSet.union(NodeMoves m, MoveSet.intersection(valOf(NodeMap.find(moveLists, node)), MoveSet.union(!worklistMoves, !activeMoves)))
 				
-			fun MoveRelated node = MoveEdge.isEmpty (NodeMoves node)	
+			fun MoveRelated node = MoveSet.isEmpty (NodeMoves node)	
 			
 			fun AddEdge (u, v) = 
-				if MoveEdge.member(!adjSet, (u, v)) andalso L.IGraph.eq(u,v)
+				if MoveSet.member(!adjSet, (u, v)) andalso L.IGraph.eq(u,v)
 				then ()
-				else (adjSet := MoveEdge.add(MoveEdge.add(!adjSet, (v, u)), (u, v));
+				else (adjSet := MoveSet.add(MoveSet.add(!adjSet, (v, u)), (u, v));
 						case (NodeSet.member(precolored, u), NodeSet.member(precolored, v)) 
 						of (true, true) => ()
-						| (false, true) => (valOf(NodeMap.find(addList, u)) := NodeSet.add(!(valOf(NodeMap.find(addList, u))), v);
+						| (false, true) => (valOf(NodeMap.find(adjList, u)) := NodeSet.add(!(valOf(NodeMap.find(adjList, u))), v); 
 											valOf(NodeMap.find(degreeMap, u)) := !(valOf(NodeMap.find(degreeMap, u)))+1)
-						| (true, false) => (valOf(NodeMap.find(addList, v)) := NodeSet.add(!(valOf(NodeMap.find(addList, v))), u);
+						| (true, false) => (valOf(NodeMap.find(adjList, v)) := NodeSet.add(!(valOf(NodeMap.find(adjList, v))), u);
 											valOf(NodeMap.find(degreeMap, v)) := !(valOf(NodeMap.find(degreeMap, v)))+1)
-						| (false, false) => (valOf(NodeMap.find(addList, u)) := NodeSet.add(!(valOf(NodeMap.find(addList, u))), v);
+						| (false, false) => (valOf(NodeMap.find(adjList, u)) := NodeSet.add(!(valOf(NodeMap.find(adjList, u))), v);
 											valOf(NodeMap.find(degreeMap, u)) := !(valOf(NodeMap.find(degreeMap, u)))+1;
-											valOf(NodeMap.find(addList, v)) := NodeSet.add(!(valOf(NodeMap.find(addList, v))), u);
+											valOf(NodeMap.find(adjList, v)) := NodeSet.add(!(valOf(NodeMap.find(adjList, v))), u);
 											valOf(NodeMap.find(degreeMap, v)) := !(valOf(NodeMap.find(degreeMap, v)))+1)
 						)
 						
@@ -157,9 +157,9 @@ struct
 			
 			fun EnableMoves nodes = 
 				let
-					fun enable (node, ()) =  
-						foldl (fn (m, ()) => if MoveEdge.member(!activeMoves, m) then (activeMoves := MoveEdge.delete(!activeMoves, m),
-															worklistMoves := MoveEdge.add(!worklistMoves, m)) else ()) () (NodeMoves node) 
+					fun enable (node, _) =  
+						MoveSet.foldl (fn (m, ()) => if MoveSet.member(!activeMoves, m) then (activeMoves := MoveSet.delete(!activeMoves, m); (* FIXME changed comman to semicolon, changed to MoveSet.foldl *)
+															worklistMoves := MoveSet.add(!worklistMoves, m)) else ()) () (NodeMoves node) 
 				in 
 					foldl enable () nodes
 				end
@@ -197,7 +197,7 @@ struct
 			fun Simplify () =
 				let 
 					val n = NodeSet.listItems(!simplifyWorklist)
-					fun sim (node,()) =
+					fun sim node = (* FIXME Remove unit from function def *)
 						(simplifyWorklist:=NodeSet.delete(!simplifyWorklist, node);
 						 Stack.push((node,1), selectStack);
 						 map DecrementDegree (Adjacent node))
@@ -208,23 +208,23 @@ struct
 			(* coalesce **********************************************)
 			
 			fun GetAlias n =
-				if NodeSet.member(!coalescedNodes) 
+				if NodeSet.member(!coalescedNodes, n) (* FIXME add n to member check*) 
 				then GetAlias(valOf(NodeMap.find(!alias, n)))
 				else n
 				
-			fun OK (t, r) = valOf(NodeMap.find(degreeMap, t)) < K orelse 
+			fun OK (t, r) = !(valOf(NodeMap.find(degreeMap, t))) < K orelse 
 									NodeSet.member(precolored, t) orelse
-									MoveEdge.member(!adjSet, (t,r))
+									MoveSet.member(!adjSet, (t,r))
 									
 			fun Conservative nodes =
 				let val k = ref 0
-					fun judge (node, ()) = if valOf(NodeMap.find(degreeMap, node)) >= K then k:=(!k)+1 else ()
+					fun judge (node, ()) = if !(valOf(NodeMap.find(degreeMap, node))) >= K then k:=(!k)+1 else ()
 				in (foldl judge () nodes;
-					k<K)
+					!k<K)
 				end
 			
 			fun AddWorkList u =
-				if (not (NodeSet.member(precolored, u))) andalso(not (MoveRelated u)) andalso valOf(NodeMap.find(degreeMap,u))<K
+				if (not (NodeSet.member(precolored, u))) andalso(not (MoveRelated u)) andalso !(valOf(NodeMap.find(degreeMap,u)))<K
 				then (freezeWorklist:=NodeSet.delete(!freezeWorklist, u);
 					  simplifyWorklist:=NodeSet.add(!simplifyWorklist, u))
 				else ()
@@ -241,7 +241,7 @@ struct
 					 alias:= NodeMap.insert(!alias, v, u);
 					 realias:= NodeMap.insert(!realias, u, v);
 					 map uni (Adjacent v);
-					 if valOf(NodeMap.find(degreeMap, u)) >= K andalso NodeSet.member(!freezeWorklist, u)
+					 if !(valOf(NodeMap.find(degreeMap, u))) >= K andalso NodeSet.member(!freezeWorklist, u)
 					 then (freezeWorklist:=NodeSet.delete(!freezeWorklist, u);
 						   spillWorklist:=NodeSet.add(!spillWorklist, u))
 					 else ()
@@ -250,28 +250,28 @@ struct
 			
 			fun Coalesce () =
 				let
-					val moveedges = MoveEdge.listItems (!worklistMoves)
+					val moveedges = MoveSet.listItems (!worklistMoves)
 					fun divide (move as (m, n)) =
 						let
 							val x = GetAlias m
 							val y = GetAlias n
 							val (u, v) = if NodeSet.member(precolored, y) then (y, x) else (x, y)
 						in
-							(worklistMoves := MoveEdge.delete(!worklistMoves, move);
+							(worklistMoves := MoveSet.delete(!worklistMoves, move);
 							if L.IGraph.eq(u,v)
-							then (coalescedMoves:=MoveEdge.add(!coalescedMoves, move);
+							then (coalescedMoves:=MoveSet.add(!coalescedMoves, move);
 								  AddWorkList u)
 							else (
-								  if NodeSet.member(precolored, v) orelse MoveEdge.member(!adjSet, (u,v))
-								  then (constrainedMoves:=MoveEdge.add(!constrainedMoves, move);
+								  if NodeSet.member(precolored, v) orelse MoveSet.member(!adjSet, (u,v))
+								  then (constrainedMoves:=MoveSet.add(!constrainedMoves, move);
 										AddWorkList u;
 										AddWorkList v)
 								  else (if (NodeSet.member(precolored, u) andalso (foldl (fn (a, b) => b andalso OK(a, u)) true (Adjacent v)))
 											orelse ((not (NodeSet.member(precolored, u))) andalso Conservative((Adjacent u)@(Adjacent v)))
-										then (coalescedMoves:=MoveEdge.add(!coalescedMoves, move);
+										then (coalescedMoves:=MoveSet.add(!coalescedMoves, move);
 											  Combine(u, v);
 											  AddWorkList u)
-										else (activeMoves:=MoveEdge.add(!activeMoves, move)))))
+										else (activeMoves:=MoveSet.add(!activeMoves, move)))))
 						end
 				in
 					divide (hd moveedges)
@@ -281,14 +281,14 @@ struct
 			
 			fun FreezeMoves u =
 				let 
-					val mnodes = MoveEdge.listItems (NodeMoves u)
+					val mnodes = MoveSet.listItems (NodeMoves u)
 					fun fre (m as (x,y)) = 
 						let 
-							val v = if (GetAlias y) = (GetAlias u) then (GetAlias x) else (GetAlias y)
+							val v = if (GetAlias y) = (GetAlias u) then (GetAlias x) else (GetAlias y) (* FIXME Need to convert nodes to equal types *)
 						in
-							activeMoves:=MoveEdge.delete(!activeMoves, m);
-							frozenMoves:=MoveEdge.add(!frozenMoves, m);
-							if MoveRelated(v) andalso valOf(NodeMap.find(degreeMap, v)) < K
+							activeMoves:=MoveSet.delete(!activeMoves, m);
+							frozenMoves:=MoveSet.add(!frozenMoves, m);
+							if MoveRelated(v) andalso !(valOf(NodeMap.find(degreeMap, v))) < K
 							then (freezeWorklist:=NodeSet.delete(!freezeWorklist, v);
 								  simplifyWorklist:=NodeSet.add(!simplifyWorklist, v))
 							else ()
@@ -313,7 +313,7 @@ struct
 			fun SelectSpill () =
 				let
 					val l = NodeSet.listItems (!spillWorklist)
-					val m = #1 (foldr (fn (n, c) => let val sc = spillcost n in if sc < #2 c then (n, sc) else c end) ((hd  l), spillcost (hd l)) (tl l))
+					val m = #1 (foldr (fn (n, c) => let val sc = spillCost n in if sc < #2 c then (n, sc) else c end) ((hd  l), spillCost (hd l)) (tl l))
 				in 
 					spillWorklist:=NodeSet.delete(!spillWorklist, m);
 					simplifyWorklist:=NodeSet.add(!simplifyWorklist, m);
@@ -324,10 +324,10 @@ struct
 			
 			(****************)
 			fun repeat () = 
-				if not (NodeSet.empty(!simplifyWorklist)) then (Simplify();repeat())
-				else if not (MoveEdge.empty(!worklistMoves)) then (Coalesce();repeat())
-				else if not (NodeSet.empty(!freezeWorklist)) then (Freeze();repeat())
-				else if not (NodeSet.empty(!spillWorklist)) then (SelectSpill();repeat())
+				if not (NodeSet.isEmpty(!simplifyWorklist)) then (Simplify();repeat())
+				else if not (MoveSet.isEmpty(!worklistMoves)) then (Coalesce();repeat())
+				else if not (NodeSet.isEmpty(!freezeWorklist)) then (Freeze();repeat())
+				else if not (NodeSet.isEmpty(!spillWorklist)) then (SelectSpill();repeat())
 				else ()
 
 			(**** COLORING ****)
@@ -359,15 +359,15 @@ struct
 									val tmp = gtemp node
 									val node' = GetAlias node
 									val tmp' = gtemp node'
-									val allColoredNodes = NodeSet.union(!coloredNodes, !precolored)
+									val allColoredNodes = NodeSet.union(!coloredNodes, precolored)
 								in
-									if NodeSet.member(allColoredNodes, tmp') then
+									if NodeSet.member(allColoredNodes, node') then
 										let
 											val c = Temp.Table.look(!colorMap, tmp')
 										in
 											if isSome c andalso RegSet.member(availColors, valOf c) then
-												RegSet.delete(availColors, c)
-											else raise ErrorMsg.Error "Unknown color provided"
+												RegSet.delete(availColors, valOf c)
+											else raise ErrorMsg.Error 
 										end
 									else availColors
 								end
@@ -378,16 +378,16 @@ struct
 							(if RegSet.isEmpty (availColors) then
 								spilledNodes := NodeSet.add(!spilledNodes, node)
 							else (
-								coloredNodes := coloredNodes.add(!coloredNodes, node);
-								colorMap := Temp.Table.enter(!colorMap, tmp, (hd (RegSet.listItems availColors)))
+								coloredNodes := NodeSet.add(!coloredNodes, node);
+								colorMap := Temp.Table.enter(!colorMap, node, (hd (RegSet.listItems availColors)))
 								));
 							tryColoring()
 						end
 				)
 		in
 			build();
-			MakeWorklist();
+			MakeWorklist(); (* FIXME needs a set passed to it, not sure which one *)
 			repeat();
-			(tryColoring(), map gtemp (NodeSet.listItems (!spillNS)))
+			(tryColoring(), map gtemp (NodeSet.listItems (!spilledNodes)))
 		end
 end
