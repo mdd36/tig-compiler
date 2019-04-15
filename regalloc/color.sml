@@ -38,7 +38,7 @@ struct
     	fun compare = String.compare
     end
 
-	structure MoveSet = RedBlackSetFn(MoveEdge) (*worklistMoves, activeMoves, coalescedMoves, constrainedMoves, frozenMoves*) (*to do*)
+	structure MoveSet = RedBlackSetFn(MoveEdge) 
 	structure RegSet = ListSetFn()
 	structure Stack =
 	struct 
@@ -53,7 +53,7 @@ struct
 						end
 		fun items s = NodeSet.addList(NodeSet.empty, !s) 
 	end
-	
+
 	val K = 9 (* 9 temp reg's in MIPS *)
 
 	
