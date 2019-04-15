@@ -83,7 +83,7 @@ struct
 			val (allocation, spillList) = Color.color {interference=igraph, 
 													   initial=(Frame.tempMap : allocation), 
 													   spillCost=spillcost, 
-													   registers=(Frame.registerColors():Frame.register list)}
+													   registers=Frame.registerColors()}
 		in
 			if length spillList = 0 then (assemlist, allocation)
 			else alloc(rewriteProg(assemlist, frame, spillList), frame)

@@ -1,13 +1,13 @@
 signature COLOR =
 sig 
-	structure Frame: FRAME
+	structure Frame : FRAME
 	
 	type allocation = string Temp.Table.table
 	
 	val color : {interference: Liveness.igraph,
 				 initial: allocation, (* FIXME never use this *)
 				 spillCost: Liveness.IGraph.node -> int,
-				 registers: Frame.register list}
+				 registers: MipsFrame.register list}
 				  -> allocation * Temp.temp list
 end
 
@@ -48,9 +48,11 @@ struct
 		val empty: stack ref = ref [] 
 		fun push (a, s) = s:=a::(!s)
 		fun pop (ref []) = NONE
-		  | pop s  = let val a::m = (!s)
+		  | pop s  = let val l = (!s)
+		  				 val a = hd l
+		  				 val m = tl l
 						in
-						(s:= m; SOME a)
+							(s:= m; SOME a)
 						end
 		fun items s = NodeSet.addList(NodeSet.empty, !s) 
 	end
@@ -158,7 +160,7 @@ struct
 			fun EnableMoves nodes = 
 				let
 					fun enable (node, _) =  
-						MoveSet.foldl (fn (m, ()) => if MoveSet.member(!activeMoves, m) then (activeMoves := MoveSet.delete(!activeMoves, m); (* FIXME changed comman to semicolon, changed to MoveSet.foldl *)
+						MoveSet.foldl (fn (m, ()) => if MoveSet.member(!activeMoves, m) then (activeMoves := MoveSet.delete(!activeMoves, m); 
 															worklistMoves := MoveSet.add(!worklistMoves, m)) else ()) () (NodeMoves node) 
 				in 
 					foldl enable () nodes
@@ -208,7 +210,7 @@ struct
 			(* coalesce **********************************************)
 			
 			fun GetAlias n =
-				if NodeSet.member(!coalescedNodes, n) (* FIXME add n to member check*) 
+				if NodeSet.member(!coalescedNodes, n) 
 				then GetAlias(valOf(NodeMap.find(!alias, n)))
 				else n
 				

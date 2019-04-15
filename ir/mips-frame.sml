@@ -148,7 +148,7 @@ struct
 
 	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
 
-    fun registerColors ():register list = map (fn x => valOf(Temp.Table.look(tempMap, x))) (argregs @ calleeSaves @ callerSaves @ returnRegs)
+    fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (argregs @ calleeSaves @ callerSaves @ returnRegs)
 
 	fun name {name, formals, locals} = Symbol.name name
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
