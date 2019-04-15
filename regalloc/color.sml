@@ -5,8 +5,8 @@ sig
 	type allocation = string Temp.Table.table
 	
 	val color : {interference: Liveness.igraph,
-				 initial: allocation,
-				 spillCost: Graph.node -> int,
+				 initial: allocation, (* FIXME never use this *)
+				 spillCost: Liveness.IGraph.node -> int,
 				 registers: Frame.register list}
 				  -> allocation * Temp.temp list
 end
@@ -43,7 +43,7 @@ struct
 	structure RegSet = ListSetFn(RegSetKey)
 	structure Stack =
 	struct 
-		type stack =  (L.IGraph.node * int) list (* FIXME Is this the grouping you wanted, or are just int's a list? *)
+		type stack =  L.IGraph.node list 
 		
 		val empty: stack ref = ref [] 
 		fun push (a, s) = s:=a::(!s)
@@ -52,13 +52,13 @@ struct
 						in
 						(s:= m; SOME a)
 						end
-		fun items s = NodeSet.addList(NodeSet.empty, map (#1) ((!s): stack)) (* FIXME Changed this to match the new (Node * int) list type *)
+		fun items s = NodeSet.addList(NodeSet.empty, !s) 
 	end
 
 	val K = 9 (* 9 temp reg's in MIPS *)
 
 	
-	fun color {interference as Liveness.IGRAPH{graph=ig, tnode, gtemp, moves}, initial, spillCost, registers} =
+	fun color {interference as L.IGRAPH{graph=ig, tnode, gtemp, moves}, initial, spillCost, registers} =
 		let
 
 			(*val (L.IGraph{graph = ig,
@@ -87,7 +87,7 @@ struct
 					
 					val moveLists = foldl search NodeMap.empty nodes
 					val adjList = foldl (fn (a, m) => NodeMap.insert(m, a, ref (NodeSet.addList(NodeSet.empty, L.IGraph.adj a)))) NodeMap.empty nodes
-					val (precolored, initial) = let
+					val (precolored, initials) = let
 						fun f (n, (pre, ini)) = 
 							let 
 								val tmp = gtemp n 
@@ -101,7 +101,7 @@ struct
 						end
 					fun addedge (node, s) = 
 						let 
-							val adjs = L.IGraph.adj ig (* FIXME BUG I think this should be node? *)
+							val adjs = L.IGraph.adj node 
 							fun addoneedge (adj, s') = 
 								let 
 									val e1 = (node, adj)
@@ -115,15 +115,15 @@ struct
 					
 					val adjSet = foldl addedge MoveSet.empty nodes
 				in
-					(degreeMap, moveLists, adjSet, adjList, precolored, initial)
+					(degreeMap, moveLists, adjSet, adjList, precolored, initials)
 				end
 				
-			val (degreeMap, moveLists, adjSet, adjList, precolored, initial) = build()
+			val (degreeMap, moveLists, adjSet, adjList, precolored, initials) = build()
 			val adjSet = ref adjSet
 			val spilledNodes = ref (NodeSet.empty)
 			val coalescedNodes = ref (NodeSet.empty)
 			val coloredNodes = ref (NodeSet.empty)
-			val colorMap = ref (Temp.Table.empty)
+			val colorMap = ref (Temp.Table.empty): allocation ref
 			val selectStack = Stack.empty
 			
 			val alias = ref (NodeMap.empty)
@@ -179,9 +179,9 @@ struct
 				end
 					
 			
-			fun MakeWorklist initial =
+			fun MakeWorklist initials =
 				let 
-					val items = NodeSet.listItems initial
+					val items = NodeSet.listItems initials
 					fun insert (node, ()) = 
 							if !(valOf(NodeMap.find(degreeMap, node))) >= K
 							then spillWorklist := NodeSet.add(!spillWorklist, node)
@@ -199,7 +199,7 @@ struct
 					val n = NodeSet.listItems(!simplifyWorklist)
 					fun sim node = (* FIXME Remove unit from function def *)
 						(simplifyWorklist:=NodeSet.delete(!simplifyWorklist, node);
-						 Stack.push((node,1), selectStack);
+						 Stack.push(node, selectStack);
 						 map DecrementDegree (Adjacent node))
 				in
 					sim (hd n)
@@ -284,7 +284,7 @@ struct
 					val mnodes = MoveSet.listItems (NodeMoves u)
 					fun fre (m as (x,y)) = 
 						let 
-							val v = if (GetAlias y) = (GetAlias u) then (GetAlias x) else (GetAlias y) (* FIXME Need to convert nodes to equal types *)
+							val v = if L.IGraph.eq((GetAlias y), (GetAlias u)) then (GetAlias x) else (GetAlias y) 
 						in
 							activeMoves:=MoveSet.delete(!activeMoves, m);
 							frozenMoves:=MoveSet.add(!frozenMoves, m);
@@ -333,8 +333,8 @@ struct
 			(**** COLORING ****)
 
 
-			fun tryColoring() = (case (!selectStack) of
-					nil => 
+			fun tryColoring() = (case (Stack.pop selectStack) of
+					NONE => 
 						let
 							fun f node = 
 								let
@@ -350,7 +350,7 @@ struct
 							!colorMap
 							)
 						end
-				|	node::tail => 
+				|	SOME node => 
 						let
 							val adj' = L.IGraph.adj node
 							val allRegisters = RegSet.addList(RegSet.empty, registers)
@@ -374,19 +374,19 @@ struct
 
 							val availColors = foldr f allRegisters adj'
 						in
-							selectStack := tail;
+							
 							(if RegSet.isEmpty (availColors) then
 								spilledNodes := NodeSet.add(!spilledNodes, node)
 							else (
 								coloredNodes := NodeSet.add(!coloredNodes, node);
-								colorMap := Temp.Table.enter(!colorMap, node, (hd (RegSet.listItems availColors)))
+								colorMap := Temp.Table.enter(!colorMap, gtemp node, (hd (RegSet.listItems availColors)))
 								));
 							tryColoring()
 						end
 				)
 		in
 			build();
-			MakeWorklist(); (* FIXME needs a set passed to it, not sure which one *)
+			MakeWorklist initials; 
 			repeat();
 			(tryColoring(), map gtemp (NodeSet.listItems (!spilledNodes)))
 		end
