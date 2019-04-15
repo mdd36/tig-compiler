@@ -33,4 +33,6 @@ dataflow/graph.sml
 dataflow/liveness.sml
 dataflow/graphfun.sig
 dataflow/makegraph.sml
+regalloc/regalloc.sml
+regalloc/color.sml
 util/util.sml
