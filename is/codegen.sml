@@ -57,7 +57,7 @@ struct
               munchStm b
               )
       | munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
->>>>>>> 32f48fc8b5f0dfa0509ef50a21c18dc8272679ff*)
+*)
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
 					emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
@@ -434,9 +434,10 @@ struct
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
                 let
                     val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST Frame.wordSize))
-					fun move x = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST Frame.wordSize))
+                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST Frame.wordSize))
+
                 in (
-					munchStm(move T.MINUS);
+                    munchStm(moveSPforRA(T.MINUS));
                     munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
                     result(fn dest =>
                             emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
@@ -444,13 +445,13 @@ struct
                             src=(munchArgs(0, args)), jump=NONE})
                         );
                     munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
-					munchStm(move T.PLUS);
+                    munchStm(moveSPforRA(T.PLUS));
                     hd Frame.returnRegs)
                 end
 
         and munchArgs(i, []) =
             let
-                val spOffset = (i + 1 - (length Frame.argregs)) * Frame.wordSize
+                val spOffset = (1 + i - (length Frame.argregs)) * Frame.wordSize
                 val offsetExp = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST spOffset))
             in
                 (if spOffset > 0 then munchStm(offsetExp) else ()); (* And move our SP if we pushed args onto the stack *)

@@ -1,5 +1,6 @@
 #undef __STDC__
 #include <stdio.h>
+#include <stdlib.h>
 
 
 int *initArray(int size, int init)
@@ -35,7 +36,7 @@ int stringCompare(struct string *s, struct string *t){
     int i;
     if (s == t) return 0;
     for(i = 0; i < s->length; ++i) {
-        if(i < t.length){
+        if(i < t->length){
             if (s->chars[i] < t->chars[i]) return -1;
             if (s->chars[i] > t->chars[i]) return  1;
         } else return 1;
@@ -121,9 +122,9 @@ struct string *concat(struct string *a, struct string *b)
        struct string *t = (struct string *)malloc(sizeof(int)+n);
        t->length=n;
        for (i=0;i<a->length;i++)
-	 t->chars[i]=a->chars[i];
+   t->chars[i]=a->chars[i];
        for(i=0;i<b->length;i++)
-	 t->chars[i+a->length]=b->chars[i];
+   t->chars[i+a->length]=b->chars[i];
        return t;
      }
 }

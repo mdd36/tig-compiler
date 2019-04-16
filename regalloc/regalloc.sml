@@ -74,18 +74,37 @@ struct
 		 
 	fun alloc (assemlist, frame) =
 		let
-			fun spillcost (node:Liveness.IGraph.node) = 1:int (* TODO better spill cost *)
+			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes) = MakeGraph.instr2graph assemlist
+			val (igraph, liveOut) = Liveness.interferenceGraph graph
+			val Liveness.IGRAPH{graph=graph', tnode=tnode, gtemp=gtemp, moves=moves} = igraph
 
-			val format1 = Assem.format(Frame.makestring)
-			val graph = #1(MakeGraph.instr2graph assemlist)
-			val (igraph, lo) = Liveness.interferenceGraph graph
+
+			fun spillcost (node:Liveness.IGraph.node) = (* Spill cost is num defs + num uses *)
+				let
+					val tmp = gtemp node
+					(* Head since we're now getting a list of list *)
+					fun f (g, x) = 
+						let
+							val def' = (case (Flow.Graph.Table.look(deft, g)) of NONE => []
+																		| SOME d => d)
+							val use' = (case (Flow.Graph.Table.look(uset, g)) of NONE => []
+																		| SOME d => d)
+						in
+							x + (if contains(def', tmp) then 1 else 0) + (if contains(use', tmp) then 1 else 0)
+						end
+					in
+						foldr f 0 nodes 
+				end
 
 			val (allocation, spillList) = Color.color {interference=igraph, 
 													   initial=(Frame.tempMap : allocation), 
 													   spillCost=spillcost, 
 													   registers=Frame.registerColors()}
+			fun isNotStupidMove (a as Assem.MOVE{dst,src,...}) = (* idk why it was happening but this fixes the move v0 v0\n move v0 v0 that's in a lot of our funcs*)
+					valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst))
+			|	isNotStupidMove x = true
 		in
-			if length spillList = 0 then (assemlist, allocation)
+			if length spillList = 0 then (List.filter isNotStupidMove assemlist, allocation)
 			else alloc(rewriteProg(assemlist, frame, spillList), frame)
 		end
 	 
