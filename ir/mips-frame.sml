@@ -33,7 +33,7 @@ struct
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
-	fun string (STRING(lab,s)) = s
+	fun string (STRING(lab,s)) = Symbol.name lab ^": " ^s
 
     val zero = Temp.newtemp()
 
@@ -148,10 +148,10 @@ struct
 
 	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
 	
-	fun makestring2 allocation t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else valOf(Temp.look(allocation,t))
+	fun makestring2 allocation t = valOf(Temp.look(allocation,t))
 
 
-    fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (argregs @ calleeSaves @ callerSaves @ returnRegs)
+    fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (temps @ calleeSaves)
 
 	fun name {name, formals, locals} = Symbol.name name
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))

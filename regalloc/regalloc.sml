@@ -63,7 +63,7 @@ struct
 			 				end
 			 		| 	singleInstr x = x :: []
 
-			 		fun f singleInstr (instr, rest) = rest @ singleInstr instr
+			 		fun f singleInstr (instr, rest) = (singleInstr instr) @ rest
 
 		 		in
 		 			foldr (f singleInstr) [] assemlist'

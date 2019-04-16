@@ -433,21 +433,24 @@ struct
             )
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
                 let
-                    val raSaveLoc = Temp.newtemp()
+                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST Frame.wordSize))
+					fun move x = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST Frame.wordSize))
                 in (
-                    munchStm(T.MOVE(T.TEMP raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
+					munchStm(move T.MINUS);
+                    munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
                     result(fn dest =>
                             emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
                             dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
                             src=(munchArgs(0, args)), jump=NONE})
                         );
-                    munchStm(T.MOVE(T.TEMP Frame.ra, T.TEMP raSaveLoc));
+                    munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
+					munchStm(move T.PLUS);
                     hd Frame.returnRegs)
                 end
 
         and munchArgs(i, []) =
             let
-                val spOffset = (i - (length Frame.argregs)) * Frame.wordSize
+                val spOffset = (i + 1 - (length Frame.argregs)) * Frame.wordSize
                 val offsetExp = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST spOffset))
             in
                 (if spOffset > 0 then munchStm(offsetExp) else ()); (* And move our SP if we pushed args onto the stack *)

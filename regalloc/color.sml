@@ -5,7 +5,7 @@ sig
 	type allocation = string Temp.Table.table
 	
 	val color : {interference: Liveness.igraph,
-				 initial: allocation, (* FIXME never use this *)
+				 initial: allocation, 
 				 spillCost: Liveness.IGraph.node -> int,
 				 registers: MipsFrame.register list}
 				  -> allocation * Temp.temp list
@@ -125,7 +125,7 @@ struct
 			val spilledNodes = ref (NodeSet.empty)
 			val coalescedNodes = ref (NodeSet.empty)
 			val coloredNodes = ref (NodeSet.empty)
-			val colorMap = ref (Temp.Table.empty): allocation ref
+			val colorMap = ref initial: allocation ref
 			val selectStack = Stack.empty
 			
 			val alias = ref (NodeMap.empty)
@@ -369,7 +369,7 @@ struct
 										in
 											if isSome c andalso RegSet.member(availColors, valOf c) then
 												RegSet.delete(availColors, valOf c)
-											else raise ErrorMsg.Error 
+											else availColors 
 										end
 									else availColors
 								end
