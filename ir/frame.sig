@@ -10,6 +10,7 @@ sig
     val find : access -> Tree.exp -> Tree.exp
     val name : frame -> string
 	val makestring : Temp.temp -> string
+	val makestring2 : string Temp.Table.table -> Temp.temp -> string
 	val tempMap: register Temp.Table.table
     val SP : Temp.temp
     val FP : Temp.temp

@@ -15,13 +15,11 @@ structure Main = struct
 	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
-	 val (fg, fns) = MakeGraph.instr2graph body
-	 val (ig, nt) = Liveness.interferenceGraph fg
-     val format0 = Assem.format(F.makestring)
+	 val (asl, allocation) = Regalloc.alloc (body, frame)
+     val format0 = Assem.format(F.makestring2 allocation)
       in
-		Liveness.show(TextIO.stdOut, ig);
-    print("\n");
-        app (fn i => TextIO.output(out,format0 i)) body
+		
+        app (fn i => TextIO.output(out,format0 i)) asl
 		
      end
     | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")

@@ -147,6 +147,9 @@ struct
 					)
 
 	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
+	
+	fun makestring2 allocation t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else valOf(Temp.look(allocation,t))
+
 
     fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (argregs @ calleeSaves @ callerSaves @ returnRegs)
 
