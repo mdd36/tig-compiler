@@ -218,7 +218,7 @@ struct
             |   indexOf(i, elem, a::l) = if elem = a then i else indexOf(i+1, elem, l)
             val index = indexOf(0, id, fields)
         in
-            if index > ~1 then Ex(calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, Tree.CONST index, Tree.CONST Frame.wordSize)))
+            if index > ~1 then Ex(calcMemOffset(unEx(base), Tree.CONST (index * Frame.wordSize)))
                           else handleNil()
         end
 
