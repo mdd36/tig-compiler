@@ -2,24 +2,25 @@ structure MipsFrame : FRAME =
 struct
 
     datatype access = InReg of Temp.temp | InFrame of int
-    type frame = {name: Temp.label, formals: bool list, locals: int ref}
+    type frame = {name: Temp.label, formals: access list, locals: int ref}
 	type register = string
     val wordSize = 4
     val K = 9 (* 9 temp reg's in MIPS *)
 
 
 
-    fun newFrame {name, formals} = {name=name, formals=formals, locals=ref 0}
-    fun formals {name, formals, locals} =
+    fun newFrame {name, formals} = 
         let
-            fun findAccess (formal, offset) = if formal then InFrame(offset * wordSize) (*Going up the stack by machine word increments*)
-                                           else InReg(Temp.newtemp())
-            fun buildOffsets([], depth) = []
-            |   buildOffsets(a::l, depth) = if a then depth::buildOffsets(l, depth+1) else depth::buildOffsets(l, depth)
-            val offsets = buildOffsets(formals, 0)
+            fun allocFormal(escapes::l, offset) = 
+                    if escapes then InFrame(offset)::allocFormal(l, offset+wordSize)
+                    else InReg(Temp.newtemp())::allocFormal(l, offset)
+            |   allocFormal([],offset) = []
         in
-            ListPair.foldr (fn(formal, offset, res) => findAccess(formal, offset)::res) [] (formals, offsets)
+            {name=name, formals=allocFormal(formals, wordSize), locals=ref 0}
         end
+    
+    fun formals {name, formals=f, locals} = f
+
     fun allocLocal {name, formals, locals} =
         fn bool' => (
             let
@@ -154,6 +155,7 @@ struct
     fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (temps @ calleeSaves)
 
 	fun name {name, formals, locals} = Symbol.name name
+
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
 

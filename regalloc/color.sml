@@ -131,15 +131,12 @@ struct
 			val alias = ref (NodeMap.empty)
 			val realias = ref (NodeMap.empty)
 			
-			(*fun NodeMoves node = case NodeMap.find(!realias, node) of NONE => MoveSet.intersection(valOf(NodeMap.find(moveLists, node)), MoveSet.union(!worklistMoves, !activeMoves))
-																| SOME m =>MoveSet.union(NodeMoves m, MoveSet.intersection(valOf(NodeMap.find(moveLists, node)), MoveSet.union(!worklistMoves, !activeMoves)))*)
-			
 			fun NodeMoves n = 
 				let
 					val ms = valOf(NodeMap.find(moveLists, n))
 				in
 					MoveSet.intersection(ms, MoveSet.union(!activeMoves, !worklistMoves))
-				endgitp
+				end
 						
 
 			fun MoveRelated node = not (MoveSet.isEmpty (NodeMoves node))

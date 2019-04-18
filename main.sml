@@ -15,11 +15,11 @@ structure Main = struct
 	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
-	 val (asl, allocation) = Regalloc.alloc (body, frame)
+	   val (asl, allocation) = Regalloc.alloc (body, frame)
      val format0 = Assem.format(F.makestring2 allocation)
       in
 		
-        app (fn i => TextIO.output(out,format0 i)) asl
+        app (fn i => TextIO.output(out,format0 i)) body
 		
      end
     | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")

@@ -37,27 +37,7 @@ struct
             |   oper2str(T.MUL)   = "mul"
             |   oper2str(T.DIV)   = "div"
 
-			(*fun munchStm (T.SEQ(T.EXP (T.CONST immed), T.SEQ(T.MOVE(T.TEMP r2, T.TEMP r3), b))) =
-          (emit(Assem.OPER{assem="li, `d0, " ^ removeSquiggle immed,
-            src=[], dst=[r2], jump=NONE});
-          munchStm b)*)
       fun munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
-(*=======
-			fun munchStm (T.SEQ(T.MOVE(T.TEMP e1, T.CONST i), T.SEQ(T.MOVE(T.TEMP e2, T.TEMP e3), b))) =
-            if e1 = e3 then(
-              emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
-              src=[], dst=[e2], jump=NONE});
-              munchStm b
-              )
-            else (
-              emit(ASM.OPER{assem="li `d0, " ^ Int.toString i ^ "\n",
-              src=[], dst=[e1], jump=NONE});
-              emit(ASM.MOVE{assem="move `d0, `s0\n",
-              src=e3, dst=e2});
-              munchStm b
-              )
-      | munchStm (T.SEQ(a, b)) = (munchStm a; munchStm b)
-*)
       | munchStm (T.MOVE(T.MEM(T.BINOP(T.PLUS, e1, T.CONST i)),e2)) =
 					emit(ASM.OPER{assem = "sw `s1, " ^ removeSquiggle i ^ "(`s0)\n",
 								src = [munchExp e1, munchExp e2],
@@ -129,7 +109,7 @@ struct
         | munchStm (T.MOVE(T.TEMP e1, T.CONST i)) =
               emit(ASM.OPER{assem="li `d0, " ^ removeSquiggle i ^ "\n",
               src=[], dst=[e1], jump=NONE})
-
+        
         | munchStm (T.MOVE(T.TEMP rd, e2)) =
               emit(ASM.MOVE{assem="move `d0, `s0\n",
               src= munchExp e2, dst=rd})
