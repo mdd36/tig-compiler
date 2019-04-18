@@ -139,7 +139,7 @@ struct
 					val ms = valOf(NodeMap.find(moveLists, n))
 				in
 					MoveSet.intersection(ms, MoveSet.union(!activeMoves, !worklistMoves))
-				end
+				endgitp
 						
 
 			fun MoveRelated node = not (MoveSet.isEmpty (NodeMoves node))
