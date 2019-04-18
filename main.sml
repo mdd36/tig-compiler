@@ -15,7 +15,7 @@ structure Main = struct
 	   val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
-	   val (asl, allocation) = Regalloc.alloc (body, frame)
+	   val (asl, allocation) = Regalloc.alloc (body, frame, true)
      val format0 = Assem.format(F.makestring2 allocation)
       in
 		

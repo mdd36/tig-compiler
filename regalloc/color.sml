@@ -57,7 +57,7 @@ struct
 		fun items s = NodeSet.addList(NodeSet.empty, !s) 
 	end
 
-	val K = 9 (* 9 temp reg's in MIPS *)
+	val K = 10 (* 9 temp reg's in MIPS *)
 
 	
 	fun color {interference as L.IGRAPH{graph=ig, tnode, gtemp, moves}, initial, spillCost, registers} =
@@ -337,7 +337,7 @@ struct
 				if not (NodeSet.isEmpty(!simplifyWorklist)) then (Simplify();repeat())
 				else if not (MoveSet.isEmpty(!worklistMoves)) then (print("c\n");Coalesce();repeat())
 				else if not (NodeSet.isEmpty(!freezeWorklist)) then (Freeze();repeat())
-				else if not (NodeSet.isEmpty(!spillWorklist)) then (SelectSpill();repeat())
+				else if not (NodeSet.isEmpty(!spillWorklist)) then (print("s\n");SelectSpill();repeat())
 				else ()
 
 			(**** COLORING ****)

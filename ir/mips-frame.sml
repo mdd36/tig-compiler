@@ -5,7 +5,7 @@ struct
     type frame = {name: Temp.label, formals: access list, locals: int ref}
 	type register = string
     val wordSize = 4
-    val K = 9 (* 9 temp reg's in MIPS *)
+    val K = 10 (* 9 temp reg's in MIPS *)
 
 
     fun newFrame {name, formals} = 

@@ -2,7 +2,7 @@ signature REG_ALLOC =
 sig 
 	structure Frame: FRAME
 	type allocation = MipsFrame.register Temp.Table.table
-	val alloc : Assem.instr list * MipsFrame.frame ->
+	val alloc : Assem.instr list * MipsFrame.frame *bool ->
 							Assem.instr list * allocation
 end
 
@@ -12,6 +12,9 @@ struct
 	structure A = Assem
 	type allocation = Frame.register Temp.Table.table
 	open Util
+	structure NodeSet = RedBlackSetFn(type ord_key=Liveness.IGraph.node val compare=Liveness.IGraph.compare)
+	val spilled = ref (NodeSet.empty)
+	
 	fun rewriteProg(assemlist, frame, spillList) = 
 		let
 		 	fun singleSpill (tmp, assemlist') = 
@@ -72,12 +75,12 @@ struct
 		 	foldr singleSpill assemlist spillList
 		 end 
 		 
-	fun alloc (assemlist, frame) =
+	fun alloc (assemlist, frame, b) =
 		let
 			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes) = MakeGraph.instr2graph assemlist
 			val (igraph, liveOut) = Liveness.interferenceGraph graph
 			val Liveness.IGRAPH{graph=graph', tnode=tnode, gtemp=gtemp, moves=moves} = igraph
-
+			val _ = (if b then spilled:=(NodeSet.empty) else ())
 
 			fun spillcost (node:Liveness.IGraph.node) = (* Spill cost is num defs + num uses *)
 				let
@@ -90,7 +93,8 @@ struct
 							val use' = (case (Flow.Graph.Table.look(uset, g)) of NONE => []
 																		| SOME d => d)
 						in
-							x + (if contains(def', tmp) then 1 else 0) + (if contains(use', tmp) then 1 else 0)
+							if NodeSet.member(!spilled, node) then valOf(Int.maxInt)
+							else (x + (if contains(def', tmp) then 1 else 0) + (if contains(use', tmp) then 1 else 0))
 						end
 					in
 						foldr f 0 nodes 
@@ -105,7 +109,7 @@ struct
 			|	isNotStupidMove x = true
 		in
 			if length spillList = 0 then (List.filter isNotStupidMove assemlist, allocation)
-			else alloc(rewriteProg(assemlist, frame, spillList), frame)
+			else (spilled:= NodeSet.addList(!spilled, map tnode spillList);alloc(rewriteProg(assemlist, frame, spillList), frame, false))
 		end
 	 
 
