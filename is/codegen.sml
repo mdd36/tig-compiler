@@ -415,8 +415,8 @@ struct
                 let 
                     val localsSize = (length args - length Frame.argregs)
                     val spOffset =  (2 + Int.max(0, localsSize)) * Frame.wordSize  
-                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST spOffset))
-                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
+                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
+                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - (2 * Frame.wordSize))))
 
                     fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
 
@@ -441,12 +441,12 @@ struct
                     let
                         val argReg = List.nth (Frame.argregs, i)
                     in
-                        munchStm(T.MOVE(T.TEMP argReg, exp)); (* Putting exp here prevents unnecessary moves *)
+                        munchStm(T.MOVE(T.TEMP argReg, T.TEMP (munchExp exp))); (* Putting exp here prevents unnecessary moves *)
                         argReg :: munchArgs(i+1,l,offset)
                     end
                 else
                     let
-                        val k = offset - (i - length Frame.argregs)
+                        val k = offset - (i - length Frame.argregs) - 1
                         val byteOffset = k * Frame.wordSize
                         val oldReg = munchExp exp
                     in

@@ -324,8 +324,8 @@ struct
 				let
 					val l = NodeSet.listItems (!spillWorklist)
 					val m = #1 (foldr (fn (n, c) => let val sc = spillCost n in if Real.<(sc, #2 c) then (n, sc) else c end) ((hd  l), spillCost (hd l)) (tl l))
-					val _ = print("Spilling " ^ Frame.makestring (gtemp m) ^ "\n")
-				in 
+(*					val _ = print("Spilling " ^ Frame.makestring (gtemp m) ^ "\n")
+*)				in 
 					spillWorklist:=NodeSet.delete(!spillWorklist, m);
 					simplifyWorklist:=NodeSet.add(!simplifyWorklist, m);
 					FreezeMoves m
@@ -336,9 +336,9 @@ struct
 			(****************)
 			fun repeat () = 
 				if not (NodeSet.isEmpty(!simplifyWorklist)) then (Simplify();repeat())
-				else if not (MoveSet.isEmpty(!worklistMoves)) then (print("c\n");Coalesce();repeat())
+				else if not (MoveSet.isEmpty(!worklistMoves)) then ((*print("c\n");*)Coalesce();repeat())
 				else if not (NodeSet.isEmpty(!freezeWorklist)) then (Freeze();repeat())
-				else if not (NodeSet.isEmpty(!spillWorklist)) then (print("s\n");SelectSpill();repeat())
+				else if not (NodeSet.isEmpty(!spillWorklist)) then ((*print("s\n");*)SelectSpill();repeat())
 				else ()
 
 			(**** COLORING ****)

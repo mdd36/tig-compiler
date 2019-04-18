@@ -388,7 +388,8 @@ struct
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
-						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=name, formals=esc}), label= name, formals = map #ty params', result=result_ty})
+                        val unnamedLabel = Temp.newlabel()
+						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=unnamedLabel, formals=esc}), label= unnamedLabel, formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
 					end
@@ -433,8 +434,8 @@ struct
 
     fun transProg(root) =
         let
-            val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "main", formals=[]})
-            val translated = transExp(venv, tenv, root, mainLevel, TR.namedlabel "main")
+            val mainLevel = TR.newLevel({parent=TR.root, name=Temp.newlabel(), formals=[]})
+            val translated = transExp(venv, tenv, root, mainLevel, Temp.newlabel())
 			val _ = TR.procEntryExit{level = mainLevel, body = #exp translated};
             val failures' = !failures
         in

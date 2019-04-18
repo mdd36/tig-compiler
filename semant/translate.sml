@@ -365,7 +365,7 @@ struct
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = Ex(Tree.CALL(Tree.NAME label, map unEx exps))
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (print("got main"); Ex(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(

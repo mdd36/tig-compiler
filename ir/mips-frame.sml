@@ -173,7 +173,7 @@ struct
             Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InReg(t)::l, []) =
             let
-                val offSet = (1 + length l) * wordSize 
+                val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
             in
                 Tree.MOVE(
                     Tree.TEMP t,
@@ -195,7 +195,7 @@ struct
                 ) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InFrame(j)::l, []) =
             let
-                val offSet = (1 + length l) * wordSize
+                val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
             in
                 Tree.MOVE(
                         Tree.MEM(
@@ -217,7 +217,7 @@ struct
             val moveSP = Tree.MOVE(Tree.TEMP SP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST ((!locals) * wordSize)))
             val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)
           in
-            seq(Tree.LABEL name :: setNewFP :: moveSP :: munchArgs(0, formals(frame), argregs) @ [body])
+            seq(Tree.LABEL name :: moveSP :: setNewFP  :: munchArgs(0, formals(frame), argregs) @ [body])
           end
 
     fun procEntryExit2(frame, body) =
