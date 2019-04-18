@@ -175,14 +175,17 @@ struct
 				let
 					val d = !(valOf(NodeMap.find(degreeMap, m)))
 				in
-					valOf(NodeMap.find(degreeMap, m)) := d-1;
-					if d = K
-					then (EnableMoves(m::(Adjacent m));
-						  spillWorklist:=NodeSet.delete(!spillWorklist, m);
-						  if MoveRelated m
-						  then freezeWorklist:=NodeSet.add(!freezeWorklist, m)
-						  else simplifyWorklist:=NodeSet.add(!simplifyWorklist,m))
-					else ()
+					if isSome(Temp.Table.look(initial, gtemp m)) then () (* is precolored *)
+					else (
+						valOf(NodeMap.find(degreeMap, m)) := d-1;
+						if d = K
+						then (EnableMoves(m::(Adjacent m));
+							  spillWorklist:=NodeSet.delete(!spillWorklist, m);
+							  if MoveRelated m
+							  then freezeWorklist:=NodeSet.add(!freezeWorklist, m)
+							  else simplifyWorklist:=NodeSet.add(!simplifyWorklist,m))
+						else ()
+					)
 				end
 					
 			
