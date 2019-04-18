@@ -231,6 +231,7 @@ struct
             seq(Tree.LABEL name :: setNewFP :: moveSP :: munchArgs(0, formals(frame), argregs) @ [body])
           end
 
+
     fun procEntryExit2(frame, body, sregs) =
 		(map (fn x => print(x^" ")) sregs;
 		print("\n");
@@ -241,8 +242,9 @@ struct
             Assem.OPER{assem="", src=([zero] @ (map findsregs sregs) @sysReseverd), dst=[], jump=SOME[]}
         ])
 
+
     fun procEntryExit3(frame: frame, body) =
         {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-         body=body @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
+         body= body @ [Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}] @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
          epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 end
