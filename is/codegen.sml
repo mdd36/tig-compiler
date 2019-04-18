@@ -414,16 +414,19 @@ struct
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
                 let
                     val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST Frame.wordSize))
-                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST Frame.wordSize))
+                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (2 * Frame.wordSize)))
+                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST (2 * Frame.wordSize)))
 
                 in (
                     munchStm(moveSPforRA(T.MINUS));
                     munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
+                    munchStm(T.MOVE(fpSaveLoc, T.TEMP Frame.FP));
                     result(fn dest =>
                             emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
                             dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
                             src=(munchArgs(0, args)), jump=NONE})
                         );
+                    munchStm(T.MOVE(T.TEMP Frame.FP, fpSaveLoc));
                     munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
                     munchStm(moveSPforRA(T.PLUS));
                     hd Frame.returnRegs)
