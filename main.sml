@@ -19,7 +19,7 @@ structure Main = struct
      val format0 = Assem.format(F.makestring2 allocation)
       in
 		
-        app (fn i => TextIO.output(out,format0 i)) body
+        app (fn i => TextIO.output(out,format0 i)) asl
 		
      end
     | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")

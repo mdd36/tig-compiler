@@ -335,7 +335,7 @@ struct
 			(****************)
 			fun repeat () = 
 				if not (NodeSet.isEmpty(!simplifyWorklist)) then (Simplify();repeat())
-				else if not (MoveSet.isEmpty(!worklistMoves)) then (Coalesce();repeat())
+				else if not (MoveSet.isEmpty(!worklistMoves)) then (print("c\n");Coalesce();repeat())
 				else if not (NodeSet.isEmpty(!freezeWorklist)) then (Freeze();repeat())
 				else if not (NodeSet.isEmpty(!spillWorklist)) then (SelectSpill();repeat())
 				else ()
