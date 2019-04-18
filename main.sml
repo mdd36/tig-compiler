@@ -3,7 +3,8 @@ structure Main = struct
    structure Tr = Translate
    structure F = MipsFrame
    (*structure R = RegAlloc*)
-
+val sregisters = ref [] : string list ref;
+   
  fun getsome (SOME x) = x
 
    fun emitproc out (F.PROC{body,frame}) =
@@ -13,9 +14,10 @@ structure Main = struct
 (*         val _ = app (fn s => Printtree.printtree(out,s)) stms;
 *)   val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 	   val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
-     val instrs' = F.procEntryExit2 (frame,instrs)
+     val instrs' = F.procEntryExit2 (frame,instrs,!sregisters)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
-	   val (asl, allocation) = Regalloc.alloc (body, frame, true)
+	   val (asl, allocation, sregs) = Regalloc.alloc (body, frame, true)
+	   val _ = (sregisters:= (!sregisters) @ sregs)
      val format0 = Assem.format(F.makestring2 allocation)
       in
 		
@@ -38,6 +40,7 @@ structure Main = struct
            val frags = #1 tup
            val errors = #2 tup
            val name = String.substring(filename, 0, (String.size filename) - 4)
+		   val _ = (sregisters := []);
         in
             if errors then ()
             else (

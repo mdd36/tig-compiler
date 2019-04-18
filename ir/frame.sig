@@ -23,7 +23,7 @@ sig
     val returnRegs : Temp.temp list
 
     val procEntryExit1 : frame * Tree.stm -> Tree.stm
-    val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
+    val procEntryExit2 : frame * Assem.instr list * string list -> Assem.instr list
 	val procEntryExit3 : frame * Assem.instr list -> {prolog:string, body: Assem.instr list, epilog: string}
 
     datatype frag = PROC of {body: Tree.stm, frame: frame}
