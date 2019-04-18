@@ -90,10 +90,10 @@ struct
 							val use' = (case (Flow.Graph.Table.look(uset, g)) of NONE => []
 																		| SOME d => d)
 						in
-							x + (if contains(def', tmp) then 1 else 0) + (if contains(use', tmp) then 1 else 0)
+							x + (Real.fromInt((if contains(def', tmp) then 1 else 0) + (if contains(use', tmp) then 1 else 0)) / Real.fromInt(length (Liveness.IGraph.adj node)))
 						end
 					in
-						foldr f 0 nodes 
+						foldr f 0.0 nodes 
 				end
 
 			val (allocation, spillList) = Color.color {interference=igraph, 

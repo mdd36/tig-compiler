@@ -6,7 +6,7 @@ sig
 	
 	val color : {interference: Liveness.igraph,
 				 initial: allocation, 
-				 spillCost: Liveness.IGraph.node -> int,
+				 spillCost: Liveness.IGraph.node -> real,
 				 registers: MipsFrame.register list}
 				  -> allocation * Temp.temp list
 end
@@ -323,7 +323,8 @@ struct
 			fun SelectSpill () =
 				let
 					val l = NodeSet.listItems (!spillWorklist)
-					val m = #1 (foldr (fn (n, c) => let val sc = spillCost n in if sc < (#2 c) then (n, sc) else c end) ((hd  l), spillCost (hd l)) (tl l))
+					val m = #1 (foldr (fn (n, c) => let val sc = spillCost n in if Real.<(sc, #2 c) then (n, sc) else c end) ((hd  l), spillCost (hd l)) (tl l))
+					val _ = print("Spilling " ^ Frame.makestring (gtemp m) ^ "\n")
 				in 
 					spillWorklist:=NodeSet.delete(!spillWorklist, m);
 					simplifyWorklist:=NodeSet.add(!simplifyWorklist, m);

@@ -81,10 +81,10 @@ struct
               src=[munchExp e2], dst=[e1], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.MINUS, e2, T.CONST i))) =
-              emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle i ^ "\n",
+              emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle(~i) ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(T.MINUS, T.CONST i, e2))) =
-              emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle i ^ "\n",
+              emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle(~i) ^ "\n",
               src=[munchExp e2], dst=[e1], jump=NONE})
 
         | munchStm (T.MOVE(T.TEMP e1, T.BINOP(oper, e2, e3))) =
@@ -260,7 +260,7 @@ struct
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MINUS, rs, T.CONST immed)) = result(fn dest =>
-                emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
+                emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle(~immed) ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.AND, rs, T.CONST immed)) = result(fn dest =>
@@ -303,7 +303,7 @@ struct
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.MINUS, T.CONST immed, rs)) = result(fn dest =>
-                emit(ASM.OPER{assem="subi `d0, `s0, " ^ removeSquiggle immed ^ "\n",
+                emit(ASM.OPER{assem="addi `d0, `s0, " ^ removeSquiggle(~immed) ^ "\n",
                 src=[munchExp rs], dst=[dest], jump=NONE})
             )
         |   munchExp(T.BINOP(T.AND, T.CONST immed, rs)) = result(fn dest =>
@@ -414,7 +414,7 @@ struct
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
                 let 
                     val localsSize = (length args - length Frame.argregs)
-                    val spOffset =  (2 + localsSize) * Frame.wordSize  
+                    val spOffset =  (2 + Int.max(0, localsSize)) * Frame.wordSize  
                     val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST spOffset))
                     val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
 

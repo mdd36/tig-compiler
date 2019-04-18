@@ -221,15 +221,12 @@ struct
           end
 
     fun procEntryExit2(frame, body) =
-        List.take(body, length body - 2) @ [List.last body] @ 
-        [
-            Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}
-        ] @ [
+        List.take(body, length body - 2) @ [List.last body] @ [
             Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ]
 
     fun procEntryExit3(frame: frame, body) =
         {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-         body=body @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
+         body= body @ [Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}] @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
          epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 end
