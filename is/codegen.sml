@@ -412,10 +412,13 @@ struct
                 src=[], dst=[dest], jump=NONE})
             )
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
-                let
-                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST Frame.wordSize))
-                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (2 * Frame.wordSize)))
-                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST (2 * Frame.wordSize)))
+                let 
+                    val localsSize = (length args - length Frame.argregs)
+                    val spOffset =  (2 + localsSize) * Frame.wordSize  
+                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST spOffset))
+                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
+
+                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
 
                 in (
                     munchStm(moveSPforRA(T.MINUS));
@@ -424,7 +427,7 @@ struct
                     result(fn dest =>
                             emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
                             dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
-                            src=(munchArgs(0, args)), jump=NONE})
+                            src=(munchArgs(0, args, localsSize)), jump=NONE})
                         );
                     munchStm(T.MOVE(T.TEMP Frame.FP, fpSaveLoc));
                     munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
@@ -432,35 +435,28 @@ struct
                     hd Frame.returnRegs)
                 end
 
-        and munchArgs(i, []) =
-            let
-                val spOffset = (1 + i - (length Frame.argregs)) * Frame.wordSize
-                val offsetExp = T.MOVE(T.TEMP Frame.SP, T.BINOP(T.MINUS, T.TEMP Frame.SP, T.CONST spOffset))
-            in
-                (if spOffset > 0 then munchStm(offsetExp) else ()); (* And move our SP if we pushed args onto the stack *)
-                []
-            end
-        |   munchArgs(i, exp::l) =
+        and munchArgs(i, [], offset) = []
+        |   munchArgs(i, exp::l, offset) =
                 if i < length Frame.argregs then
                     let
                         val argReg = List.nth (Frame.argregs, i)
                     in
                         munchStm(T.MOVE(T.TEMP argReg, exp)); (* Putting exp here prevents unnecessary moves *)
-                        argReg :: munchArgs(i+1,l)
+                        argReg :: munchArgs(i+1,l,offset)
                     end
                 else
                     let
-                        val remainingArgs = length l
-                        val byteOffset = remainingArgs * Frame.wordSize
+                        val k = offset - (i - length Frame.argregs)
+                        val byteOffset = k * Frame.wordSize
                         val oldReg = munchExp exp
                     in
                         munchStm(T.MOVE(
                             T.MEM(
                                 T.BINOP(
-                                    T.MINUS, T.TEMP Frame.SP, T.CONST byteOffset
+                                    T.PLUS, T.TEMP Frame.SP, T.CONST byteOffset
                                     )
                                 ), T.TEMP oldReg)); (*have to move anyway (sw), no point in passing exp directly*)
-                        munchArgs(i+1, l)
+                        munchArgs(i+1, l,offset)
                     end
         in (
             munchStm stm;

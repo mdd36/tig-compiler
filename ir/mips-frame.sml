@@ -8,15 +8,18 @@ struct
     val K = 9 (* 9 temp reg's in MIPS *)
 
 
-
     fun newFrame {name, formals} = 
         let
             fun allocFormal(escapes::l, offset) = 
                     if escapes then InFrame(offset)::allocFormal(l, offset+wordSize)
                     else InReg(Temp.newtemp())::allocFormal(l, offset)
             |   allocFormal([],offset) = []
+            val f = allocFormal(formals, wordSize)
+            fun countFrameFormal ([], x) = x
+            |   countFrameFormal (InFrame(y)::l, x) = countFrameFormal(l, x+1)
+            |   countFrameFormal (InReg(y)::l, x) = countFrameFormal(l, x)
         in
-            {name=name, formals=allocFormal(formals, wordSize), locals=ref 0}
+            {name=name, formals=f, locals=ref (countFrameFormal(f, 0))}
         end
     
     fun formals {name, formals=f, locals} = f
@@ -24,7 +27,7 @@ struct
     fun allocLocal {name, formals, locals} =
         fn bool' => (
             let
-                fun findAccess escapes offset = if escapes then (!offset = !offset + 1; InFrame((!offset)*(~wordSize)))
+                fun findAccess escapes offset = if escapes then (offset := !offset + 1; InFrame((!offset)*(~wordSize)))
                                                 else InReg(Temp.newtemp())
             in
                 findAccess bool' locals
@@ -170,13 +173,13 @@ struct
             Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InReg(t)::l, []) =
             let
-                val offSet = (i + 1 - (length argregs)) * wordSize
+                val offSet = (1 + length l) * wordSize 
             in
                 Tree.MOVE(
                     Tree.TEMP t,
                     Tree.MEM(
                         Tree.BINOP(
-                            Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
+                            Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                             )
                         )
                     ) :: munchArgs(i+1, l, [])
@@ -185,24 +188,24 @@ struct
             Tree.MOVE(
                 Tree.MEM(
                     Tree.BINOP(
-                        Tree.PLUS, Tree.TEMP FP, Tree.CONST j
+                        Tree.PLUS, Tree.TEMP SP, Tree.CONST j (* Store relative to SP *)
                         )
                     ),
                 Tree.TEMP argReg
                 ) :: munchArgs(i+1, l, a)
     |   munchArgs(i, InFrame(j)::l, []) =
             let
-                val offSet = (i + 1 - (length argregs)) * wordSize
+                val offSet = (1 + length l) * wordSize
             in
                 Tree.MOVE(
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST j
+                                Tree.PLUS, Tree.TEMP SP, Tree.CONST j (* Store relative to SP *)
                                 )
                             ),
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                                 )
                             )
                     ) :: munchArgs(i+1, l, [])
@@ -211,14 +214,18 @@ struct
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
             val offset = (length f) * (~wordSize)
+            val moveSP = Tree.MOVE(Tree.TEMP SP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST ((!locals) * wordSize)))
+            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)
           in
-            seq(Tree.LABEL name :: munchArgs(0, formals(frame), argregs) @ [body])
+            seq(Tree.LABEL name :: setNewFP :: moveSP :: munchArgs(0, formals(frame), argregs) @ [body])
           end
 
     fun procEntryExit2(frame, body) =
-        List.take(body, length body - 2) @ [List.last body] @ [
+        List.take(body, length body - 2) @ [List.last body] @ 
+        [
+            Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}
+        ] @ [
             Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
-
         ]
 
     fun procEntryExit3(frame: frame, body) =

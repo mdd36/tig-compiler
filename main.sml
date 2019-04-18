@@ -7,12 +7,12 @@ structure Main = struct
  fun getsome (SOME x) = x
 
    fun emitproc out (F.PROC{body,frame}) =
-     let val _ = print ("\nemit " ^ F.name frame ^ "\n")
+    let val _ = print ("\nemit " ^ F.name frame ^ "\n")
          (* val _ = Printtree.printtree(out,body); *)
-	 val stms = Canon.linearize body
+	   val stms = Canon.linearize body
 (*         val _ = app (fn s => Printtree.printtree(out,s)) stms;
-*)         val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
-	 val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
+*)   val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
+	   val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      val {prolog,body,epilog} = F.procEntryExit3(frame, instrs')
 	   val (asl, allocation) = Regalloc.alloc (body, frame)
@@ -37,10 +37,11 @@ structure Main = struct
            val tup = (FindEscape.findEscape absyn; Semant.transProg absyn)
            val frags = #1 tup
            val errors = #2 tup
+           val name = String.substring(filename, 0, (String.size filename) - 4)
         in
             if errors then ()
             else (
-                withOpenFile (filename ^ ".s")
+                withOpenFile (name ^ ".s")
     	     (fn out => (app (emitproc out) frags))
             )
        end
