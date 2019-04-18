@@ -37,10 +37,11 @@ structure Main = struct
            val tup = (FindEscape.findEscape absyn; Semant.transProg absyn)
            val frags = #1 tup
            val errors = #2 tup
+           val name = String.substring(filename, 0, (String.size filename) - 4)
         in
             if errors then ()
             else (
-                withOpenFile (filename ^ ".s")
+                withOpenFile (name ^ ".s")
     	     (fn out => (app (emitproc out) frags))
             )
        end
