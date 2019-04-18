@@ -388,7 +388,7 @@ struct
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
-                        val unnamedLabel = Temp.newlabel()
+                        val unnamedLabel = TR.getLabel()
 						val venv' = Symbol.enter(venv,name,Env.FunEntry{level=TR.newLevel({parent=lev, name=unnamedLabel, formals=esc}), label= unnamedLabel, formals = map #ty params', result=result_ty})
 					in
 						{venv=venv',tenv=tenv}
@@ -434,13 +434,13 @@ struct
 
     fun transProg(root) =
         let
-            val mainLevel = TR.newLevel({parent=TR.root, name=Temp.newlabel(), formals=[]})
-            val translated = transExp(venv, tenv, root, mainLevel, Temp.newlabel())
+            val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "main", formals=[]})
+            val translated = transExp(venv, tenv, root, mainLevel, TR.getLabel())
 			val _ = TR.procEntryExit{level = mainLevel, body = #exp translated};
             val failures' = !failures
         in
-            Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(translated)));
-            failures := 0;
+(*            Printtree.printtree(TextIO.stdOut, TR.unNx(#exp(translated)));
+*)            failures := 0;
             if failures' > 0 then print("Compilation failed with " ^ Int.toString (failures') ^ " errors\n") else ();
 			(TR.getResult(), failures' > 0)
         end
