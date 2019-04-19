@@ -3,7 +3,7 @@ sig
 	structure Frame: FRAME
 	type allocation = MipsFrame.register Temp.Table.table
 	val alloc : Assem.instr list * MipsFrame.frame *bool ->
-							Assem.instr list * allocation
+							Assem.instr list * allocation * string list
 end
 
 structure Regalloc :> REG_ALLOC =
@@ -106,6 +106,7 @@ struct
 													   registers=Frame.registerColors()}
 			(* fun isNotStupidMove (a as Assem.MOVE{dst,src,...}) =  idk why it was happening but this fixes the move v0 v0\n move v0 v0 that's in a lot of our funcs
 					valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst))
+<<<<<<< HEAD
 			|	isNotStupidMove x = true *)
 
 			fun removeStupid ((a as Assem.MOVE{dst,src,...})::l) = 
@@ -131,9 +132,20 @@ struct
 					end
 					
 			|	removeStupid (a::l) = a :: removeStupid l
-			|	removeStupid ([]) = []
+			|	removeStupid ([]) = []			
+			fun getsregs allo = 
+				let 
+					val nodes' = Liveness.IGraph.nodes graph'
+					fun getregs (reg, li) = case Temp.Table.look(Frame.tempMap, reg) of NONE => reg::li
+																				| SOME a => li
+					val regs = map (fn x => valOf(Temp.Table.look(allocation, x))) (foldl getregs [] (map gtemp nodes')) 
+					fun judge item = String.sub(item, 0) = #"s" andalso String.sub(item, 1) <> #"p"
+				in
+					List.filter judge regs
+				end
 		in
-			if length spillList = 0 then (removeStupid assemlist, allocation)
+			if length spillList = 0 then (removeStupid assemlist, allocation, getsregs allocation)
+
 			else (spilled:= NodeSet.addList(!spilled, map tnode spillList);alloc(rewriteProg(assemlist, frame, spillList), frame, false))
 		end
 	 

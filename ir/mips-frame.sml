@@ -210,7 +210,18 @@ struct
                             )
                     ) :: munchArgs(i+1, l, [])
             end
+	
+	fun findsregs s = 
+		(case s of "s0" => (print("s0\n"); s0)
+				| "s1" => (print("s1\n");s1)
+				| "s2" => (print("s2\n");s2)
+				| "s3" => (print("s3\n");s3)
+				| "s4" => (print("s4\n");s4)
+				| "s5" => (print("s5\n");s5)
+				| "s6" => (print("s6\n");s6)
+				| "s7" => (print("s7\n");s7))
 
+	
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
             val offset = (length f) * (~wordSize)
@@ -220,10 +231,17 @@ struct
             seq(Tree.LABEL name :: moveSP :: setNewFP  :: munchArgs(0, formals(frame), argregs) @ [body])
           end
 
-    fun procEntryExit2(frame, body) =
-        List.take(body, length body - 2) @ [List.last body] @ [
-            Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
-        ]
+
+    fun procEntryExit2(frame, body, sregs) =
+		(map (fn x => print(x^" ")) sregs;
+		print("\n");
+        List.take(body, length body - 2) @ [List.last body] @ 
+        [
+            Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}
+        ] @ [
+            Assem.OPER{assem="", src=([zero] @ (map findsregs sregs) @sysReseverd), dst=[], jump=SOME[]}
+        ])
+
 
     fun procEntryExit3(frame: frame, body) =
         {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
