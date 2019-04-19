@@ -239,7 +239,7 @@ struct
         [
             Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}
         ] @ [
-            Assem.OPER{assem="", src=([zero] @ (map findsregs sregs) @sysReseverd), dst=[], jump=SOME[]}
+            Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ])
 
 

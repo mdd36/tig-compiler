@@ -104,10 +104,7 @@ struct
 													   initial=(Frame.tempMap : allocation), 
 													   spillCost=spillcost, 
 													   registers=Frame.registerColors()}
-			(* fun isNotStupidMove (a as Assem.MOVE{dst,src,...}) =  idk why it was happening but this fixes the move v0 v0\n move v0 v0 that's in a lot of our funcs
-					valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst))
-<<<<<<< HEAD
-			|	isNotStupidMove x = true *)
+
 
 			fun removeStupid ((a as Assem.MOVE{dst,src,...})::l) = 
 					if valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst)) then a :: removeStupid l else removeStupid l
