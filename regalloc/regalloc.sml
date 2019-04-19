@@ -104,11 +104,36 @@ struct
 													   initial=(Frame.tempMap : allocation), 
 													   spillCost=spillcost, 
 													   registers=Frame.registerColors()}
-			fun isNotStupidMove (a as Assem.MOVE{dst,src,...}) = (* idk why it was happening but this fixes the move v0 v0\n move v0 v0 that's in a lot of our funcs*)
+			(* fun isNotStupidMove (a as Assem.MOVE{dst,src,...}) =  idk why it was happening but this fixes the move v0 v0\n move v0 v0 that's in a lot of our funcs
 					valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst))
-			|	isNotStupidMove x = true
+			|	isNotStupidMove x = true *)
+
+			fun removeStupid ((a as Assem.MOVE{dst,src,...})::l) = 
+					if valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst)) then a :: removeStupid l else removeStupid l
+			|	removeStupid ((a as Assem.OPER{assem, src,...}) :: (a' as Assem.OPER{assem=assem', dst,...}) :: l) = 
+					let
+						val fmt = Assem.format(Frame.makestring2 allocation)
+						fun f () = 
+							let
+								val swLocation = String.extract(fmt a, 3, NONE) (* if sw source = lw dst && &sw = &lw then markAsStupid() *)
+								handle Subscript => "b\n"
+								val lwLocation = String.extract(fmt a', 3, NONE)
+								handle Subscript => "a\n"
+							in
+								case String.compare(swLocation, lwLocation) of
+									EQUAL => true
+								|	_ => false
+
+							end
+					in
+						if String.isPrefix "sw" assem andalso String.isPrefix "lw" assem' andalso f() then removeStupid l
+						else a ::  removeStupid (a' ::l)
+					end
+					
+			|	removeStupid (a::l) = a :: removeStupid l
+			|	removeStupid ([]) = []
 		in
-			if length spillList = 0 then (List.filter isNotStupidMove assemlist, allocation)
+			if length spillList = 0 then (removeStupid assemlist, allocation)
 			else (spilled:= NodeSet.addList(!spilled, map tnode spillList);alloc(rewriteProg(assemlist, frame, spillList), frame, false))
 		end
 	 
