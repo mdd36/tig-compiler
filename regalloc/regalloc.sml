@@ -131,7 +131,7 @@ struct
 						else a ::  removeStupid (a' :: l)
 					end
 			|	removeStupid (a::l) = a :: removeStupid l
-			|	removeStupid ([]) = []			
+			|	removeStupid ([]) = []		
 		in
 			if length spillList = 0 then (removeStupid assemlist, allocation)
 

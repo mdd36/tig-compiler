@@ -57,7 +57,7 @@ struct
 		fun items s = NodeSet.addList(NodeSet.empty, !s) 
 	end
 
-	val K = 18 (* 9 temp reg's in MIPS *)
+	val K = 10 (* 9 temp reg's in MIPS *)
 
 	
 	fun color {interference as L.IGRAPH{graph=ig, tnode, gtemp, moves}, initial, spillCost, registers} =

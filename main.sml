@@ -14,8 +14,10 @@ structure Main = struct
 *)   val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
 	   val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
+     
 	   val (asl, allocation) = Regalloc.alloc (instrs', frame, true)
      val {prolog,body,epilog} = F.procEntryExit3(frame, asl)
+     
      val format0 = Assem.format(F.makestring2 allocation)
       in
 		

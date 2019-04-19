@@ -211,7 +211,6 @@ struct
                     ) :: munchArgs(l, [])
             end
 
-	
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
             val moveSP = Tree.MOVE(Tree.TEMP SP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST ((!locals) * wordSize)))
@@ -223,10 +222,7 @@ struct
 
     fun procEntryExit2(frame, body) =
 		(
-        List.take(body, length body - 2) @ [List.last body] @ 
-        [
-            Assem.OPER{assem="addi $sp, $fp, 4\n", src=[FP], dst=[SP], jump=NONE}
-        ] @ [
+        List.take(body, length body - 2) @ [List.last body] @ [
             Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ])
 
@@ -236,6 +232,7 @@ struct
                 val body' = List.drop(body, 2)
                 handle Subscript => []
                 val preamble = List.take(body, 2)
+
                 val moveSP = Assem.OPER{assem="addi $sp, $sp, -" ^ Int.toString((1 + !locals) * wordSize) ^ "\n",
                                         src=[],dst=[],jump=NONE}
             in
@@ -244,4 +241,5 @@ struct
                 epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 
             end
-        end
+    end
+    
