@@ -27,7 +27,7 @@ struct
     fun allocLocal {name, formals, locals} =
         fn bool' => (
             let
-                fun findAccess escapes offset = if escapes then (offset := !offset + 1; InFrame((!offset)*(~wordSize)))
+                fun findAccess escapes offset = if escapes then let val off = !offset; val _ = offset := !offset + 1 in InFrame((off)*(~wordSize)) end
                                                 else InReg(Temp.newtemp())
             in
                 findAccess bool' locals
@@ -233,7 +233,7 @@ struct
                 handle Subscript => []
                 val preamble = List.take(body, 2)
 
-                val moveSP = Assem.OPER{assem="addi $sp, $sp, -" ^ Int.toString((1 + !locals) * wordSize) ^ "\n",
+                val moveSP = Assem.OPER{assem="addi $sp, $sp, -" ^ Int.toString((!locals) * wordSize) ^ "\n",
                                         src=[],dst=[],jump=NONE}
             in
                 {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
