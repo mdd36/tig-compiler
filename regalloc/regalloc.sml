@@ -107,7 +107,9 @@ struct
 
 
 			fun removeStupid ((a as Assem.MOVE{dst,src,...})::l) = 
-					if valOf(Temp.Table.look(allocation, src)) <> valOf(Temp.Table.look(allocation, dst)) then a :: removeStupid l else removeStupid l
+					(case String.compare(valOf(Temp.Table.look(allocation, src)), valOf(Temp.Table.look(allocation, dst))) of
+						EQUAL => removeStupid l
+					|	_ => a :: removeStupid l)
 			|	removeStupid ((a as Assem.OPER{assem, src,...}) :: (a' as Assem.OPER{assem=assem', dst,...}) :: l) = 
 					let
 						val fmt = Assem.format(Frame.makestring2 allocation)
