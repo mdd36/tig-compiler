@@ -10,6 +10,7 @@ sig
     val find : access -> Tree.exp -> Tree.exp
     val name : frame -> string
 	val makestring : Temp.temp -> string
+	val makestring2 : string Temp.Table.table -> Temp.temp -> string
 	val tempMap: register Temp.Table.table
     val SP : Temp.temp
     val FP : Temp.temp
@@ -22,12 +23,15 @@ sig
     val returnRegs : Temp.temp list
 
     val procEntryExit1 : frame * Tree.stm -> Tree.stm
-    val procEntryExit2 : frame * Assem.instr list -> Assem.instr list
+    val procEntryExit2 : frame * Assem.instr list  -> Assem.instr list
 	val procEntryExit3 : frame * Assem.instr list -> {prolog:string, body: Assem.instr list, epilog: string}
 
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 	val string : frag -> string
     val wordSize : int
+    val K: int
+
+    val registerColors : unit -> register list 
 
 end

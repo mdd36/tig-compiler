@@ -6,4 +6,6 @@ struct
   val empty = IntBinaryMap.empty
   fun enter(t,k,a) = IntBinaryMap.insert(t,getInt k,a)
   fun look(t,k) = IntBinaryMap.find(t,getInt k)
+  fun listItems t = IntBinaryMap.listItems t
+
 end
