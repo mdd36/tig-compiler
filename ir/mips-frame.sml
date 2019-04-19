@@ -237,7 +237,7 @@ struct
                                         src=[],dst=[],jump=NONE}
             in
                 {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-                body= preamble @ [moveSP] @ body' @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
+                body= preamble @ [moveSP] @ body' @ [Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}],
                 epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 
             end

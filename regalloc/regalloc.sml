@@ -110,7 +110,7 @@ struct
 					(case String.compare(valOf(Temp.Table.look(allocation, src)), 
 										 valOf(Temp.Table.look(allocation, dst))) of
 						EQUAL => removeStupid l
-					|	_ => (print(valOf(Temp.Table.look(allocation, src)) ^ ", " ^ valOf(Temp.Table.look(allocation, dst)) ^ "\n"); a :: removeStupid l))
+					|	_ =>  a :: removeStupid l)
 			|	removeStupid ((a as Assem.OPER{assem, ...}) :: (a' as Assem.OPER{assem=assem',...}) :: l) = 
 					let
 						val fmt = Assem.format(Frame.makestring2 allocation)
