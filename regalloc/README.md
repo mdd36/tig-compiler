@@ -16,11 +16,11 @@ We determine if a memory instruction is stupid by comparing everything except th
 	$t0, -4($fp)
 	$t0, -4($fp)
 ```
-Since we only look one head and sw doesn't write to any registers, the value of $fp cannot change between the load and store, so we can ensure that the memory address is the same between the two. The instruction if formatted with the final allocation duirng this process to ensure that the analysis is correct. 
+Since we only look one head and sw doesn't write to any registers, the value of $fp cannot change between the load and store, so we can ensure that the memory address is the same between the two. The instruction if formatted with the final allocation duirng this process to ensure that the analysis is correct. Only the load is deleted, since we might try to load the value later.
 
 The move is trivial to compare and remove, as we just check the src and dst for equality.
 
-Spill cost for a temp is
+Spill cost to spill a temp is
 ```
 	if isSpillTemp then inf else (numDefs + numUses) / numAdjInIgraph
 ```

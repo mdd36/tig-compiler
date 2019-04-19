@@ -3,7 +3,7 @@ sig
 	structure Frame: FRAME
 	type allocation = MipsFrame.register Temp.Table.table
 	val alloc : Assem.instr list * MipsFrame.frame *bool ->
-							Assem.instr list * allocation * string list
+							Assem.instr list * allocation 
 end
 
 structure Regalloc :> REG_ALLOC =
@@ -107,13 +107,14 @@ struct
 
 
 			fun removeStupid ((a as Assem.MOVE{dst,src,...})::l) = 
-					(case String.compare(valOf(Temp.Table.look(allocation, src)), valOf(Temp.Table.look(allocation, dst))) of
+					(case String.compare(valOf(Temp.Table.look(allocation, src)), 
+										 valOf(Temp.Table.look(allocation, dst))) of
 						EQUAL => removeStupid l
-					|	_ => a :: removeStupid l)
-			|	removeStupid ((a as Assem.OPER{assem, src,...}) :: (a' as Assem.OPER{assem=assem', dst,...}) :: l) = 
+					|	_ => (print(valOf(Temp.Table.look(allocation, src)) ^ ", " ^ valOf(Temp.Table.look(allocation, dst)) ^ "\n"); a :: removeStupid l))
+			|	removeStupid ((a as Assem.OPER{assem, ...}) :: (a' as Assem.OPER{assem=assem',...}) :: l) = 
 					let
 						val fmt = Assem.format(Frame.makestring2 allocation)
-						fun f () = 
+						val same = 
 							let
 								val swLocation = String.extract(fmt a, 3, NONE) (* if sw source = lw dst && &sw = &lw then markAsStupid() *)
 								handle Subscript => "b\n"
@@ -126,26 +127,16 @@ struct
 
 							end
 					in
-						if String.isPrefix "sw" assem andalso String.isPrefix "lw" assem' andalso f() then removeStupid l
-						else a ::  removeStupid (a' ::l)
+						if String.isPrefix "sw" assem andalso String.isPrefix "lw" assem' andalso same then a :: removeStupid l
+						else a ::  removeStupid (a' :: l)
 					end
-					
 			|	removeStupid (a::l) = a :: removeStupid l
 			|	removeStupid ([]) = []			
-			fun getsregs allo = 
-				let 
-					val nodes' = Liveness.IGraph.nodes graph'
-					fun getregs (reg, li) = case Temp.Table.look(Frame.tempMap, reg) of NONE => reg::li
-																				| SOME a => li
-					val regs = map (fn x => valOf(Temp.Table.look(allocation, x))) (foldl getregs [] (map gtemp nodes')) 
-					fun judge item = String.sub(item, 0) = #"s" andalso String.sub(item, 1) <> #"p"
-				in
-					List.filter judge regs
-				end
 		in
-			if length spillList = 0 then (removeStupid assemlist, allocation, getsregs allocation)
+			if length spillList = 0 then (removeStupid assemlist, allocation)
 
-			else (spilled:= NodeSet.addList(!spilled, map tnode spillList);alloc(rewriteProg(assemlist, frame, spillList), frame, false))
+			else (spilled:= NodeSet.addList(!spilled, map tnode spillList);
+				 alloc(rewriteProg(assemlist, frame, spillList), frame, false))
 		end
 	 
 

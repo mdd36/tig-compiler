@@ -3,7 +3,7 @@ struct
 
     datatype access = InReg of Temp.temp | InFrame of int
     type frame = {name: Temp.label, formals: access list, locals: int ref}
-	type register = string
+    type register = string
     val wordSize = 4
     val K = 10 (* 9 temp reg's in MIPS *)
 
@@ -37,7 +37,7 @@ struct
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
-	fun string (STRING(lab,s)) = Symbol.name lab ^": " ^s
+    fun string (STRING(lab,s)) = Symbol.name lab ^": " ^s
 
     val zero = Temp.newtemp()
 
@@ -86,78 +86,78 @@ struct
     val returnRegs = [v0, v1]
     val sysReseverd = [at, k0, k1]
 
-	val tempMap = Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
+    val tempMap = Temp.enter(
                     Temp.enter(
-					Temp.enter(
-					Temp.enter(
-					Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
+                    Temp.enter(
                         Temp.empty, zero, "zero" :register
                         ), v0, "v0" :register
                     ), v1, "v1" :register
-					), a0, "a0" :register
-					), a1, "a1" :register
-					), a2, "a2" :register
-					), a3, "a3" :register
-					), t0, "t0" :register
-					), t1, "t1" :register
-					), t2, "t2" :register
-					), t3, "t3" :register
-					), t4, "t4" :register
-					), t5, "t5" :register
-					), t6, "t6" :register
-					), t7, "t7" :register
-					), t8, "t8" :register
-					), t9, "t9" :register
-					), s0, "s0" :register
-					), s1, "s1" :register
-					), s2, "s2" :register
-					), s3, "s3" :register
-					), s4, "s4" :register
-					), s5, "s5" :register
-					), s6, "s6" :register
-					), s7, "s7" :register
-					), SP, "sp" :register
-					), FP, "fp" :register
-					), ra, "ra" :register
-					), at, "at" :register
-					), k0, "k0" :register
-					), k1, "k1" :register
-					)
+                    ), a0, "a0" :register
+                    ), a1, "a1" :register
+                    ), a2, "a2" :register
+                    ), a3, "a3" :register
+                    ), t0, "t0" :register
+                    ), t1, "t1" :register
+                    ), t2, "t2" :register
+                    ), t3, "t3" :register
+                    ), t4, "t4" :register
+                    ), t5, "t5" :register
+                    ), t6, "t6" :register
+                    ), t7, "t7" :register
+                    ), t8, "t8" :register
+                    ), t9, "t9" :register
+                    ), s0, "s0" :register
+                    ), s1, "s1" :register
+                    ), s2, "s2" :register
+                    ), s3, "s3" :register
+                    ), s4, "s4" :register
+                    ), s5, "s5" :register
+                    ), s6, "s6" :register
+                    ), s7, "s7" :register
+                    ), SP, "sp" :register
+                    ), FP, "fp" :register
+                    ), ra, "ra" :register
+                    ), at, "at" :register
+                    ), k0, "k0" :register
+                    ), k1, "k1" :register
+                    )
 
-	fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
-	
-	fun makestring2 allocation t = valOf(Temp.look(allocation,t))
+    fun makestring t = if isSome(Temp.look(tempMap,t)) then valOf(Temp.look(tempMap,t)) else Temp.makestring t
+    
+    fun makestring2 allocation t = valOf(Temp.look(allocation,t))
 
 
     fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (temps @ calleeSaves)
 
-	fun name {name, formals, locals} = Symbol.name name
+    fun name {name, formals, locals} = Symbol.name name
 
     fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
@@ -168,10 +168,10 @@ struct
     |   seq([s])  = s
     |   seq(s::l) = Tree.SEQ(s, seq(l))
 
-    fun munchArgs(i, [], _) = []
-    |   munchArgs(i, InReg(t)::l, argReg::a) =
-            Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(i+1, l, a)
-    |   munchArgs(i, InReg(t)::l, []) =
+    fun munchArgs([], _) = []
+    |   munchArgs(InReg(t)::l, argReg::a) =
+            Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(l, a)
+    |   munchArgs(InReg(t)::l, []) =
             let
                 val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
             in
@@ -182,25 +182,25 @@ struct
                             Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                             )
                         )
-                    ) :: munchArgs(i+1, l, [])
+                    ) :: munchArgs(l, [])
             end
-    |   munchArgs(i, InFrame(j)::l, argReg::a) =
+    |   munchArgs(InFrame(j)::l, argReg::a) =
             Tree.MOVE(
                 Tree.MEM(
                     Tree.BINOP(
-                        Tree.PLUS, Tree.TEMP SP, Tree.CONST j (* Store relative to SP *)
+                        Tree.PLUS, Tree.TEMP FP, Tree.CONST (j-wordSize) (* Store relative to SP *)
                         )
                     ),
                 Tree.TEMP argReg
-                ) :: munchArgs(i+1, l, a)
-    |   munchArgs(i, InFrame(j)::l, []) =
+                ) :: munchArgs(l, a)
+    |   munchArgs(InFrame(j)::l, []) =
             let
                 val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
             in
                 Tree.MOVE(
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP SP, Tree.CONST j (* Store relative to SP *)
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST (j-wordSize) (* Store relative to SP *)
                                 )
                             ),
                         Tree.MEM(
@@ -208,43 +208,40 @@ struct
                                 Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                                 )
                             )
-                    ) :: munchArgs(i+1, l, [])
+                    ) :: munchArgs(l, [])
             end
-	
-	fun findsregs s = 
-		(case s of "s0" => (print("s0\n"); s0)
-				| "s1" => (print("s1\n");s1)
-				| "s2" => (print("s2\n");s2)
-				| "s3" => (print("s3\n");s3)
-				| "s4" => (print("s4\n");s4)
-				| "s5" => (print("s5\n");s5)
-				| "s6" => (print("s6\n");s6)
-				| "s7" => (print("s7\n");s7))
 
 	
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
-            val offset = (length f) * (~wordSize)
             val moveSP = Tree.MOVE(Tree.TEMP SP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST ((!locals) * wordSize)))
-            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)
+            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))
           in
-            seq(Tree.LABEL name :: moveSP :: setNewFP  :: munchArgs(0, formals(frame), argregs) @ [body])
+            seq(Tree.LABEL name :: setNewFP  :: munchArgs(formals(frame), argregs) @ [body])
           end
 
 
-    fun procEntryExit2(frame, body, sregs) =
-		(map (fn x => print(x^" ")) sregs;
-		print("\n");
+    fun procEntryExit2(frame, body) =
+		(
         List.take(body, length body - 2) @ [List.last body] @ 
         [
-            Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}
+            Assem.OPER{assem="addi $sp, $fp, 4\n", src=[FP], dst=[SP], jump=NONE}
         ] @ [
             Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ])
 
 
-    fun procEntryExit3(frame: frame, body) =
-        {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-         body= body @ [Assem.OPER{assem="move $sp, $fp\n", src=[FP], dst=[SP], jump=NONE}] @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
-         epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
-end
+    fun procEntryExit3(frame as {name, formals, locals}, body) =
+            let
+                val body' = List.drop(body, 2)
+                handle Subscript => []
+                val preamble = List.take(body, 2)
+                val moveSP = Assem.OPER{assem="addi $sp, $sp, -" ^ Int.toString((1 + !locals) * wordSize) ^ "\n",
+                                        src=[],dst=[],jump=NONE}
+            in
+                {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
+                body= preamble @ [moveSP] @ body' @ [Assem.OPER{assem="jr `d0\n", src=[], dst=[ra], jump=SOME[]}],
+                epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
+
+            end
+        end
