@@ -26,6 +26,7 @@ structure Main = struct
      end
     | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")
 
+
    fun withOpenFile fname f =
        let val out = TextIO.openOut fname
         in (f out before TextIO.closeOut out)
@@ -40,11 +41,20 @@ structure Main = struct
            val frags = #1 tup
            val errors = #2 tup
            val name = String.substring(filename, 0, (String.size filename) - 4)
+           fun f (x as F.PROC(_)) = true
+           |   f (x as F.STRING(_)) = false
+           val (func, str) = List.partition f frags
+           fun g out = (
+              TextIO.output(out, ".globl main\n");
+              TextIO.output(out, ".data\n");
+              app (emitproc out) str;
+              TextIO.output(out, "\n.text\n");
+              app (emitproc out) func
+            )
         in
             if errors then ()
             else (
-                withOpenFile (name ^ ".s")
-    	     (fn out => (app (emitproc out) frags))
+                withOpenFile (name ^ ".s") g
             )
        end
 
