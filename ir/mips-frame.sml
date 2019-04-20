@@ -14,7 +14,9 @@ struct
                     if escapes then InFrame(offset)::allocFormal(l, offset+wordSize)
                     else InReg(Temp.newtemp())::allocFormal(l, offset)
             |   allocFormal([],offset) = []
-            val f = allocFormal(formals, wordSize)
+
+            val f = allocFormal(formals, 0)
+
             fun countFrameFormal ([], x) = x
             |   countFrameFormal (InFrame(y)::l, x) = countFrameFormal(l, x+1)
             |   countFrameFormal (InReg(y)::l, x) = countFrameFormal(l, x)
@@ -159,7 +161,7 @@ struct
 
     fun name {name, formals, locals} = Symbol.name name
 
-    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))
+    fun find(InFrame(depth))  = (fn (fp) => let val depth' = if depth < 0 then depth else ~depth in Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth'))) end )  (* TODO this is so hacky *)
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
 
     fun externalCall(name, args) = Tree.CALL(Tree.NAME(Temp.namedlabel name), args)
@@ -179,7 +181,7 @@ struct
                     Tree.TEMP t,
                     Tree.MEM(
                         Tree.BINOP(
-                            Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
+                            Tree.MINUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                             )
                         )
                     ) :: munchArgs(l, [])
@@ -188,7 +190,7 @@ struct
             Tree.MOVE(
                 Tree.MEM(
                     Tree.BINOP(
-                        Tree.PLUS, Tree.TEMP FP, Tree.CONST (j-wordSize) (* Store relative to SP *)
+                        Tree.MINUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
                         )
                     ),
                 Tree.TEMP argReg
@@ -200,12 +202,12 @@ struct
                 Tree.MOVE(
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST (j-wordSize) (* Store relative to SP *)
+                                Tree.MINUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
                                 )
                             ),
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
+                                Tree.MINUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                                 )
                             )
                     ) :: munchArgs(l, [])
@@ -213,10 +215,11 @@ struct
 
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
-            val moveSP = Tree.MOVE(Tree.TEMP SP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST ((!locals) * wordSize)))
-            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))
+            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)(*Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))*)
+            val formals' = tl(formals(frame)) (* Don't munch SL *)
+            handle Empty => []
           in
-            seq(Tree.LABEL name :: setNewFP  :: munchArgs(formals(frame), argregs) @ [body])
+            seq(Tree.LABEL name :: setNewFP  :: munchArgs(formals', argregs) @ [body])
           end
 
 
@@ -232,8 +235,9 @@ struct
                 val body' = List.drop(body, 2)
                 handle Subscript => []
                 val preamble = List.take(body, 2)
-
-                val moveSP = Assem.OPER{assem="addi $sp, $sp, -" ^ Int.toString((!locals) * wordSize) ^ "\n",
+                (* Don't count the SL as your own local; it's part of call stack allocation *)
+                val offSet = (!locals - 1) * wordSize
+                val moveSP = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, -" ^ Int.toString(offSet) ^ "\n" else "",
                                         src=[],dst=[],jump=NONE}
             in
                 {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",

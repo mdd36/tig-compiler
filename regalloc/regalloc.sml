@@ -114,7 +114,7 @@ struct
 			|	removeStupid ((a as Assem.OPER{assem, ...}) :: (a' as Assem.OPER{assem=assem',...}) :: l) = 
 					let
 						val fmt = Assem.format(Frame.makestring2 allocation)
-						val same = 
+						val sameMem = 
 							let
 								val swLocation = String.extract(fmt a, 3, NONE) (* if sw source = lw dst && &sw = &lw then markAsStupid() *)
 								handle Subscript => "b\n"
@@ -127,7 +127,8 @@ struct
 
 							end
 					in
-						if String.isPrefix "sw" assem andalso String.isPrefix "lw" assem' andalso same then a :: removeStupid l
+						if String.isPrefix "sw" assem andalso String.isPrefix "lw" assem' andalso sameMem then a :: removeStupid l
+						(*else if String.isPrefix "sw" assem andalso String.isPrefix "move" assem' andalso sameReg then Assem*)
 						else a ::  removeStupid (a' :: l)
 					end
 			|	removeStupid (a::l) = a :: removeStupid l

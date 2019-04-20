@@ -416,20 +416,24 @@ struct
                     val localsSize = (length args - length Frame.argregs)
                     val spOffset =  (2 + Int.max(0, localsSize)) * Frame.wordSize  
                     val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
-                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - (2 * Frame.wordSize))))
+                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset)))
 
                     fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
+                    val args' = tl(args)
+                    handle Empty => []
 
                 in (
                     munchStm(moveSPforRA(T.MINUS));
                     munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
-                    munchStm(T.MOVE(fpSaveLoc, T.TEMP Frame.FP));
+                    (*munchStm(T.MOVE(fpSaveLoc, T.TEMP Frame.FP));*)
                     result(fn dest =>
-                            emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
-                            dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
-                            src=(munchArgs(0, args, localsSize)), jump=NONE})
+                            emit(ASM.OPER{assem="sw $fp, 0($sp)\njal " ^ Symbol.name funLabel ^ "\n",
+                                          dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
+                                          src=(munchArgs(0, args', localsSize)), 
+                                          jump=NONE})
                         );
-                    munchStm(T.MOVE(T.TEMP Frame.FP, fpSaveLoc));
+                    munchStm(T.MOVE(T.TEMP Frame.SP, T.TEMP Frame.FP));
+                    munchStm(T.MOVE(T.TEMP Frame.FP, T.MEM(T.TEMP Frame.SP)));
                     munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
                     munchStm(moveSPforRA(T.PLUS));
                     hd Frame.returnRegs)
@@ -446,7 +450,7 @@ struct
                     end
                 else
                     let
-                        val k = offset - (i - length Frame.argregs) - 1
+                        val k = offset - (i - length Frame.argregs)
                         val byteOffset = k * Frame.wordSize
                         val oldReg = munchExp exp
                     in
