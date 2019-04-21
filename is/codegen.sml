@@ -432,8 +432,8 @@ struct
                                           src=(munchArgs(0, args', localsSize)), 
                                           jump=NONE})
                         );
-                    munchStm(T.MOVE(T.TEMP Frame.SP, T.TEMP Frame.FP));
-                    munchStm(T.MOVE(T.TEMP Frame.FP, T.MEM(T.TEMP Frame.SP)));
+(*                    munchStm(T.MOVE(T.TEMP Frame.SP, T.TEMP Frame.FP));
+*)                    munchStm(T.MOVE(T.TEMP Frame.FP, T.MEM(T.TEMP Frame.SP)));
                     munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
                     munchStm(moveSPforRA(T.PLUS));
                     hd Frame.returnRegs)
