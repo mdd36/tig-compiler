@@ -24,7 +24,7 @@ structure Main = struct
         app (fn i => TextIO.output(out,format0 i)) body
 		
      end
-    | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")
+    | emitproc out (f as F.STRING(lab,s)) = TextIO.output(out,F.string(f))
 
 
    fun withOpenFile fname f =
@@ -44,12 +44,19 @@ structure Main = struct
            fun f (x as F.PROC(_)) = true
            |   f (x as F.STRING(_)) = false
            val (func, str) = List.partition f frags
+           fun stdlib2str () = 
+            let
+              val stdLibStr = TextIO.inputAll(TextIO.openIn("./stdlib/stdlib.s"))
+            in
+              "\n" ^ stdLibStr
+            end
            fun g out = (
-              TextIO.output(out, ".globl main\n");
+              TextIO.output(out, ".globl tig_main\n");
               TextIO.output(out, ".data\n");
               app (emitproc out) str;
               TextIO.output(out, "\n.text\n");
-              app (emitproc out) func
+              app (emitproc out) func;
+              TextIO.output (out, stdlib2str())
             )
         in
             if errors then ()

@@ -434,7 +434,7 @@ struct
 
     fun transProg(root) =
         let
-            val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "main", formals=[]})
+            val mainLevel = TR.newLevel({parent=TR.root, name=TR.namedlabel "tig_main", formals=[]})
             val translated = transExp(venv, tenv, root, mainLevel, TR.getLabel())
 			val _ = TR.procEntryExit{level = mainLevel, body = #exp translated};
             val failures' = !failures

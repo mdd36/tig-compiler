@@ -39,7 +39,7 @@ struct
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
-    fun string (STRING(lab,s)) = Symbol.name lab ^": " ^s
+    fun string (STRING(lab,s)) = Symbol.name lab ^":\n.word " ^ Int.toString(String.size(s)) ^ "\n.asciiz \"" ^ s ^ "\"\n"
 
     val zero = Temp.newtemp()
 
@@ -237,11 +237,11 @@ struct
                 val preamble = List.take(body, 2)
                 (* Don't count the SL as your own local; it's part of call stack allocation *)
                 val offSet = (!locals - 1) * wordSize
-                val moveSP = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, -" ^ Int.toString(offSet) ^ "\n" else "",
+                fun moveSP dir = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, " ^ dir ^ Int.toString(offSet) ^ "\n" else "",
                                         src=[],dst=[],jump=NONE}
             in
                 {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-                body= preamble @ [moveSP] @ body' @ [Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}],
+                body= preamble @ [moveSP("-")] @ body' @ [moveSP("")] @ [Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}],
                 epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
 
             end

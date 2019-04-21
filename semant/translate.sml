@@ -150,7 +150,7 @@ struct
     fun packMath(op', left, right) = Ex(Tree.BINOP(op', unEx left, unEx right))
 
     fun packCompare(op', left, right, NONE)   = Cx(fn(true', false') => Tree.CJUMP(op', unEx left, unEx right, true', false'))
-    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall(s, [unEx left, unEx right]))
+    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall("tig_" ^ s, [unEx left, unEx right]))
 
     fun intBinOps(A.PlusOp,   left, right) = packMath(Tree.PLUS,  left, right)
     |   intBinOps(A.MinusOp,  left, right) = packMath(Tree.MINUS, left, right)
@@ -183,7 +183,7 @@ struct
 									Tree.LABEL true',
 									Tree.CJUMP(Tree.GE,unEx offset,Tree.CONST 0 , true'', false'),
 									Tree.LABEL false',
-									Tree.EXP(Frame.externalCall("exit", [])),
+									Tree.EXP(Frame.externalCall("tig_exit", [])),
 									Tree.LABEL true''
 									]),
 									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
@@ -320,7 +320,7 @@ struct
                 Tree.MOVE(
                     Tree.TEMP ret,
                     Frame.externalCall(
-                        "initRecord", [Tree.CONST(recSize)]
+                        "tig_initRecord", [Tree.CONST(recSize)]
                     )
                 )
             fun assignFields([], dex) = []
@@ -352,7 +352,7 @@ struct
                 Ex(Tree.ESEQ(seq(map unNx rest), unEx tail))
             end
 
-    fun arrayExp(size, init) = Ex(Frame.externalCall("initArray", [unEx size, unEx init]))
+    fun arrayExp(size, init) = Ex(Frame.externalCall("tig_initArray", [unEx size, unEx init]))
 
 	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
 
