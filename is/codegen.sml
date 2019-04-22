@@ -396,7 +396,7 @@ struct
                     munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
                     (*munchStm(T.MOVE(fpSaveLoc, T.TEMP Frame.FP));*)
                     result(fn dest =>
-                            emit(ASM.OPER{assem="sw $fp, 0($sp)\njal " ^ Symbol.name funLabel ^ "\n",
+                            emit(ASM.OPER{assem="sw $fp, 0($sp)\n\tjal " ^ Symbol.name funLabel ^ "\n",
                                           dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
                                           src=(munchArgs(0, args', localsSize)), 
                                           jump=NONE})
