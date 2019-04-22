@@ -120,86 +120,55 @@ struct
 
 			  | munchStm (T.JUMP(e, labs)) =
 					emit(ASM.OPER{assem = "jr 's0\n",
-					src=[munchExp e], dst=[], jump=SOME labs})
-       (* Case where both are constants, help out our branch predictor *)
-        | munchStm(T.CJUMP(T.LT, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 < i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.LE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 <= i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.GT, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 > i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.GE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 >= i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.EQ, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 = i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.NE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 <> i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
+					src=[munchExp e], dst=[], jump=SOME labs})        
         | munchStm (T.CJUMP(T.LT, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bltz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bltz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.LE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="blez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="blez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GT, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bgtz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bgtz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bgez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bgez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.EQ, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="beqz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="beqz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.NE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bnez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bnez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
 
         | munchStm (T.CJUMP(T.LT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="blt `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="blt `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.LE, e1, e2, l1, l2)) =
-               emit(ASM.OPER{assem="ble `s0, `s1, `j0\nj `j1\n",
+               emit(ASM.OPER{assem="ble `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.ULT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bltu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bltu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.ULE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bleu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bleu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgt `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgt `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GE, e1, e2, l1, l2)) =
-               emit(ASM.OPER{assem="bge `s0, `s1, `j0\nj `j1\n",
+               emit(ASM.OPER{assem="bge `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.UGT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgtu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgtu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.UGE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgeu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgeu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.EQ, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="beq `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="beq `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.NE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bne `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bne `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
 
 			  | munchStm (T.LABEL lab) =
