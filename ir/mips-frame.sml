@@ -225,7 +225,7 @@ struct
 
     fun procEntryExit2(frame, body) =
 		(
-        List.take(body, length body - 2) @ [List.last body] @ [
+        body @ [
             Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
         ])
 

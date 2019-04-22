@@ -224,88 +224,37 @@ struct
 
     fun ifThen(test, trueExp) =
         let
-            val tru = Temp.newlabel()
-            val fin = Temp.newlabel()
+            val t = Temp.newlabel()
+            val j = Temp.newlabel()
             val ret = Temp.newtemp()
-            val cond = unCx(test)
-        in case trueExp of
-            Ex(e) => Ex (Tree.ESEQ (seq [
-                                    (cond) (tru, fin),
-                                    Tree.LABEL tru,
-                                    Tree.MOVE (Tree.TEMP ret, e),
-                                    Tree.LABEL fin
-                                    ],
-                                Tree.TEMP ret))
-        |   Cx(c) => Cx (fn (t, f) => seq [
-                                    (cond) (tru, fin),
-                                    Tree.LABEL tru,
-                                    (unCx trueExp) (t, f),
-                                    Tree.LABEL fin
-                                    ])
-        |   Nx(n) => Nx (seq [
-                            (cond) (tru, fin),
-                            Tree.LABEL tru,
-                            unNx trueExp,
-                            Tree.LABEL fin
-                            ])
+            val cond = unCx test
+            val e1 = unEx trueExp
+        in
+            Nx(seq[ cond (t,j),
+                    Tree.LABEL t,
+                    Tree.EXP e1,
+                    Tree.LABEL j]
+                ) 
         end
 
     fun ifThenElse (test, trueExp, falseExp) =
         let
             val ret = Temp.newtemp()
-            val tru = Temp.newlabel()
-            val fal = Temp.newlabel()
-            val fin = Temp.newlabel()
+            val t = Temp.newlabel()
+            val f = Temp.newlabel()
+            val j = Temp.newlabel()
             val cond = unCx(test)
-        in case (trueExp, falseExp) of
-            (Ex _, Ex _) => Ex (Tree.ESEQ (seq [(cond) (tru, fal),
-                                        Tree.LABEL tru,
-                                        Tree.MOVE (Tree.TEMP ret, unEx trueExp),
-                                        Tree.JUMP (Tree.NAME fin, [fin]),
-                                        Tree.LABEL fal,
-                                        Tree.MOVE (Tree.TEMP ret, unEx falseExp),
-                                        Tree.LABEL fin],
-                                    Tree.TEMP ret))
-        (* Next two for & and | issue -- Choose Ex since & and | are done for uvale *)
-        |   (Ex _, Cx _) => Ex (Tree.ESEQ (seq [(cond) (tru, fal),
-                                    Tree.LABEL tru,
-                                    Tree.MOVE (Tree.TEMP ret, unEx trueExp),
-                                    Tree.JUMP (Tree.NAME fin, [fin]),
-                                    Tree.LABEL fal,
-                                    Tree.MOVE (Tree.TEMP ret, unEx falseExp),
-                                    Tree.LABEL fin],
-                                Tree.TEMP ret))
-        |   (Cx _, Ex _) => Ex (Tree.ESEQ (seq [(cond) (tru, fal),
-                                    Tree.LABEL tru,
-                                    Tree.MOVE (Tree.TEMP ret, unEx trueExp),
-                                    Tree.JUMP (Tree.NAME fin, [fin]),
-                                    Tree.LABEL fal,
-                                    Tree.MOVE (Tree.TEMP ret, unEx falseExp),
-                                    Tree.LABEL fin],
-                                Tree.TEMP ret))
-        |   (Cx _, Cx _) => Cx (fn (t, f) =>
-                                seq [(cond) (tru, fal),
-                                Tree.LABEL tru,
-                                (unCx trueExp) (t, f),
-                                Tree.LABEL fal,
-                                (unCx falseExp) (t, f)])
-        (* Since () is an Ex in our IR, it should be compadable with Nx's.
-        Choose Nx since it's impossible to do Nx for value, but possible to
-        ignore value from Ex *)
-        |   (Nx _, _) => Nx (seq [(cond) (tru, fal),
-                                Tree.LABEL tru,
-                                unNx trueExp,
-                                Tree.JUMP (Tree.NAME fin, [fin]),
-                                Tree.LABEL fal,
-                                unNx falseExp,
-                                Tree.LABEL fin])
-        |   (_, Nx _) => Nx (seq [(cond) (tru, fal),
-                                Tree.LABEL tru,
-                                unNx trueExp,
-                                Tree.JUMP (Tree.NAME fin, [fin]),
-                                Tree.LABEL fal,
-                                unNx falseExp,
-                                Tree.LABEL fin])
+            val e1 = unEx trueExp and e2 = unEx falseExp
+        in 
+            Ex(Tree.ESEQ(seq[ cond (t,f),
+                              Tree.LABEL t,
+                              Tree.MOVE(Tree.TEMP ret, e1),
+                              Tree.JUMP(Tree.NAME j, [j]),
+                              Tree.LABEL f,
+                              Tree.MOVE(Tree.TEMP ret, e2),
+                              Tree.LABEL j],
+                            Tree.TEMP ret
+                )) 
         end
 
     fun ifWrapper(test, trueExp, falseExp) =
