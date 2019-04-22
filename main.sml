@@ -4,6 +4,7 @@ structure Main = struct
    structure F = MipsFrame
    (*structure R = RegAlloc*)
    
+
  fun getsome (SOME x) = x
 
    fun emitproc out (F.PROC{body,frame}) =
