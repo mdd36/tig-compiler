@@ -335,6 +335,46 @@ struct
                 )
             )
 
+
+	fun getSimexp (Tree.BINOP(binop1, exp1, exp2)) = 
+        let
+            val  t1 = Temp.newtemp() 
+        in
+            Tree.ESEQ(Tree.MOVE(Tree.TEMP t1,Tree.BINOP(binop1, getSimexp exp1, getSimexp exp2)), Tree.TEMP t1)
+        end
+     |  getSimexp (Tree.MEM(exp1)) =
+        let 
+			val t1 = Temp.newtemp()
+        in
+            Tree.ESEQ(Tree.MOVE(Tree.TEMP t1,Tree.MEM(getSimexp exp1)), Tree.TEMP t1)
+        end
+	 |  getSimexp (Tree.ESEQ(stm, exp)) = Tree.ESEQ(getSimstm stm, getSimexp exp)
+	 |  getSimexp (Tree.CALL(exp, explist)) = Tree.CALL(exp, map getSimexp explist)
+     |  getSimexp a = a
+	 
+    and getSimstm (Tree.JUMP(exp, llist)) = Tree.JUMP(getSimexp exp, llist)
+	 |  getSimstm (Tree.CJUMP(relop, exp1, exp2, label1, label2)) = Tree.CJUMP(relop, getSimexp exp1, getSimexp exp2, label1, label2)
+     |  getSimstm (Tree.MOVE(exp1, exp2)) = Tree.MOVE(getSimexp exp1, getSimexp exp2)
+     |  getSimstm (Tree.SEQ(s1, s2)) = Tree.SEQ(getSimstm s1, getSimstm s2)
+     |  getSimstm (Tree.EXP(exp)) = Tree.EXP(getSimexp exp)
+	 |  getSimstm a = a
+	 
+
+
+	fun simplifystm (Tree.SEQ(s1, s2)) = Tree.SEQ(simplifystm s1, simplifystm s2)
+	 |  simplifystm (Tree.JUMP(exp, llist)) = Tree.JUMP(getSimexp exp, llist)
+	 |  simplifystm (Tree.CJUMP(relop, exp1, exp2, label1, label2)) = Tree.CJUMP(relop, getSimexp exp1, getSimexp exp2, label1, label2)
+	 |  simplifystm (Tree.MOVE(Tree.MEM(exp1), exp2)) = Tree.MOVE(Tree.MEM(getSimexp exp1), simplifyexp exp2)
+     |  simplifystm (Tree.MOVE(exp1, exp2)) = Tree.MOVE(getSimexp exp1, simplifyexp exp2)
+	 |  simplifystm (Tree.EXP(exp)) = Tree.EXP(simplifyexp exp)
+	 |  simplifystm T = T
+	 
+	and simplifyexp (Tree.ESEQ(stm, exp)) = Tree.ESEQ(simplifystm stm, simplifyexp exp)
+	 |  simplifyexp (Tree.CALL(exp, explist)) = Tree.CALL(exp, map simplifyexp explist)
+	 |  simplifyexp (Tree.BINOP(binop, exp1, exp2)) = Tree.BINOP(binop, getSimexp exp1, getSimexp exp2)
+     |  simplifyexp (Tree.MEM(exp)) = Tree.MEM(getSimexp exp)
+     |  simplifyexp T = T
+	
 	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
         frags := !frags @ [Frame.PROC{
                 body=Frame.procEntryExit1(
@@ -343,7 +383,7 @@ struct
                             Tree.TEMP(
                                 hd Frame.returnRegs
                             ),
-                            unEx exp
+                            simplifyexp(unEx exp)
                         )
                     ),
                 frame=frame
