@@ -39,6 +39,8 @@ struct
     datatype frag = PROC of {body: Tree.stm, frame: frame}
                 | STRING of Temp.label * string
 
+    
+
     fun string (STRING(lab,s)) = Symbol.name lab ^":\n.word " ^ Int.toString(String.size(s)) ^ "\n.asciiz \"" ^ s ^ "\"\n"
 
     val zero = Temp.newtemp()

@@ -9,7 +9,7 @@ struct
     type frag = Frame.frag
     val frags = ref([] : frag list)
     type access = level * Frame.access
-	  type label = Temp.label
+	type label = Temp.label
     exception SyntaxException of string
 
     datatype exp = Ex of Tree.exp
@@ -20,13 +20,21 @@ struct
 
     fun handleInt(i: int) = Ex(Tree.CONST i)
 
-    fun handleStr(s: string) =
-         let
-             val label = Temp.newlabel()
-         in
-             frags := Frame.STRING (label, s) :: !frags;
-             Ex (Tree.NAME label)
-         end
+    fun searchForDup str [] = NONE
+    |   searchForDup str ((Frame.PROC{...})::l) = searchForDup str l
+    |   searchForDup str ((Frame.STRING(lab, s))::l) = case String.compare(str, s ) of
+            EQUAL => SOME(Ex(Tree.NAME lab))
+        |   _ => searchForDup str l
+
+    fun handleStr(s: string) = case searchForDup s (!frags) of
+            SOME(e) => e
+        |   NONE =>
+                let
+                    val label = Temp.newlabel()
+                in
+                    frags := Frame.STRING (label, s) :: !frags;
+                    Ex (Tree.NAME label)
+                end
 
   	fun getLabel () = Temp.newlabel()
 
@@ -173,22 +181,39 @@ struct
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
 
+    fun subscriptError(offset) = 
+        let
+            val tmp = Temp.newtemp()
+            val tmp' = Temp.newtemp()
+            val tmp'' = Temp.newtemp()
+            val asciiOffset = 48
+        in
+            Nx(seq[
+                    Tree.MOVE (Tree.TEMP tmp, Frame.externalCall("tig_chr", [Tree.BINOP(Tree.PLUS, unEx offset, Tree.CONST asciiOffset)])),
+                    Tree.MOVE(Tree.TEMP tmp', Frame.externalCall("tig_concat", [unEx (handleStr "Subscription Exception: Index "), Tree.TEMP tmp])),
+                    Tree.MOVE(Tree.TEMP tmp'', Frame.externalCall("tig_concat", [Tree.TEMP tmp', unEx (handleStr "is out of bounds for the array")])),
+                    Tree.EXP(Frame.externalCall("tig_print", [Tree.TEMP tmp'']))
+                ])
+        end
+
 	fun subscriptVar(base, offset) = let
 										val true' = Temp.newlabel()
 										val true'' = Temp.newlabel()
 										val false' = Temp.newlabel()
 									in
 									Ex(Tree.ESEQ(seq([
-									Tree.CJUMP(Tree.GT, calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)), unEx offset, true', false'),
+									Tree.CJUMP(Tree.LT, calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)), unEx offset, true', false'),
 									Tree.LABEL true',
 									Tree.CJUMP(Tree.GE,unEx offset,Tree.CONST 0 , true'', false'),
 									Tree.LABEL false',
+                                    unNx (subscriptError offset),
 									Tree.EXP(Frame.externalCall("tig_exit", [])),
 									Tree.LABEL true''
 									]),
 									calcMemOffset(unEx(base), Tree.BINOP(Tree.MUL, unEx(offset), Tree.CONST Frame.wordSize))
 									))
 									end
+
 
     fun simpleVar(access, level) =
         let
@@ -269,7 +294,7 @@ struct
                 Tree.MOVE(
                     Tree.TEMP ret,
                     Frame.externalCall(
-                        "tig_initRecord", [Tree.CONST(recSize)]
+                        "tig_allocRecord", [Tree.CONST(recSize)]
                     )
                 )
             fun assignFields([], dex) = []

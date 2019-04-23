@@ -33,5 +33,4 @@ sig
     val K: int
 
     val registerColors : unit -> register list 
-
 end
