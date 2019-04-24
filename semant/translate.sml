@@ -181,22 +181,31 @@ struct
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
 
-    fun subscriptError(offset) = 
+    (*fun subscriptError offset pos = 
         let
-            val tmp = Temp.newtemp()
-            val tmp' = Temp.newtemp()
-            val tmp'' = Temp.newtemp()
+            val lab = handleStr("Array out of bounds, quitting")
+        in
+            Ex(Frame.externalCall("tig_print", map unEx [handleNil(), lab]))
+        end*)
+
+    fun subscriptError offset pos = 
+        let
+            val t1 = Temp.newtemp()
+            val t2 = Temp.newtemp()
+            val t3 = Temp.newtemp()
+            val t4 = Temp.newtemp()
             val asciiOffset = 48
         in
             Nx(seq[
-                    Tree.MOVE (Tree.TEMP tmp, Frame.externalCall("tig_chr", [Tree.BINOP(Tree.PLUS, unEx offset, Tree.CONST asciiOffset)])),
-                    Tree.MOVE(Tree.TEMP tmp', Frame.externalCall("tig_concat", [unEx (handleStr "Subscription Exception: Index "), Tree.TEMP tmp])),
-                    Tree.MOVE(Tree.TEMP tmp'', Frame.externalCall("tig_concat", [Tree.TEMP tmp', unEx (handleStr "is out of bounds for the array")])),
-                    Tree.EXP(Frame.externalCall("tig_print", [Tree.TEMP tmp'']))
+                    Tree.MOVE(Tree.TEMP t1, Frame.externalCall("tig_chr", [unEx (handleNil()), Tree.BINOP(Tree.PLUS, unEx offset, Tree.CONST asciiOffset)])),
+                    Tree.MOVE(Tree.TEMP t2, Frame.externalCall("tig_concat", [unEx(handleNil()), unEx (handleStr (ErrorMsg.getLine pos)), unEx(handleStr " Subscription Exception: Index ")])),
+                    Tree.MOVE(Tree.TEMP t3, Frame.externalCall("tig_concat", [unEx (handleNil()), Tree.TEMP t2, Tree.TEMP t1])),
+                    Tree.MOVE(Tree.TEMP t4, Frame.externalCall("tig_concat", [unEx (handleNil()), Tree.TEMP t3, unEx (handleStr " is out of bounds for the array")])),
+                    Tree.EXP(Frame.externalCall("tig_print", [unEx (handleNil()), Tree.TEMP t4]))
                 ])
         end
 
-	fun subscriptVar(base, offset) = let
+	fun subscriptVar(base, offset, pos) = let
 										val true' = Temp.newlabel()
 										val true'' = Temp.newlabel()
 										val false' = Temp.newlabel()
@@ -206,7 +215,7 @@ struct
 									Tree.LABEL true',
 									Tree.CJUMP(Tree.GE,unEx offset,Tree.CONST 0 , true'', false'),
 									Tree.LABEL false',
-                                    unNx (subscriptError offset),
+                                    unNx (subscriptError offset pos),
 									Tree.EXP(Frame.externalCall("tig_exit", [])),
 									Tree.LABEL true''
 									]),
@@ -294,7 +303,7 @@ struct
                 Tree.MOVE(
                     Tree.TEMP ret,
                     Frame.externalCall(
-                        "tig_allocRecord", [Tree.CONST(recSize)]
+                        "tig_allocRecord", [unEx (handleNil()), Tree.CONST(recSize)]
                     )
                 )
             fun assignFields([], dex) = []
@@ -327,7 +336,7 @@ struct
             end
 
     fun arrayExp(size, init) = 
-            Ex(Tree.BINOP(Tree.PLUS, Tree.CONST Frame.wordSize, Frame.externalCall("tig_initArray", map unEx[handleNil(), size, init])))
+            Ex(Tree.BINOP(Tree.PLUS, Tree.CONST Frame.wordSize, Frame.externalCall("tig_initArray", map unEx [handleNil(), size, init])))
 
 
 	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
@@ -341,7 +350,7 @@ struct
 
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (print("got main"); Ex(Tree.CALL(Tree.NAME label, map unEx exps))) (* TODO possibly need to add dummy header*)
+    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (Ex(Tree.CALL(Tree.NAME label, map unEx exps))) (* TODO possibly need to add dummy header*)
     |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(

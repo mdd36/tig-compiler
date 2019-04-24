@@ -267,7 +267,7 @@ struct
 						if (length argTys = length formals) then (
 							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps, result<>Types.UNIT), ty=result}
 							else (handleFail(pos, "Error: Type disagreement in function arguments")))
-							else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)))
+						else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)))
 
                     end
                 |   SOME(Env.VarEntry(_)) => (handleFail(pos, "Error: Expected a function idenifier, found a variable: pos"))
@@ -311,7 +311,7 @@ struct
                                             val offsetExp = #exp translatedOffset
                                         in
                                             (if checkInt(translatedOffset, pos, true)
-                                                then {exp = TR.subscriptVar(exp', offsetExp ), ty = actual_ty (tenv,t,pos)}
+                                                then {exp = TR.subscriptVar(exp', offsetExp, pos), ty = actual_ty (tenv,t,pos)}
                                                 else (handleFail(pos, "Provided index is not of type int")))
                                         end
 									| _               => (handleFail(pos, "Error: Variable is not defined as an array, found type " ^ Types.ty2str ty))
@@ -346,44 +346,6 @@ struct
                             end
                         )
                 end
-            (*case typ of 
-                NONE => (if ty = Types.NIL then (handleFail(pos, "Illegal assignment of nil type"); ())
-                                          else ();
-                        {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.assign(translatedVar, exp)}
-                    )
-            |   SOME( (name',pos) ) => ( case Symbol.look(tenv, name') of 
-                        SOME(ty') => ( if checkSameType(ty', ty) then
-                                         {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=actual_ty(tenv, ty', pos), write=true}), exp=TR.assign(translatedVar, exp)}
-                                       else (handleFail(pos, "Type assignment mistach"); 
-                                        {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.handleNil()}
-                                        )
-                        )
-                    |   NONE => (handleFail(pos, "Unknown type: " ^ Symbol.name name');
-                                 {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.handleNil()}
-                        )   
-
-                    )*)
-
-
-			(*case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => let val access = TR.allocLocal(lev)(!escape) in
-											{venv = Symbol.enter(venv,name,Env.VarEntry{access=access, ty=Types.RECORD(tl,u),write=true}), tenv=tenv,
-											exp = TR.getAssign(access, exp)} end
-										| _  => (handleFail(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-											{venv=venv,tenv=tenv, exp= TR.handleNil()}))
-								 | NONE =>
-									(handleFail(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-										{venv=venv,tenv=tenv, exp= TR.handleNil()}))
-					| _ =>  let val access = TR.allocLocal(lev)(!escape) in
-							(case typ
-								of SOME((s,p)) => if checkSameType(actual_ty(tenv,searchTy(tenv,s,p),p), ty)
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=access, ty=ty,write=true}), tenv=tenv,
-														exp = TR.getAssign(access, exp)}
-														else (handleFail(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
-															  {venv=venv,tenv=tenv, exp= TR.handleNil()})
-								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=access,ty=ty,write=true}), tenv=tenv,
-									exp= TR.getAssign(access, exp)}) end*)
 
 	  | transDec (venv, tenv, A.TypeDec(l), lev, breakpoint) =
 			let
