@@ -53,7 +53,7 @@ struct
 
 
 	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => t
-													  | NONE   => (#ty (handleFail(pos, "Error: No such type defined  " ^ Symbol.name s^"")))
+													  | NONE   => (#ty (handleFail(pos, "Error: No such type defined  " ^ Symbol.name s)))
 	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => actual_ty (tenv,searchTy(tenv,s,pos),pos)
 															| SOME typ => actual_ty (tenv,typ,pos))
 											| Types.ARRAY(t,u) => Types.ARRAY(actual_ty (tenv,t,pos),u)
@@ -183,7 +183,7 @@ struct
 																								else (handleFail(pos, "Error: Illegal assign expression")))
 																							else (handleFail(pos, "Error: For loop id cannot be assigned"))
 														| SOME(Env.FunEntry _) => handleFail(pos,  "Cannot assing value to a function")
-                                                        | _ => handleFail(pos,  "Undefined variable name " ^ Symbol.name(getName var)^ "")
+                                                        | _ => handleFail(pos,  "Undefined variable name " ^ Symbol.name(getName var))
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
                 case Symbol.look(tenv, typ) of
@@ -206,10 +206,10 @@ struct
 										else (handleFail(pos, "Error: Record assignment field name unmatched error")))
 								else (handleFail(pos, "Error: Record assignment type error")))
 
-							else (handleFail(pos,  "Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^""))
+							else (handleFail(pos,  "Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)))
                         end
                     |   _ => (handleFail(pos, "Error: Type mismatch in record usage")))
-                |   NONE    => (handleFail(pos, "Error: Unknown type " ^ Symbol.name typ ^ ""))
+                |   NONE    => (handleFail(pos, "Error: Unknown type " ^ Symbol.name typ ))
 
             )
         |   trexp(A.SeqExp []) = {exp=TR.handleNil(), ty=Types.UNIT}
@@ -249,8 +249,8 @@ struct
                             case actual_ty(tenv,at,pos) of
                                 Types.ARRAY(t, u) =>
                                     if checkInt(size', pos, true) andalso checkSameType(actual_ty(tenv,t,pos), initTy) then {exp=TR.arrayExp(sizeExp, init'), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
-                                    else (handleFail(pos, "Error: Invalid array expression "^Symbol.name typ ^""))
-                                | _ => (handleFail(pos, "Error: Type mismatch (should be array type): "^Symbol.name typ ^""))
+                                    else (handleFail(pos, "Error: Invalid array expression "^Symbol.name typ))
+                                | _ => (handleFail(pos, "Error: Type mismatch (should be array type): "^Symbol.name typ))
                             )
                     |   NONE => (handleFail(pos, "Error: Unknown type"))
                 )
@@ -267,11 +267,11 @@ struct
 						if (length argTys = length formals) then (
 							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps, result<>Types.UNIT), ty=result}
 							else (handleFail(pos, "Error: Type disagreement in function arguments")))
-							else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^""))
+							else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)))
 
                     end
                 |   SOME(Env.VarEntry(_)) => (handleFail(pos, "Error: Expected a function idenifier, found a variable: pos"))
-                |   NONE => (handleFail(pos, "Error: Unknown symbol " ^ Symbol.name func^""))
+                |   NONE => (handleFail(pos, "Error: Unknown symbol " ^ Symbol.name func))
             )
     in
       trexp(root)
@@ -286,7 +286,7 @@ struct
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{access, ty, write}) => {exp = TR.simpleVar(access, lev), ty = actual_ty (tenv,ty,pos)}
                              | SOME(Env.FunEntry(_)) => (handleFail(pos, "Error: Expected variable symbol, found function: " ^ Symbol.name id); {exp=TR.handleNil(), ty=Types.BOTTOM})
-  							 | NONE => (handleFail(pos, "Error: undefined variable " ^ Symbol.name id^"")
+  							 | NONE => (handleFail(pos, "Error: undefined variable " ^ Symbol.name id)
   										))
   			  | trvar (A.FieldVar(v, id, pos)) =
 							let val {exp=exp', ty=ty} = trvar(v)
@@ -312,9 +312,9 @@ struct
                                         in
                                             (if checkInt(translatedOffset, pos, true)
                                                 then {exp = TR.subscriptVar(exp', offsetExp ), ty = actual_ty (tenv,t,pos)}
-                                                else (handleFail(pos, "Provided index is not of type int"^"")))
+                                                else (handleFail(pos, "Provided index is not of type int")))
                                         end
-									| _               => (handleFail(pos, "Error: Variable is not defined as an array: "^""))
+									| _               => (handleFail(pos, "Error: Variable is not defined as an array, found type " ^ Types.ty2str ty))
 								)
   							end
 		in
@@ -389,13 +389,13 @@ struct
 			let
 				fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 				val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
-				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Type redifined " ^ Symbol.name (#name a)^"");
+				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Type redifined " ^ Symbol.name (#name a));
 																								Symbol.enter(tenv,#name a,Types.BOTTOM))
 																else Symbol.enter(tenv,#name a,Types.NAME(#name a, ref NONE))) tenv l
 				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Undefined type: " ^ (Symbol.name(#name a)));(#name a,Types.BOTTOM,#pos a)) else (#name a, transTy(tenv',#ty a),#pos a)) l
 				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#1 a)) then tenv else Symbol.enter(tenv,#1 a,#2 a)) tenv' l'
 				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s)
-																										then (#ty (handleFail(pos, "Error: Type decs deadlock " ^ Symbol.name a^"")))
+																										then (#ty (handleFail(pos, "Error: Type decs deadlock " ^ Symbol.name a)))
 																										else getRidOfCycle(a,(searchTy(tenv,s,pos),pos,set.add(visited,s)),tenv))
 																						| SOME typ => getRidOfCycle (a,(typ,pos,set.add(visited,s)),tenv))
 																| _ => ty)
@@ -412,11 +412,11 @@ struct
 			fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 			val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
 			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
-				if valOf(mymap.find(namemap,name)) then (handleFail(pos, "Error: Function name redefined " ^ Symbol.name name^"");{venv=venv,tenv=tenv})
+				if valOf(mymap.find(namemap,name)) then (handleFail(pos, "Error: Function name redefined " ^ Symbol.name name);{venv=venv,tenv=tenv})
 				else (
 					let
 						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
-																										 | NONE => (SOME (#ty (handleFail(pos, "Error: Undefined return type " ^ Symbol.name rt^"")))))
+																										 | NONE => (SOME (#ty (handleFail(pos, "Error: Undefined return type " ^ Symbol.name rt)))))
 
 														   | NONE => SOME Types.UNIT)
 						fun transparam {name, escape, typ, pos} =
@@ -461,7 +461,7 @@ struct
     					in
     						if checkLegacy({exp=expp, ty=ty'}, {exp=TR.handleNil(), ty=result_ty})
     										then (TR.procEntryExit {level = levv, body = expp}; {venv=venv,tenv=tenv,exp=TR.handleNil()})
-    										else  ( handleFail(pos, "Error: return type do not match " ^ Symbol.name name ^"");
+    										else  ( handleFail(pos, "Error: return type do not match " ^ Symbol.name name );
 													TR.procEntryExit{level = levv, body = expp};
     												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 

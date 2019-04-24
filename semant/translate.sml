@@ -202,7 +202,7 @@ struct
 										val false' = Temp.newlabel()
 									in
 									Ex(Tree.ESEQ(seq([
-									Tree.CJUMP(Tree.LT, calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)), unEx offset, true', false'),
+									Tree.CJUMP(Tree.GT, calcMemOffset(unEx(base),Tree.CONST(~Frame.wordSize)), unEx offset, true', false'),
 									Tree.LABEL true',
 									Tree.CJUMP(Tree.GE,unEx offset,Tree.CONST 0 , true'', false'),
 									Tree.LABEL false',
@@ -326,7 +326,9 @@ struct
                 Ex(Tree.ESEQ(seq(map unNx rest), unEx tail))
             end
 
-    fun arrayExp(size, init) = Ex(Frame.externalCall("tig_initArray", [unEx size, unEx init]))
+    fun arrayExp(size, init) = 
+            Ex(Tree.BINOP(Tree.PLUS, Tree.CONST Frame.wordSize, Frame.externalCall("tig_initArray", map unEx[handleNil(), size, init])))
+
 
 	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
 

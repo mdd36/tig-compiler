@@ -12,6 +12,7 @@ fun packl (nil, parent) = parent
   | packl (a::l, parent) =
   case a of Sym(a) => packl(l, A.FieldVar(parent, (#1 a), (#2 a)))
   | Express(a) => packl(l, A.SubscriptVar(parent, (#1 a), (#2 a)))
+
 %%
 %term
     EOF
