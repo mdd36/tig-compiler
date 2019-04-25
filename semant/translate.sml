@@ -158,7 +158,7 @@ struct
     fun packMath(op', left, right) = Ex(Tree.BINOP(op', unEx left, unEx right))
 
     fun packCompare(op', left, right, NONE)   = Cx(fn(true', false') => Tree.CJUMP(op', unEx left, unEx right, true', false'))
-    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall("tig_" ^ s, [unEx left, unEx right]))
+    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall("tig_" ^ s, map unEx [handleNil(), left, right]))
 
     fun intBinOps(A.PlusOp,   left, right) = packMath(Tree.PLUS,  left, right)
     |   intBinOps(A.MinusOp,  left, right) = packMath(Tree.MINUS, left, right)

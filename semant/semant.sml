@@ -423,7 +423,7 @@ struct
     					in
     						if checkLegacy({exp=expp, ty=ty'}, {exp=TR.handleNil(), ty=result_ty})
     										then (TR.procEntryExit {level = levv, body = expp}; {venv=venv,tenv=tenv,exp=TR.handleNil()})
-    										else  ( handleFail(pos, "Error: return type do not match " ^ Symbol.name name );
+    										else  ( handleFail(pos, "Error: Variable type and return type do not match: " ^ Symbol.name name );
 													TR.procEntryExit{level = levv, body = expp};
     												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 

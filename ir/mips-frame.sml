@@ -218,7 +218,7 @@ struct
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
             val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)(*Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))*)
-            val formals' = tl(formals(frame)) (* Don't munch SL *)
+            val formals' =  tl f (* Don't munch SL *)
             handle Empty => []
           in
             seq(Tree.LABEL name :: setNewFP  :: munchArgs(formals', argregs) @ [body])

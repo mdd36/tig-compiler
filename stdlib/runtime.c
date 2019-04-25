@@ -1,6 +1,5 @@
 #undef __STDC__
 #include <stdio.h>
-#include <stdlib.h>
 
 
 int *initArray(int size, int init)
@@ -20,7 +19,7 @@ int *allocRecord(int size)
 
 struct string {int length; unsigned char chars[1];};
 
-int stringEqual(struct string *s, struct string *t)
+int tig_stringEqual(struct string *s, struct string *t)
 {int i;
  if (s==t) return 1;
  if (s->length!=t->length) return 0;
@@ -28,11 +27,11 @@ int stringEqual(struct string *s, struct string *t)
  return 1;
 }
 
-int stringNotEqual(struct string *s, struct string *t){
-    return !stringEqual(s,t);
+int tig_stringNotEqual(struct string *s, struct string *t){
+    return !tig_stringEqual(s,t);
 }
 
-int stringCompare(struct string *s, struct string *t){
+int tig_stringCompare(struct string *s, struct string *t){
     int i;
     if (s == t) return 0;
     for(i = 0; i < s->length; ++i) {
@@ -44,20 +43,20 @@ int stringCompare(struct string *s, struct string *t){
     return i < t->length ? -1 : 0;
 }
 
-int stringGreaterThanEqual(struct string *s, struct string *t){
-    return stringCompare(s,t) >= 0;
+int tig_stringGreaterThanEqual(struct string *s, struct string *t){
+    return tig_stringCompare(s,t) >= 0;
 }
 
-int stringLessThanEqual(struct string *s, struct string *t){
-    return stringCompare(s,t) <= 0;
+int tig_stringLessThanEqual(struct string *s, struct string *t){
+    return tig_stringCompare(s,t) <= 0;
 }
 
-int stringGreaterThan(struct string *s, struct string *t){
-    return stringCompare(s,t) > 0;
+int tig_stringGreaterThan(struct string *s, struct string *t){
+    return tig_stringCompare(s,t) > 0;
 }
 
-int stringLessThan(struct string *s, struct string *t){
-    return stringCompare(s,t) < 0;
+int tig_stringLessThan(struct string *s, struct string *t){
+    return tig_stringCompare(s,t) < 0;
 }
 
 void print(struct string *s)
