@@ -356,8 +356,8 @@ struct
             Ex(
                 Tree.CALL(
                     Tree.NAME label,
-                    traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                        :: (map unEx exps)
+                    (*traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                        ::*) (map unEx (handleNil()::exps))
                 )
             )
     |   callExp(funLev, currLev, label, exps, false) =
@@ -365,8 +365,8 @@ struct
                 Tree.EXP(
                     Tree.CALL(
                         Tree.NAME label,
-                        traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                            :: (map unEx exps)
+                        (*traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                            ::*) (map unEx (handleNil()::exps))
                     )
                 )
             )
