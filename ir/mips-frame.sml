@@ -164,7 +164,7 @@ struct
     fun findDepth(InFrame(depth)) = if depth >= 0 then depth else ~depth
     |   findDepth(InReg(x)) = raise ErrorMsg.impossible "Don't call me"
 
-    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))  (* TODO this is so hacky *)
+    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(Int.abs depth))))  (* TODO this is so hacky *)
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
 
     fun externalCall(name, args) = Tree.CALL(Tree.NAME(Temp.namedlabel name), args)
@@ -256,7 +256,7 @@ struct
 
                 val stackArgs = Int.max(0, length formals - length argregs)
 
-              (*  fun f (Assem.OPER{assem, ...}) = print(assem)
+                (*fun f (Assem.OPER{assem, ...}) = print(assem)
                 |   f (Assem.MOVE{assem, ...}) = print(assem)
                 |   f (_) = ()*)
 
@@ -266,15 +266,20 @@ struct
                         val assemToRewrite = List.take(droppedRegArgs, stackArgs)
                         val rewrittenAssem = correctOffset assemToRewrite ((!locals+1) * wordSize)
                         val rest = List.drop(droppedRegArgs, stackArgs)
-                       (* val _ = print("\n")*)
+                        (*val _ = app f tl'
+                        val _ = print("\n")*)
                     in
-                        List.take(tl', length argregs) @ rewrittenAssem @ rest
+                        List.take(tl', length argregs) @ rewrittenAssem @ (tl rest)
                     end
                 else tl'
 
                 val raAcc = allocLocal(frame)(true)
-                val storeRA = Assem.OPER{assem="sw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE} 
+                val storeRA = Assem.OPER{assem="sw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($sp)\n", src=[ra], dst=[], jump=NONE} 
                 val loadRA  = Assem.OPER{assem="lw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE}
+
+                val fpAcc = allocLocal(frame)(true)
+                val storeFP = Assem.OPER{assem="sw $fp, " ^ removeSquiggle (findDepth fpAcc) ^ "($sp)\n", src=[ra], dst=[], jump=NONE} 
+                val loadFP  = Assem.OPER{assem="lw $fp, " ^ removeSquiggle (findDepth fpAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE}
 
                 val offSet = (!locals) * wordSize
                 fun moveSP dir = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, " ^ dir ^ Int.toString(offSet) ^ "\n" else "",
@@ -285,7 +290,7 @@ struct
                 val jr = Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}
             in
                 {prolog= "# PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-                body= hd' :: moveSP("-") :: moveFP :: storeRA :: bod @ (loadRA :: moveSP("") :: jr :: []),
+                body= hd' :: moveSP("-") :: storeFP :: storeRA :: moveFP :: bod @ (loadRA :: loadFP :: moveSP("") :: jr :: []),
                 epilog="# END " ^ Symbol.name(#name frame) ^ "\n"}
 
             end

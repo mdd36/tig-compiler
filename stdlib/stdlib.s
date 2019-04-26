@@ -835,14 +835,14 @@ tig_stringNotEqual:
 	lw	$2,0($4)
 	lw	$3,0($5)
 	nop
-	beq	$2,$3,$L24
+	beq	$2,$3,$L57
 	nop
 
 $L21:
 	j	$31
 	li	$2,1			# 0x1
 
-$L24:
+$L57:
 	blez	$2,$L19
 	nop
 
@@ -876,379 +876,171 @@ $L19:
 	.end	tig_stringNotEqual
 	
 	.align	2
-	.globl	tig_stringCompare
-	.set	nomips16
-	.set	nomicromips
-	.ent	tig_stringCompare
-	
-tig_stringCompare:
-	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
-	.mask	0x00000000,0
-	.fmask	0x00000000,0
-	.set	noreorder
-	.set	nomacro
-	beq	$4,$5,$L32
-	nop
+	.globl	strcmp_test
+	.ent	strcmp_test
+strcmp_test:
+        addiu   $sp,$sp,-28
+        sw      $fp,20($sp)
+        move    $fp,$sp
+        sw      $4,24($fp)
+        sw      $5,28($fp)
+        sw      $0,8($fp)
+        b       $L2
+        nop
 
-	lw	$8,0($4)
-	lw	$9,0($5)
-	blez	$8,$L40
-	nop
+$L6:
+        lw      $3,24($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $3,4($2)
+        lw      $4,28($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$4,$2
+        lbu     $2,4($2)
+        nop
+        beq     $3,$2,$L3
+        nop
 
-	blez	$9,$L38
-	nop
+        lw      $3,24($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $2,4($2)
+        nop
+        move    $4,$2
+        lw      $3,28($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $2,4($2)
+        nop
+        subu    $2,$4,$2
+        b       $L4
+        nop
 
-	lbu	$3,4($4)
-	lbu	$2,4($5)
-	nop
-	sltu	$6,$3,$2
-	bne	$6,$0,$L37
-	nop
+$L3:
+        lw      $2,8($fp)
+        nop
+        addiu   $2,$2,1
+        sw      $2,8($fp)
+$L2:
+        lw      $2,24($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,8($fp)
+        nop
+        slt     $2,$2,$3
+        beq     $2,$0,$L5
+        nop
 
-	sltu	$2,$2,$3
-	bne	$2,$0,$L38
-	addiu	$4,$4,5
+        lw      $2,28($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,8($fp)
+        nop
+        slt     $2,$2,$3
+        bne     $2,$0,$L6
+        nop
 
-	addiu	$5,$5,5
-	b	$L30
-	move	$3,$0
+$L5:
+        lw      $2,24($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,28($fp)
+        nop
+        lw      $2,0($2)
+        nop
+        subu    $2,$3,$2
+$L4:
+        move    $sp,$fp
+        lw      $fp,20($sp)
+        addiu   $sp,$sp,28
+        j       $31
+        nop
 
-$L31:
-	beq	$3,$9,$L38
-	nop
-
-	lbu	$2,0($4)
-	lbu	$6,0($5)
-	addiu	$4,$4,1
-	sltu	$7,$2,$6
-	bne	$7,$0,$L37
-	sltu	$2,$6,$2
-
-	bne	$2,$0,$L38
-	addiu	$5,$5,1
-
-$L30:
-	addiu	$3,$3,1
-	bne	$3,$8,$L31
-	nop
-
-$L28:
-	slt	$2,$8,$9
-	j	$31
-	subu	$2,$0,$2
-
-$L38:
-	j	$31
-	li	$2,1			# 0x1
-
-$L37:
-	j	$31
-	li	$2,-1			# 0xffffffffffffffff
-
-$L32:
-	j	$31
-	move	$2,$0
-
-$L40:
-	b	$L28
-	move	$8,$0
-
-	.set	macro
-	.set	reorder
-	.end	tig_stringCompare
-	
-	.align	2
-	.globl	tig_stringGreaterThanEqual
-	.set	nomips16
-	.set	nomicromips
-	.ent	tig_stringGreaterThanEqual
-	
-tig_stringGreaterThanEqual:
-	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
-	.mask	0x00000000,0
-	.fmask	0x00000000,0
-	.set	noreorder
-	.set	nomacro
-	beq	$4,$5,$L54
-	nop
-
-	lw	$8,0($4)
-	lw	$9,0($5)
-	blez	$8,$L56
-	nop
-
-	blez	$9,$L54
-	nop
-
-	lbu	$2,4($4)
-	lbu	$3,4($5)
-	nop
-	sltu	$6,$2,$3
-	bne	$6,$0,$L53
-	nop
-
-	sltu	$2,$3,$2
-	bne	$2,$0,$L54
-	addiu	$4,$4,5
-
-	addiu	$5,$5,5
-	b	$L46
-	move	$3,$0
-
-$L47:
-	beq	$3,$9,$L54
-	nop
-
-	lbu	$2,0($4)
-	lbu	$6,0($5)
-	addiu	$4,$4,1
-	sltu	$7,$2,$6
-	bne	$7,$0,$L53
-	sltu	$2,$6,$2
-
-	bne	$2,$0,$L54
-	addiu	$5,$5,1
-
-$L46:
-	addiu	$3,$3,1
-	bne	$3,$8,$L47
-	nop
-
-$L44:
-	slt	$2,$8,$9
-	j	$31
-	xori	$2,$2,0x1
-
-$L54:
-	j	$31
-	li	$2,1			# 0x1
-
-$L53:
-	j	$31
-	move	$2,$0
-
-$L56:
-	b	$L44
-	move	$8,$0
-
-	.set	macro
-	.set	reorder
-	.end	tig_stringGreaterThanEqual
-	
-	.align	2
-	.globl	tig_stringLessThanEqual
-	.set	nomips16
-	.set	nomicromips
-	.ent	tig_stringLessThanEqual
-	
-tig_stringLessThanEqual:
-	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
-	.mask	0x00000000,0
-	.fmask	0x00000000,0
-	.set	noreorder
-	.set	nomacro
-	beq	$4,$5,$L68
-	nop
-
-	lw	$8,0($4)
-	nop
-	blez	$8,$L68
-	nop
-
-	lw	$9,0($5)
-	nop
-	blez	$9,$L69
-	nop
-
-	lbu	$2,4($4)
-	lbu	$3,4($5)
-	nop
-	sltu	$6,$2,$3
-	bne	$6,$0,$L68
-	nop
-
-	sltu	$2,$3,$2
-	bne	$2,$0,$L69
-	addiu	$4,$4,5
-
-	addiu	$5,$5,5
-	b	$L60
-	move	$3,$0
-
-$L61:
-	beq	$3,$9,$L69
-	nop
-
-	lbu	$2,0($4)
-	lbu	$6,0($5)
-	addiu	$4,$4,1
-	sltu	$7,$2,$6
-	bne	$7,$0,$L68
-	sltu	$2,$6,$2
-
-	bne	$2,$0,$L69
-	addiu	$5,$5,1
-
-$L60:
-	addiu	$3,$3,1
-	bne	$3,$8,$L61
-	nop
-
-$L68:
-	j	$31
-	li	$2,1			# 0x1
-
-$L69:
-	j	$31
-	move	$2,$0
-
-	.set	macro
-	.set	reorder
-	.end	tig_stringLessThanEqual
-	
-	.align	2
-	.globl	tig_stringGreaterThan
-	.set	nomips16
-	.set	nomicromips
-	.ent	tig_stringGreaterThan
-	
 tig_stringGreaterThan:
-	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
-	.mask	0x00000000,0
-	.fmask	0x00000000,0
-	.set	noreorder
-	.set	nomacro
-	beq	$4,$5,$L82
-	nop
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
 
-	lw	$8,0($4)
-	nop
-	blez	$8,$L82
-	nop
+        slt     $2,$0,$2
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
 
-	lw	$9,0($5)
-	nop
-	blez	$9,$L83
-	nop
+tig_stringGreaterThanEqual:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
 
-	lbu	$2,4($4)
-	lbu	$3,4($5)
-	nop
-	sltu	$6,$2,$3
-	bne	$6,$0,$L82
-	nop
+        nor     $2,$0,$2
+        srl     $2,$2,31
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
 
-	sltu	$2,$3,$2
-	bne	$2,$0,$L83
-	addiu	$4,$4,5
-
-	addiu	$5,$5,5
-	b	$L74
-	move	$3,$0
-
-$L75:
-	beq	$3,$9,$L83
-	nop
-
-	lbu	$2,0($4)
-	lbu	$6,0($5)
-	addiu	$4,$4,1
-	sltu	$7,$2,$6
-	bne	$7,$0,$L82
-	sltu	$2,$6,$2
-
-	bne	$2,$0,$L83
-	addiu	$5,$5,1
-
-$L74:
-	addiu	$3,$3,1
-	bne	$3,$8,$L75
-	nop
-
-$L82:
-	j	$31
-	move	$2,$0
-
-$L83:
-	j	$31
-	li	$2,1			# 0x1
-
-	.set	macro
-	.set	reorder
-	.end	tig_stringGreaterThan
-	
-	.align	2
-	.globl	tig_stringLessThan
-	.set	nomips16
-	.set	nomicromips
-	.ent	tig_stringLessThan
-	
 tig_stringLessThan:
-	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
-	.mask	0x00000000,0
-	.fmask	0x00000000,0
-	.set	noreorder
-	.set	nomacro
-	beq	$4,$5,$L98
-	nop
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
 
-	lw	$2,0($4)
-	lw	$9,0($5)
-	blez	$2,$L100
-	nop
+        srl     $2,$2,31
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
 
-	blez	$9,$L98
-	nop
+tig_stringLessThanEqual:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
 
-	lbu	$3,4($4)
-	lbu	$6,4($5)
-	nop
-	sltu	$7,$3,$6
-	bne	$7,$0,$L97
-	sltu	$3,$6,$3
-
-	bne	$3,$0,$L98
-	addiu	$4,$4,5
-
-	addiu	$5,$5,5
-	b	$L90
-	move	$6,$0
-
-$L91:
-	beq	$6,$9,$L98
-	nop
-
-	lbu	$3,0($4)
-	lbu	$7,0($5)
-	addiu	$4,$4,1
-	sltu	$8,$3,$7
-	bne	$8,$0,$L97
-	sltu	$3,$7,$3
-
-	bne	$3,$0,$L98
-	addiu	$5,$5,1
-
-$L90:
-	addiu	$6,$6,1
-	bne	$6,$2,$L91
-	nop
-
-$L88:
-	j	$31
-	slt	$2,$2,$9
-
-$L98:
-	j	$31
-	move	$2,$0
-
-$L97:
-	j	$31
-	li	$2,1			# 0x1
-
-$L100:
-	b	$L88
-	move	$2,$0
-
-	.set	macro
-	.set	reorder
-	.end	tig_stringLessThan
+        slt     $2,$2,1
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop

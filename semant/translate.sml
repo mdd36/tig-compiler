@@ -50,7 +50,7 @@ struct
         Top => []
     |   Lev({parent=p, frame=f}, uniq') =>
             let
-                val formals = Frame.formals f
+                val formals = tl (Frame.formals f)
                 fun f' formal = (level, formal)
             in
                 map f' formals
@@ -331,10 +331,6 @@ struct
 
     fun getParent (Lev({parent, frame}, unique)) = parent
 
-	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
-
-    (*Last arg is if the function has a result. If true, its a function,
-    if false, it's a procedure. *)
     fun callExp(Top, currLev, label, exps) = 
             Ex(
                 Tree.CALL(
@@ -353,27 +349,6 @@ struct
                     )
                 )
         end
-
-    (*fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (Ex(Tree.CALL(Tree.NAME label, map unEx exps))) 
-    |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
-    |   callExp(funLev, currLev, label, exps, true) =
-            Ex(
-                Tree.CALL(
-                    Tree.NAME label,
-                    traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                        :: (map unEx (handleNil()::exps))
-                )
-            )
-    |   callExp(funLev, currLev, label, exps, false) =
-            Nx(
-                Tree.EXP(
-                    Tree.CALL(
-                        Tree.NAME label,
-                        traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                            :: (map unEx (handleNil()::exps))
-                    )
-                )
-            ) *)
 
 	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
         frags := !frags @ [Frame.PROC{

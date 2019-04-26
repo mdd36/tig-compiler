@@ -44,11 +44,11 @@ struct
 
     fun  checkInt({exp=exp', ty=ty'}: expty, pos, print_) =
         if checkSameType(ty', Types.INT) then true
-        else (if print_ then print(Int.toString(pos)^"Error: Expected int token ") else (); false)
+        else (if print_ then (handleFail(pos, "Error: Expected int token"); ()) else (); false)
 
     fun  checkStr({exp=exp', ty=ty'}: expty, pos, print_) =
         if  checkSameType(ty',Types.STRING) then true
-        else (if print_ then print(Int.toString(pos)^"Error: Expected string token ") else (); false)
+        else (if print_ then (handleFail(pos, "Error: Expected string token"); ()) else (); false)
 
 
 

@@ -31,32 +31,29 @@ int tig_stringNotEqual(struct string *s, struct string *t){
     return !tig_stringEqual(s,t);
 }
 
-int tig_stringCompare(struct string *s, struct string *t){
-    int i;
-    if (s == t) return 0;
-    for(i = 0; i < s->length; ++i) {
-        if(i < t->length){
-            if (s->chars[i] < t->chars[i]) return -1;
-            if (s->chars[i] > t->chars[i]) return  1;
-        } else return 1;
+int strcmp_test(struct string *s1, struct string *s2){
+    int i = 0;
+    while(i < s1->length && i < s2->length){
+        if (s1->chars[i] - s2->chars[i]) return (s1->chars[i] - s2->chars[i]);
+        i++;
     }
-    return i < t->length ? -1 : 0;
+    return s1->length - s2->length;
 }
 
-int tig_stringGreaterThanEqual(struct string *s, struct string *t){
-    return tig_stringCompare(s,t) >= 0;
+int tig_stringGreaterThan(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) > 0;
 }
 
-int tig_stringLessThanEqual(struct string *s, struct string *t){
-    return tig_stringCompare(s,t) <= 0;
+int tig_stringGreaterThanEqual(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) >= 0;
 }
 
-int tig_stringGreaterThan(struct string *s, struct string *t){
-    return tig_stringCompare(s,t) > 0;
+int tig_stringLessThan(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) < 0;
 }
 
-int tig_stringLessThan(struct string *s, struct string *t){
-    return tig_stringCompare(s,t) < 0;
+int tig_stringLessThanEqual(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) <= 0;
 }
 
 void print(struct string *s)

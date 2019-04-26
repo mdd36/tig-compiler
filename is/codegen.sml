@@ -384,9 +384,7 @@ struct
                 let 
                     val localsSize = (length args - length Frame.argregs)
                     val spOffset =  (Int.max(0, localsSize)) * Frame.wordSize  
-                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
-                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset)))
-
+                    
                     fun moveSPforRA x = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
 
                     val jal = fn () => (result(fn dest =>
@@ -400,11 +398,9 @@ struct
                       munchStm(moveSPforRA T.MINUS);
                       jal();
                       munchStm(moveSPforRA T.PLUS);
-                      munchStm(T.MOVE(T.TEMP Frame.FP, T.TEMP Frame.SP));
                       hd Frame.returnRegs
                     ) else (
                       jal();
-                      munchStm(T.MOVE(T.TEMP Frame.FP, T.TEMP Frame.SP));
                       hd Frame.returnRegs
                     ))
                 end
