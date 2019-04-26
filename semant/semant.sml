@@ -265,7 +265,7 @@ struct
                         val argExps = map #exp args'
                     in
 						if (length argTys = length formals) then (
-							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps, result<>Types.UNIT), ty=result}
+							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps), ty=result}
 							else (handleFail(pos, "Error: Type disagreement in function arguments")))
 						else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)))
 

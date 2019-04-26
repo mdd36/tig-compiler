@@ -33,4 +33,6 @@ sig
     val K: int
 
     val registerColors : unit -> register list 
+
+    val removeSquiggle : int -> string
 end

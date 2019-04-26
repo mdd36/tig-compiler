@@ -50,18 +50,18 @@ struct
         Top => []
     |   Lev({parent=p, frame=f}, uniq') =>
             let
-                val formals = tl (Frame.formals f)
+                val formals = Frame.formals f
                 fun f' formal = (level, formal)
             in
                 map f' formals
             end
     )
 
-    fun allocLocal( Lev({parent, frame}, uniq)) (esc) =
+    fun allocLocal(l as Lev({parent, frame}, uniq)) (esc) =
       let
         val a = Frame.allocLocal(frame)(esc)
       in
-        (Lev({parent=parent, frame=frame}, uniq), a)
+        (l, a)
       end
 
     fun seq([])   = Tree.EXP (Tree.CONST 0)
@@ -158,7 +158,7 @@ struct
     fun packMath(op', left, right) = Ex(Tree.BINOP(op', unEx left, unEx right))
 
     fun packCompare(op', left, right, NONE)   = Cx(fn(true', false') => Tree.CJUMP(op', unEx left, unEx right, true', false'))
-    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall("tig_" ^ s, map unEx [handleNil(), left, right]))
+    |   packCompare(op', left, right, SOME s: string option) = Ex(Frame.externalCall("tig_" ^ s, map unEx [left, right]))
 
     fun intBinOps(A.PlusOp,   left, right) = packMath(Tree.PLUS,  left, right)
     |   intBinOps(A.MinusOp,  left, right) = packMath(Tree.MINUS, left, right)
@@ -197,11 +197,11 @@ struct
             val asciiOffset = 48
         in
             Nx(seq[
-                    Tree.MOVE(Tree.TEMP t1, Frame.externalCall("tig_chr", [unEx (handleNil()), Tree.BINOP(Tree.PLUS, unEx offset, Tree.CONST asciiOffset)])),
-                    Tree.MOVE(Tree.TEMP t2, Frame.externalCall("tig_concat", [unEx(handleNil()), unEx (handleStr (ErrorMsg.getLine pos)), unEx(handleStr " Subscription Exception: Index ")])),
-                    Tree.MOVE(Tree.TEMP t3, Frame.externalCall("tig_concat", [unEx (handleNil()), Tree.TEMP t2, Tree.TEMP t1])),
-                    Tree.MOVE(Tree.TEMP t4, Frame.externalCall("tig_concat", [unEx (handleNil()), Tree.TEMP t3, unEx (handleStr " is out of bounds for the array")])),
-                    Tree.EXP(Frame.externalCall("tig_print", [unEx (handleNil()), Tree.TEMP t4]))
+                    Tree.MOVE(Tree.TEMP t1, Frame.externalCall("tig_chr", [Tree.BINOP(Tree.PLUS, unEx offset, Tree.CONST asciiOffset)])),
+                    Tree.MOVE(Tree.TEMP t2, Frame.externalCall("tig_concat", [unEx (handleStr (ErrorMsg.getLine pos)), unEx(handleStr " Subscription Exception: Index ")])),
+                    Tree.MOVE(Tree.TEMP t3, Frame.externalCall("tig_concat", [Tree.TEMP t2, Tree.TEMP t1])),
+                    Tree.MOVE(Tree.TEMP t4, Frame.externalCall("tig_concat", [Tree.TEMP t3, unEx (handleStr " is out of bounds for the array")])),
+                    Tree.EXP(Frame.externalCall("tig_print", [Tree.TEMP t4]))
                 ])
         end
 
@@ -223,28 +223,17 @@ struct
 									))
 									end
 
+    fun traceSL (varLev as Lev({parent, frame}, u), stepLevel as Lev({parent=p, frame=f}, u') ) =
+                if u=u' then Tree.TEMP Frame.FP else Tree.MEM(traceSL(varLev, p))
+            |   traceSL (Top, _) =  ErrorMsg.impossible "Variable use at top level"
+            |   traceSL (_, Top) =  ErrorMsg.impossible "Reached the top without finding access"
 
-    fun simpleVar(access, level) =
-        let
-            val (Lev(details, defref), defaccess) = access
-            fun traceLink (level', access') =
-                let
-                    val Lev({parent, frame}, uniq') = level'
-                in
-                    if uniq' = defref then
-                        Frame.find(defaccess)(access')
-                    else
-                        let
-                            val link = hd (Frame.formals frame)
-                            val x = 0
-                            val y = 0
-                        in
-                            traceLink(parent, Frame.find(link)(access'))
-                        end
-                end
-        in
-            Ex(traceLink(level, Tree.TEMP(Frame.FP)))
-        end
+    fun simpleVar((varLev, acc), level) = case level of
+        Top   => ErrorMsg.impossible "Var use at top level"
+    |   Lev l => (case varLev of 
+            Top => ErrorMsg.impossible "Var access at top level"
+        |   Lev vl => Ex(Frame.find(acc)(traceSL(varLev, level)))
+            )
 
     fun fieldVar(base, id, fields) =
         let
@@ -303,7 +292,7 @@ struct
                 Tree.MOVE(
                     Tree.TEMP ret,
                     Frame.externalCall(
-                        "tig_allocRecord", [unEx (handleNil()), Tree.CONST(recSize)]
+                        "tig_allocRecord", [Tree.CONST(recSize)]
                     )
                 )
             fun assignFields([], dex) = []
@@ -336,28 +325,43 @@ struct
             end
 
     fun arrayExp(size, init) = 
-            Ex(Tree.BINOP(Tree.PLUS, Tree.CONST Frame.wordSize, Frame.externalCall("tig_initArray", map unEx [handleNil(), size, init])))
+            Ex(Tree.BINOP(Tree.PLUS, Tree.CONST Frame.wordSize, Frame.externalCall("tig_initArray", map unEx [size, init])))
 
+    fun getUniq (Lev({parent, frame}, unique)) = unique
+
+    fun getParent (Lev({parent, frame}, unique)) = parent
 
 	(*fun getArraySize Ex(Tree.CALL(name,args)) = #hd args*)
 
-    fun diffLevel (Top) = 0
-    |   diffLevel (l as Lev({parent: level,frame: Frame.frame},u: Types.unique)) = 1 + diffLevel(parent)
-
-    fun traceSL (0, (lev: level)) = Tree.TEMP Frame.FP
-    |   traceSL (delta, (l as Lev({parent, frame}, u))) = Frame.find(hd (Frame.formals frame)) (traceSL(delta-1, parent))
-    |   traceSL (delta, (t as Top)) = Tree.TEMP Frame.FP
-
     (*Last arg is if the function has a result. If true, its a function,
     if false, it's a procedure. *)
-    fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (Ex(Tree.CALL(Tree.NAME label, map unEx exps))) (* TODO possibly need to add dummy header*)
+    fun callExp(Top, currLev, label, exps) = 
+            Ex(
+                Tree.CALL(
+                        Tree.NAME label,
+                        map unEx exps
+                    )
+                )
+    |   callExp(funLev as Lev({parent, frame}, uniq), currLev, label, exps) = 
+        let
+            
+        in
+            Ex(
+                Tree.CALL(
+                        Tree.NAME label, 
+                        traceSL(parent, currLev) :: map unEx exps
+                    )
+                )
+        end
+
+    (*fun callExp(Lev({parent=Top,...},_), _, label, exps, true)  = (Ex(Tree.CALL(Tree.NAME label, map unEx exps))) 
     |   callExp(Lev({parent=Top,...},_), _,label, exps, false) = Nx(Tree.EXP(Tree.CALL(Tree.NAME label, map unEx exps)))
     |   callExp(funLev, currLev, label, exps, true) =
             Ex(
                 Tree.CALL(
                     Tree.NAME label,
-                    (*traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                        ::*) (map unEx (handleNil()::exps))
+                    traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                        :: (map unEx (handleNil()::exps))
                 )
             )
     |   callExp(funLev, currLev, label, exps, false) =
@@ -365,11 +369,11 @@ struct
                 Tree.EXP(
                     Tree.CALL(
                         Tree.NAME label,
-                        (*traceSL(diffLevel currLev - diffLevel funLev, funLev)
-                            ::*) (map unEx (handleNil()::exps))
+                        traceSL(diffLevel currLev - diffLevel funLev, funLev)
+                            :: (map unEx (handleNil()::exps))
                     )
                 )
-            )
+            ) *)
 
 	fun procEntryExit {level = Lev({parent=pa, frame=frame}, u), body=exp} =
         frags := !frags @ [Frame.PROC{

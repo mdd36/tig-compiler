@@ -7,7 +7,6 @@ struct
     val wordSize = 4
     val K = 10 (* 9 temp reg's in MIPS *)
 
-
     fun newFrame {name, formals} = 
         let
             fun allocFormal(escapes::l, offset) = 
@@ -158,12 +157,14 @@ struct
     
     fun makestring2 allocation t = valOf(Temp.look(allocation,t))
 
-
     fun registerColors() = map (fn x => valOf(Temp.Table.look(tempMap, x))) (temps @ calleeSaves)
 
     fun name {name, formals, locals} = Symbol.name name
 
-    fun find(InFrame(depth))  = (fn (fp) => let val depth' = if depth < 0 then depth else ~depth in Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth'))) end )  (* TODO this is so hacky *)
+    fun findDepth(InFrame(depth)) = if depth >= 0 then depth else ~depth
+    |   findDepth(InReg(x)) = raise ErrorMsg.impossible "Don't call me"
+
+    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(depth))))  (* TODO this is so hacky *)
     |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
 
     fun externalCall(name, args) = Tree.CALL(Tree.NAME(Temp.namedlabel name), args)
@@ -172,79 +173,120 @@ struct
     |   seq([s])  = s
     |   seq(s::l) = Tree.SEQ(s, seq(l))
 
-    fun munchArgs([], _) = []
-    |   munchArgs(InReg(t)::l, argReg::a) =
-            Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(l, a)
-    |   munchArgs(InReg(t)::l, []) =
+    fun munchArgs([], _, _, _) = []
+    |   munchArgs(InReg(t)::l, argReg::a, locals, depth) =
+            Tree.MOVE(Tree.TEMP t, Tree.TEMP argReg) :: munchArgs(l, a, locals, depth)
+    |   munchArgs(InReg(t)::l, [], locals, depth) =
             let
-                val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
+                val offSet = (locals + depth) * wordSize (* + 1 here since we need to step over the SL *)
             in
                 Tree.MOVE(
                     Tree.TEMP t,
                     Tree.MEM(
                         Tree.BINOP(
-                            Tree.MINUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
+                            Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                             )
                         )
-                    ) :: munchArgs(l, [])
+                    ) :: munchArgs(l, [], locals, depth+1)
             end
-    |   munchArgs(InFrame(j)::l, argReg::a) =
+    |   munchArgs(InFrame(j)::l, argReg::a, locals, depth) =
             Tree.MOVE(
                 Tree.MEM(
                     Tree.BINOP(
-                        Tree.MINUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
+                        Tree.PLUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
                         )
                     ),
                 Tree.TEMP argReg
-                ) :: munchArgs(l, a)
-    |   munchArgs(InFrame(j)::l, []) =
+                ) :: munchArgs(l, a, locals, depth)
+    |   munchArgs(InFrame(j)::l, [], locals, depth) =
             let
-                val offSet = (1 + length l) * wordSize (* + 1 here since we need to step over the SL *)
+                val offSet = (locals + depth) * wordSize (* + 1 here since we need to step over the SL *)
             in
                 Tree.MOVE(
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.MINUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST j (* Store relative to SP *)
                                 )
                             ),
                         Tree.MEM(
                             Tree.BINOP(
-                                Tree.MINUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
+                                Tree.PLUS, Tree.TEMP FP, Tree.CONST offSet (* Read relative to FP *)
                                 )
                             )
-                    ) :: munchArgs(l, [])
+                    ) :: munchArgs(l, [], locals, depth+1)
             end
 
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
-            val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)(*Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))*)
-            val formals' =  tl f (* Don't munch SL *)
-            handle Empty => []
+           (* val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)*)(*Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))*)
           in
-            seq(Tree.LABEL name :: setNewFP  :: munchArgs(formals', argregs) @ [body])
+            seq(Tree.LABEL name :: munchArgs(f, argregs, !locals, 0) @ [body])
           end
+
+    fun removeSquiggle x = if x < 0 then "-" ^ Int.toString (~x) else Int.toString x
 
 
     fun procEntryExit2(frame, body) =
-		(
-        body @ [
-            Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}
-        ])
+		(body @ [Assem.OPER{assem="", src=(zero :: calleeSaves @ sysReseverd), dst=[], jump=SOME[]}])
 
+
+    fun correctOffset ((a as Assem.OPER{assem, src, dst, jump})::l) count = 
+        let
+            (* lw $f0 0($fp) *)
+           (* val _ = print("OPER\n")*)
+            fun ret offset = let 
+                val assemStr = "lw `d0, " ^ removeSquiggle offset ^ "(`s0)\n"
+            in Assem.OPER{assem=assemStr, src=src, dst=dst, jump=jump} end
+
+            fun suff() = case String.compare(makestring (hd src), "fp") of 
+                EQUAL => ((*print("SUFFIX\n");*) true)
+            |   _     => ((*print("NOT SUFFIX: " ^ makestring (hd src) ^ "\n");*)false)
+        in
+            if String.isPrefix "lw" assem andalso suff() then ret(count) :: (correctOffset l (count + wordSize))
+            else a :: (correctOffset l count)
+        end
+    |   correctOffset (x::l) count = let val _ = print("OTHER\n") in  x :: (correctOffset l count) end
+    |   correctOffset [] count = []
 
     fun procEntryExit3(frame as {name, formals, locals}, body) =
             let
-                val body' = List.drop(body, 2)
-                handle Subscript => []
-                val preamble = List.take(body, 2)
-                (* Don't count the SL as your own local; it's part of call stack allocation *)
-                val offSet = (!locals - 1) * wordSize
+                val hd' = hd body (*label*)
+                val tl' = tl body (*function assembly*)
+                handle Empty => []
+
+                val stackArgs = Int.max(0, length formals - length argregs)
+
+              (*  fun f (Assem.OPER{assem, ...}) = print(assem)
+                |   f (Assem.MOVE{assem, ...}) = print(assem)
+                |   f (_) = ()*)
+
+                val bod = if stackArgs > 0 then 
+                    let
+                        val droppedRegArgs = List.drop(tl', length argregs)
+                        val assemToRewrite = List.take(droppedRegArgs, stackArgs)
+                        val rewrittenAssem = correctOffset assemToRewrite ((!locals+1) * wordSize)
+                        val rest = List.drop(droppedRegArgs, stackArgs)
+                       (* val _ = print("\n")*)
+                    in
+                        List.take(tl', length argregs) @ rewrittenAssem @ rest
+                    end
+                else tl'
+
+                val raAcc = allocLocal(frame)(true)
+                val storeRA = Assem.OPER{assem="sw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE} 
+                val loadRA  = Assem.OPER{assem="lw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE}
+
+                val offSet = (!locals) * wordSize
                 fun moveSP dir = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, " ^ dir ^ Int.toString(offSet) ^ "\n" else "",
                                         src=[],dst=[],jump=NONE}
+
+                val moveFP = Assem.MOVE{assem="move `d0, `s0\n", src=SP, dst=FP}
+
+                val jr = Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}
             in
-                {prolog= ";PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
-                body= preamble @ [moveSP("-")] @ body' @ [moveSP("")] @ [Assem.OPER{assem="jr `d0\n\n", src=[], dst=[ra], jump=SOME[]}],
-                epilog=";END " ^ Symbol.name(#name frame) ^ "\n"}
+                {prolog= "# PROCEDURE " ^ Symbol.name(#name frame) ^ "\n",
+                body= hd' :: moveSP("-") :: moveFP :: storeRA :: bod @ (loadRA :: moveSP("") :: jr :: []),
+                epilog="# END " ^ Symbol.name(#name frame) ^ "\n"}
 
             end
     end
