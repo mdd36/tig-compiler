@@ -67,5 +67,4 @@ structure Main = struct
                 withOpenFile (name ^ ".s") g
             )
        end
-
 end

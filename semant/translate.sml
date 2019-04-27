@@ -147,7 +147,7 @@ struct
             )
         end
 
-	  fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
+	fun decsPre decs = foldr (fn (dec, lis) => case dec of Ex(Tree.CONST n) => lis
 														| _ => dec::lis) [] decs
 
     fun letExp([], body)   = body
@@ -180,13 +180,6 @@ struct
     |   strBinOps(_,_,_)                   = raise SyntaxException "Unsupported string operation"
 
     fun calcMemOffset(base, offset) = Tree.MEM(Tree.BINOP(Tree.PLUS, base, offset))
-
-    (*fun subscriptError offset pos = 
-        let
-            val lab = handleStr("Array out of bounds, quitting")
-        in
-            Ex(Frame.externalCall("tig_print", map unEx [handleNil(), lab]))
-        end*)
 
     fun subscriptError offset pos = 
         let
@@ -340,7 +333,6 @@ struct
                 )
     |   callExp(funLev as Lev({parent, frame}, uniq), currLev, label, exps) = 
         let
-            
         in
             Ex(
                 Tree.CALL(
