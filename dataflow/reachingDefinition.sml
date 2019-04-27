@@ -125,11 +125,11 @@ struct
 					val i = ref 0
 					fun cins (A.OPER{assem, dst, src, jump}, (nm,mm)) =
 							(i:=(!i)+1;
-							if String.isSubstring "li" assem then (NodeMap.insert(nm, assem2node (getname(assem,!j)), getnumber assem 8),mm)
+							if String.isSubstring "li" assem then (NodeMap.insert(nm, assem2node (getname(assem,!i)), getnumber assem 8),mm)
 							else (nm,mm))
 					  | cins (A.MOVE{assem, dst, src}, (nm,mm)) =
 							(i:=(!i)+1;
-							(nm, NodeMap.insert(mm, assem2node (getname(assem,!j)), src)))
+							(nm, NodeMap.insert(mm, assem2node (getname(assem,!i)), src)))
 					  | cins (a, (nm,mm)) = (i:=(!i)+1;(nm,mm) )
 				in
 					foldl cins (NodeMap.empty, NodeMap.empty) assemlist
