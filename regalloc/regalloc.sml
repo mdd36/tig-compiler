@@ -10,6 +10,7 @@ structure Regalloc :> REG_ALLOC =
 struct	
 	structure Frame = MipsFrame
 	structure A = Assem
+	structure RD = Reachingdefinition
 	type allocation = Frame.register Temp.Table.table
 	open Util
 	structure NodeSet = RedBlackSetFn(type ord_key=Liveness.IGraph.node val compare=Liveness.IGraph.compare)
@@ -74,10 +75,32 @@ struct
 		 in
 		 	foldr singleSpill assemlist spillList
 		 end 
-		 
-	fun alloc (assemlist, frame, b) =
+	
+	fun isequal ([], []) = true
+	|   isequal (a, []) = false
+	|   isequal ([], a) = false
+	|   isequal (a1::l1, a2::l2) = if A.equal(a1,a2) then isequal(l1,l2) else false
+	
+	fun dfanalysis assemlist =
 		let
-			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes) = MakeGraph.instr2graph assemlist
+			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph assemlist
+			val (getRDin, getRDout) = RD.RDanalysis(graph, nodes, getdefs)
+			val assems = RD.propagation(assemlist, assem2node, graph, getRDin)
+			fun eliminate al = 
+				let 
+					val (igraph, liveOut) = Liveness.interferenceGraph graph
+				in
+					RD.eliminatedeadcode (al, assem2node, graph, liveOut) 
+				end				
+		in 
+			if isequal(assems, assemlist) then eliminate assems else dfanalysis assems
+		end
+			
+		 
+	fun alloc (assemlist', frame, b) =
+		let
+			val assemlist = dfanalysis assemlist'
+			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph assemlist
 			val (igraph, liveOut) = Liveness.interferenceGraph graph
 			val Liveness.IGRAPH{graph=graph', tnode=tnode, gtemp=gtemp, moves=moves} = igraph
 			val _ = (if b then spilled:=(NodeSet.empty) else ())

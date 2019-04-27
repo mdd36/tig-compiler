@@ -336,7 +336,7 @@ struct
                 src=[munchExp rs, munchExp rt], dst=[dest], jump=NONE})
             )
       	|   munchExp(T.BINOP(T.XOR, rs, T.CONST immed)) = result(fn dest =>
-                      emit(ASM.OPER{assem="xor `d0, `s0, " ^ removeSquiggle immed ^ "\n",
+                      emit(ASM.OPER{assem="xori `d0, `s0, " ^ removeSquiggle immed ^ "\n",
                       src=[munchExp rs], dst=[dest], jump=NONE})
             )
       	|   munchExp(T.BINOP(T.XOR, rs, rt)) = result(fn dest =>
