@@ -19,7 +19,7 @@ struct
             fun emit x = ilist := x :: !ilist
             fun result (gen) = let val t = Temp.newtemp() in gen t; t end
 
-            fun removeSquiggle x = if x < 0 then "-" ^ Int.toString (~x) else Int.toString x
+            val removeSquiggle = Frame.removeSquiggle
 
             fun numBits x = Math.log10(real(x)) / Math.log10(real(2))
 
@@ -120,86 +120,55 @@ struct
 
 			  | munchStm (T.JUMP(e, labs)) =
 					emit(ASM.OPER{assem = "jr 's0\n",
-					src=[munchExp e], dst=[], jump=SOME labs})
-       (* Case where both are constants, help out our branch predictor *)
-        | munchStm(T.CJUMP(T.LT, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 < i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.LE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 <= i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.GT, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 > i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.GE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 >= i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.EQ, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 = i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
-        | munchStm(T.CJUMP(T.NE, T.CONST i1, T.CONST i2, l1, l2)) =
-              if i1 <> i2 then emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l1]})
-              else emit(ASM.OPER{assem="j `j0\n",
-              src=[], dst=[], jump=SOME[l2]})
+					src=[munchExp e], dst=[], jump=SOME labs})        
         | munchStm (T.CJUMP(T.LT, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bltz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bltz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.LE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="blez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="blez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GT, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bgtz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bgtz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bgez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bgez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.EQ, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="beqz `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="beqz `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.NE, e1, T.CONST 0, l1, l2)) =
-              emit(ASM.OPER{assem="bnez `s0, `j0\n`j1\n",
+              emit(ASM.OPER{assem="bnez `s0, `j0\n",
               src=[munchExp e1], dst=[], jump=SOME [l1, l2]})
 
         | munchStm (T.CJUMP(T.LT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="blt `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="blt `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.LE, e1, e2, l1, l2)) =
-               emit(ASM.OPER{assem="ble `s0, `s1, `j0\nj `j1\n",
+               emit(ASM.OPER{assem="ble `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.ULT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bltu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bltu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.ULE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bleu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bleu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgt `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgt `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.GE, e1, e2, l1, l2)) =
-               emit(ASM.OPER{assem="bge `s0, `s1, `j0\nj `j1\n",
+               emit(ASM.OPER{assem="bge `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.UGT, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgtu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgtu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.UGE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bgeu `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bgeu `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.EQ, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="beq `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="beq `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
         | munchStm (T.CJUMP(T.NE, e1, e2, l1, l2)) =
-              emit(ASM.OPER{assem="bne `s0, `s1, `j0\nj `j1\n",
+              emit(ASM.OPER{assem="bne `s0, `s1, `j0\n",
               src=[munchExp e1, munchExp e2], dst=[], jump=SOME [l1, l2]})
 
 			  | munchStm (T.LABEL lab) =
@@ -414,29 +383,26 @@ struct
         |   munchExp(T.CALL(T.NAME funLabel, args)) =
                 let 
                     val localsSize = (length args - length Frame.argregs)
-                    val spOffset =  (2 + Int.max(0, localsSize)) * Frame.wordSize  
-                    val raSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset - Frame.wordSize)))
-                    val fpSaveLoc = T.MEM(T.BINOP(T.PLUS, T.TEMP Frame.SP, T.CONST (spOffset)))
+                    val spOffset =  (Int.max(0, localsSize)) * Frame.wordSize  
+                    
+                    fun moveSPforRA x = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
 
-                    fun moveSPforRA (x) = T.MOVE(T.TEMP Frame.SP, T.BINOP(x, T.TEMP Frame.SP, T.CONST spOffset))
-                    val args' = tl(args)
-                    handle Empty => []
-
-                in (
-                    munchStm(moveSPforRA(T.MINUS));
-                    munchStm(T.MOVE(raSaveLoc, T.TEMP Frame.ra)); (* Need to explicity save this *)
-                    (*munchStm(T.MOVE(fpSaveLoc, T.TEMP Frame.FP));*)
-                    result(fn dest =>
-                            emit(ASM.OPER{assem="sw $fp, 0($sp)\njal " ^ Symbol.name funLabel ^ "\n",
+                    val jal = fn () => (result(fn dest =>
+                            emit(ASM.OPER{assem="jal " ^ Symbol.name funLabel ^ "\n",
                                           dst = Frame.ra :: Frame.callerSaves @ Frame.returnRegs,
-                                          src=(munchArgs(0, args', localsSize)), 
-                                          jump=NONE})
-                        );
-                    munchStm(T.MOVE(T.TEMP Frame.SP, T.TEMP Frame.FP));
-                    munchStm(T.MOVE(T.TEMP Frame.FP, T.MEM(T.TEMP Frame.SP)));
-                    munchStm(T.MOVE(T.TEMP Frame.ra, raSaveLoc));
-                    munchStm(moveSPforRA(T.PLUS));
-                    hd Frame.returnRegs)
+                                          src=(munchArgs(0, args, 0)), 
+                                          jump=NONE}))
+                        )
+                in (
+                    if spOffset > 0 then (
+                      munchStm(moveSPforRA T.MINUS);
+                      jal();
+                      munchStm(moveSPforRA T.PLUS);
+                      hd Frame.returnRegs
+                    ) else (
+                      jal();
+                      hd Frame.returnRegs
+                    ))
                 end
 
         and munchArgs(i, [], offset) = []
@@ -450,8 +416,7 @@ struct
                     end
                 else
                     let
-                        val k = offset - (i - length Frame.argregs)
-                        val byteOffset = k * Frame.wordSize
+                        val byteOffset = offset * Frame.wordSize
                         val oldReg = munchExp exp
                     in
                         munchStm(T.MOVE(
@@ -460,7 +425,7 @@ struct
                                     T.PLUS, T.TEMP Frame.SP, T.CONST byteOffset
                                     )
                                 ), T.TEMP oldReg)); (*have to move anyway (sw), no point in passing exp directly*)
-                        munchArgs(i+1, l,offset)
+                        munchArgs(i+1, l,offset+1)
                     end
         in (
             munchStm stm;

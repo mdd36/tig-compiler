@@ -1,6 +1,5 @@
 #undef __STDC__
 #include <stdio.h>
-#include <stdlib.h>
 
 
 int *initArray(int size, int init)
@@ -20,7 +19,7 @@ int *allocRecord(int size)
 
 struct string {int length; unsigned char chars[1];};
 
-int stringEqual(struct string *s, struct string *t)
+int tig_stringEqual(struct string *s, struct string *t)
 {int i;
  if (s==t) return 1;
  if (s->length!=t->length) return 0;
@@ -28,36 +27,33 @@ int stringEqual(struct string *s, struct string *t)
  return 1;
 }
 
-int stringNotEqual(struct string *s, struct string *t){
-    return !stringEqual(s,t);
+int tig_stringNotEqual(struct string *s, struct string *t){
+    return !tig_stringEqual(s,t);
 }
 
-int stringCompare(struct string *s, struct string *t){
-    int i;
-    if (s == t) return 0;
-    for(i = 0; i < s->length; ++i) {
-        if(i < t->length){
-            if (s->chars[i] < t->chars[i]) return -1;
-            if (s->chars[i] > t->chars[i]) return  1;
-        } else return 1;
+int strcmp_test(struct string *s1, struct string *s2){
+    int i = 0;
+    while(i < s1->length && i < s2->length){
+        if (s1->chars[i] - s2->chars[i]) return (s1->chars[i] - s2->chars[i]);
+        i++;
     }
-    return i < t->length ? -1 : 0;
+    return s1->length - s2->length;
 }
 
-int stringGreaterThanEqual(struct string *s, struct string *t){
-    return stringCompare(s,t) >= 0;
+int tig_stringGreaterThan(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) > 0;
 }
 
-int stringLessThanEqual(struct string *s, struct string *t){
-    return stringCompare(s,t) <= 0;
+int tig_stringGreaterThanEqual(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) >= 0;
 }
 
-int stringGreaterThan(struct string *s, struct string *t){
-    return stringCompare(s,t) > 0;
+int tig_stringLessThan(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) < 0;
 }
 
-int stringLessThan(struct string *s, struct string *t){
-    return stringCompare(s,t) < 0;
+int tig_stringLessThanEqual(struct string *s1, struct string *s2){
+    return strcmp_test(s1,s2) <= 0;
 }
 
 void print(struct string *s)

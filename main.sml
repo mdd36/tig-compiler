@@ -4,14 +4,16 @@ structure Main = struct
    structure F = MipsFrame
    (*structure R = RegAlloc*)
    
+
  fun getsome (SOME x) = x
 
    fun emitproc out (F.PROC{body,frame}) =
-    let val _ = print ("\nemit " ^ F.name frame ^ "\n")
-         (* val _ = Printtree.printtree(out,body); *)
+    let (*val _ = print ("\nemit " ^ F.name frame ^ "\n")*)
+          (*val _ = Printtree.printtree(out,body); *)
 	   val stms = Canon.linearize body
-(*         val _ = app (fn s => Printtree.printtree(out,s)) stms;
-*)   val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
+     (*val _ = app (fn s => Printtree.printtree(out,s)) stms;*)
+     val stms' = Canon.traceSchedule(Canon.basicBlocks stms)
+     (*val _ = app (fn s => Printtree.printtree(out,s)) stms'*)
 	   val instrs =   List.concat(map (Mipsgen.codegen frame) stms')
      val instrs' = F.procEntryExit2 (frame,instrs)
      
@@ -19,12 +21,13 @@ structure Main = struct
      val {prolog,body,epilog} = F.procEntryExit3(frame, asl)
      
      val format0 = Assem.format(F.makestring2 allocation)
+     (*val format0 = Assem.format(F.makestring)*)
       in
 		
         app (fn i => TextIO.output(out,format0 i)) body
 		
      end
-    | emitproc out (F.STRING(lab,s)) = TextIO.output(out,F.string(F.STRING(lab,s))^"\n")
+    | emitproc out (f as F.STRING(lab,s)) = TextIO.output(out,F.string(f))
 
 
    fun withOpenFile fname f =
@@ -44,12 +47,19 @@ structure Main = struct
            fun f (x as F.PROC(_)) = true
            |   f (x as F.STRING(_)) = false
            val (func, str) = List.partition f frags
+           fun stdlib2str () = 
+            let
+              val stdLibStr = TextIO.inputAll(TextIO.openIn("./stdlib/stdlib.s"))
+            in
+              "\n" ^ stdLibStr
+            end
            fun g out = (
-              TextIO.output(out, ".globl main\n");
+              TextIO.output(out, ".globl tig_main\n");
               TextIO.output(out, ".data\n");
               app (emitproc out) str;
               TextIO.output(out, "\n.text\n");
-              app (emitproc out) func
+              app (emitproc out) func;
+              TextIO.output (out, stdlib2str())
             )
         in
             if errors then ()

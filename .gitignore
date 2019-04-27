@@ -6,3 +6,5 @@ test/*
 *.s
 parser/tiger.grm.sml
 /bugs/
+!/stdlib/stdlib.s
+/simple/

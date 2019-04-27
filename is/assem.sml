@@ -31,10 +31,10 @@ structure Assem = struct
 		  | f nil = nil
 	    in implode(f(explode assem))
 	    end
-      in fn OPER{assem,dst,src,jump=NONE} => speak(assem,dst,src,nil)
-          | OPER{assem,dst,src,jump=SOME j} => speak(assem,dst,src,j)
+      in fn OPER{assem,dst,src,jump=NONE} => let val s = speak(assem,dst,src,nil) in if String.size s > 0 then "\t" ^ s else s end
+          | OPER{assem,dst,src,jump=SOME j} => let val s = speak(assem,dst,src,j) in if String.size s > 0 then "\t" ^ s else s end
 	  | LABEL{assem,...} => assem
-	  | MOVE{assem,dst,src} => speak(assem,[dst],[src],nil)
+	  | MOVE{assem,dst,src} => let val s = speak(assem,[dst],[src],nil) in if String.size s > 0 then "\t" ^ s else s end
      end
 
 end
