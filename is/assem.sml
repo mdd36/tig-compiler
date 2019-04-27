@@ -14,6 +14,27 @@ structure Assem = struct
             |   MOVE of {assem: string,
     			    dst: temp,
     			    src: temp}
+	
+  fun check ([], []) = true
+  |   check ([], a) = false
+  |   check (a, []) = false
+  |   check (a1::l1, a2::l2) = if a1=a2 then check(l1,l2) else false
+  
+  fun checkj (NONE, NONE) = true 
+  |   checkj (NONE, a) = false 
+  |   checkj (a, NONE) = false 
+  |   checkj (j1, j2) = 
+		let 
+			val j1' = map (Symbol.name) (valOf(j1))
+			val j2' = map (Symbol.name) (valOf(j2))
+		in
+			check(j1',j2')
+		end
+  
+  fun equal ((MOVE{assem=a1, dst=d1, src=s1}), (MOVE{assem=a2, dst=d2, src=s2})) =d1=d2 andalso s1=s2
+  |   equal ((LABEL{assem=a1, lab=l1}), (LABEL{assem=a2, lab=l2})) = (Symbol.name l1) = (Symbol.name l2)
+  |   equal ((OPER{assem=a1, dst=d1, src=s1, jump=j1}), (OPER{assem=a2, dst=d2, src=s2, jump=j2})) = a1=a2 andalso check(d1,d2) andalso check(s1,s2) andalso checkj(j1,j2)
+  |   equal (_, _) = false
 
   fun format saytemp =
     let
