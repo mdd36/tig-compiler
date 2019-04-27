@@ -25,6 +25,12 @@ struct
     
     fun formals {name, formals=f, locals} = f
 
+    fun findDepth(InFrame(depth)) = if depth >= 0 then depth else ~depth
+    |   findDepth(InReg(x)) = raise ErrorMsg.impossible "Don't call me"
+
+    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(Int.abs depth))))  (* TODO this is so hacky *)
+    |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
+
     fun allocLocal {name, formals, locals} =
         fn bool' => (
             let
@@ -161,12 +167,6 @@ struct
 
     fun name {name, formals, locals} = Symbol.name name
 
-    fun findDepth(InFrame(depth)) = if depth >= 0 then depth else ~depth
-    |   findDepth(InReg(x)) = raise ErrorMsg.impossible "Don't call me"
-
-    fun find(InFrame(depth))  = (fn (fp) => Tree.MEM(Tree.BINOP(Tree.PLUS, fp, Tree.CONST(Int.abs depth))))  (* TODO this is so hacky *)
-    |   find(InReg(reg))      = (fn (fp) => Tree.TEMP(reg))
-
     fun externalCall(name, args) = Tree.CALL(Tree.NAME(Temp.namedlabel name), args)
 
     fun seq([])   = Tree.EXP (Tree.CONST 0) (* Just copying this here to avoid circular dependencies -- TODO literally anything but this *)
@@ -219,6 +219,7 @@ struct
     fun procEntryExit1(frame as {name=name, formals=f, locals=locals}: frame, body) =
           let
            (* val setNewFP = Tree.MOVE(Tree.TEMP FP, Tree.TEMP SP)*)(*Tree.BINOP(Tree.MINUS, Tree.TEMP SP, Tree.CONST (wordSize)))*)
+           (* val _ = print("procEntryExit1: " ^ Int.toString (!locals) ^ "\n")*)
           in
             seq(Tree.LABEL name :: munchArgs(f, argregs, !locals, 0) @ [body])
           end
@@ -245,8 +246,11 @@ struct
             if String.isPrefix "lw" assem andalso suff() then ret(count) :: (correctOffset l (count + wordSize))
             else a :: (correctOffset l count)
         end
+    |   correctOffset ((a as Assem.MOVE{assem, src, dst})::l) count = let val _ = print("MOVE " ^ makestring src ^ " -> " ^ makestring dst ^ " " ^ assem) in a :: correctOffset l count end
     |   correctOffset (x::l) count = let val _ = print("OTHER\n") in  x :: (correctOffset l count) end
     |   correctOffset [] count = []
+
+    
 
     fun procEntryExit3(frame as {name, formals, locals}, body) =
             let
@@ -254,25 +258,9 @@ struct
                 val tl' = tl body (*function assembly*)
                 handle Empty => []
 
-                val stackArgs = Int.max(0, length formals - length argregs)
+                (*val _ = print("procEntryExit3: " ^ Int.toString (!locals) ^ "\n")*)
 
-                (*fun f (Assem.OPER{assem, ...}) = print(assem)
-                |   f (Assem.MOVE{assem, ...}) = print(assem)
-                |   f (_) = ()*)
-
-                val bod = if stackArgs > 0 then 
-                    let
-                        val droppedRegArgs = List.drop(tl', length argregs)
-                        val assemToRewrite = List.take(droppedRegArgs, stackArgs)
-                        val rewrittenAssem = correctOffset assemToRewrite ((!locals+1) * wordSize)
-                        val rest = List.drop(droppedRegArgs, stackArgs)
-                        (*val _ = app f tl'
-                        val _ = print("\n")*)
-                    in
-                        List.take(tl', length argregs) @ rewrittenAssem @ (tl rest)
-                    end
-                else tl'
-
+                (* 1. These two blocks have to come before we rewrite the offsets so the local count is correct *)
                 val raAcc = allocLocal(frame)(true)
                 val storeRA = Assem.OPER{assem="sw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($sp)\n", src=[ra], dst=[], jump=NONE} 
                 val loadRA  = Assem.OPER{assem="lw $ra, " ^ removeSquiggle (findDepth raAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE}
@@ -280,6 +268,42 @@ struct
                 val fpAcc = allocLocal(frame)(true)
                 val storeFP = Assem.OPER{assem="sw $fp, " ^ removeSquiggle (findDepth fpAcc) ^ "($sp)\n", src=[ra], dst=[], jump=NONE} 
                 val loadFP  = Assem.OPER{assem="lw $fp, " ^ removeSquiggle (findDepth fpAcc) ^ "($fp)\n", src=[ra], dst=[], jump=NONE}
+
+                val stackArgs = Int.max(0, length formals - length argregs)
+
+                (*fun f (Assem.OPER{assem, ...}) = print(assem)
+                |   f (Assem.MOVE{assem, ...}) = print(assem)
+                |   f (_) = ()*)
+
+                (* 2. Now that we've alloced space for ra and fp, we have the true local count -- now update the offsets *)
+                val bod = if stackArgs > 0 then 
+                    let
+                        (*val _ = print "Stack arg shit\n"*)
+                        fun skip2Loads ((a as Assem.OPER{assem,...})::l) x = if String.isPrefix "lw" assem then x else skip2Loads l (x+1)
+                        |   skip2Loads (a::l) x = skip2Loads l (x+1)
+                        |   skip2Loads [] x = ErrorMsg.impossible "No loads found"
+
+                        val loadStart = skip2Loads tl' 0
+                        val droppedRegArgs = List.drop(tl', loadStart)
+                        val assemToRewrite = List.take(droppedRegArgs, stackArgs)
+
+                        (*val _ = app f assemToRewrite
+                        val _ = print("\n")*)
+
+                        val rewrittenAssem = correctOffset assemToRewrite ((!locals) * wordSize)
+                        val rest = List.drop(droppedRegArgs, stackArgs)
+                       
+                        (*val _ = app f rewrittenAssem
+                        val _ = print("\n")*)
+                        (*val _ = app f tl'
+                        val _ = print("\n")
+                        val _ = app f rewrittenAssem*)
+                    in
+                        List.take(tl', loadStart) @ rewrittenAssem @ rest
+                    end
+                else tl'
+
+                (*val _ = if stackArgs > 0 then app f bod else ()*)
 
                 val offSet = (!locals) * wordSize
                 fun moveSP dir = Assem.OPER{assem=if offSet > 0 then "addi $sp, $sp, " ^ dir ^ Int.toString(offSet) ^ "\n" else "",
