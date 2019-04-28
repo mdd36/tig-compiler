@@ -102,7 +102,7 @@ struct
 				fun addedge (eset, ltabel, nmap) =
 							let
 								val items = NodeMap.listItemsi(nmap)
-								fun searchedge (node, a::m) = (case Symbol.look(ltabel, a) of NONE => (print("ERROR: No such label in the program"^Symbol.name a^"\n") ;searchedge(node, m))
+								fun searchedge (node, a::m) = (case Symbol.look(ltabel, a) of NONE => (print("makegraph.sml: ERROR: No such label in the program"^Symbol.name a^"\n") ;searchedge(node, m))
 																						 | SOME newn => ({from = node, to = newn}::searchedge(node, m)))
 								  | searchedge (node, nil) = []
 
@@ -119,10 +119,10 @@ struct
 																														ismove = Flow.Graph.Table.empty}) assemlist
 				val Flow.FGRAPH{control=ctr, def=def, use=use, ismove=ism} = fg
 				
-				fun getDefs tmp = case Temp.Table.look(defs, tmp) of NONE => (print("ERROR: no such temp found in defs\n"); []:Flow.Graph.node list)
+				fun getDefs tmp = case Temp.Table.look(defs, tmp) of NONE => (print("makegraph.sml: ERROR: no such temp found in defs\n"); []:Flow.Graph.node list)
 																	| SOME nl => nl
 																	
-				fun assem2node a = case AssemMap.find(assems, a) of NONE =>  (print("ERROR: no such assem instr found \n"); Flow.Graph.errorNode ctr)
+				fun assem2node a = case AssemMap.find(assems, a) of NONE =>  (print("makegraph.sml: ERROR: no such assem instr found: "^a^" \n"); Flow.Graph.errorNode ctr)
 																	| SOME nl => nl
 			in
 			   addedge(eset, ltabel, nmap);

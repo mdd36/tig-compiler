@@ -65,9 +65,9 @@ struct
 			
 			val (rdin, rdout) = iteration(foldl (fn (n, nmap) => NodeMap.insert(nmap, n, NodeSet.empty)) NodeMap.empty nodes, foldl (fn (n, nmap) => NodeMap.insert(nmap, n, NodeSet.empty)) NodeMap.empty nodes)
 			
-			fun getRDin node = case NodeMap.find(rdin, node) of NONE => (print("ERROR: No such node found in RDin \n"); [])
+			fun getRDin node = case NodeMap.find(rdin, node) of NONE => (print("reachingDefinition.sml: ERROR: No such node found in RDin \n"); [])
 															| SOME nl => (NodeSet.listItems nl)
-			fun getRDout node = case NodeMap.find(rdout, node) of NONE => (print("ERROR: No such node found in RDout \n"); [])
+			fun getRDout node = case NodeMap.find(rdout, node) of NONE => (print("reachingDefinition.sml: ERROR: No such node found in RDout \n"); [])
 															| SOME nl => (NodeSet.listItems nl)
 			
 		in
@@ -128,6 +128,8 @@ struct
 							if String.isSubstring "li" assem then (NodeMap.insert(nm, assem2node (getname(assem,!i)), getnumber assem 8),mm)
 							else (nm,mm))
 					  | cins (A.MOVE{assem, dst, src}, (nm,mm)) =
+							if dst = src then (nm,mm)
+							else 
 							(i:=(!i)+1;
 							(nm, NodeMap.insert(mm, assem2node (getname(assem,!i)), src)))
 					  | cins (a, (nm,mm)) = (i:=(!i)+1;(nm,mm) )
@@ -137,7 +139,6 @@ struct
 			
 			val (nmap, mmap) = getConst()
 			val (nmap, mmap) = (ref nmap, ref mmap)
-			
 			fun count (n::ns, s) = (case Flow.Graph.Table.look(deft, n) of NONE => count(ns,s)
 															| SOME d => if contains(d,s) then n::count(ns,s) else count(ns,s))
 			|   count ([], s) = []
@@ -163,16 +164,20 @@ struct
 					
 			
 			fun check (a as (A.MOVE{assem, dst, src}), al) = 
-				let 
-					val _ = (j:=(!j)+1)
-					val node = assem2node (getname(assem,!j))
-					val c = searchC(node,src)
-				in
-					if isSome c then (nmap:= NodeMap.insert(!nmap, node,  valOf c);
-								mmap:= #1 (NodeMap.remove(!mmap, node));
-								(A.OPER{assem="li `d0, " ^ removeSquiggle (valOf(c)) ^ "\n", src=[], dst=[dst], jump=NONE})::al)
-					else (a::al)
-				end
+				if (src=dst) then al
+				else (
+					if isSome(Temp.Table.look(MipsFrame.tempMap, dst)) then ((j:=(!j)+1);a::al)
+					else(
+					let 
+						val _ = (j:=(!j)+1)
+						val node = assem2node (getname(assem,!j))
+						val c = searchC(node,src)
+					in
+						if isSome c then (nmap:= NodeMap.insert(!nmap, node,  valOf c);
+									mmap:= #1 (NodeMap.remove(!mmap, node));
+									(A.OPER{assem="li `d0, " ^ removeSquiggle (valOf(c)) ^ "\n", src=[], dst=[dst], jump=NONE})::al)
+						else (a::al)
+					end))
 					
 			|   check (a as (A.LABEL{assem, lab}), al) = (j:=(!j)+1 ; a :: al)
 			|   check (a as (A.OPER{assem, dst, src, jump}), al) = 
