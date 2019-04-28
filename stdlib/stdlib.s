@@ -822,3 +822,225 @@ tig_flush:
 tig_exit:
   j exit
   .end tig_exit
+
+tig_stringNotEqual:
+	.frame	$sp,0,$31		# vars= 0, regs= 0/0, args= 0, gp= 0
+	.mask	0x00000000,0
+	.fmask	0x00000000,0
+	.set	noreorder
+	.set	nomacro
+	beq	$4,$5,$L19
+	nop
+
+	lw	$2,0($4)
+	lw	$3,0($5)
+	nop
+	beq	$2,$3,$L57
+	nop
+
+$L21:
+	j	$31
+	li	$2,1			# 0x1
+
+$L57:
+	blez	$2,$L19
+	nop
+
+	lbu	$6,4($5)
+	lbu	$3,4($4)
+	nop
+	bne	$6,$3,$L21
+	addiu	$3,$2,4
+
+	addiu	$2,$4,5
+	addu	$4,$4,$3
+	beq	$2,$4,$L19
+	addiu	$5,$5,5
+
+$L16:
+	lbu	$6,0($2)
+	lbu	$3,0($5)
+	addiu	$2,$2,1
+	bne	$6,$3,$L21
+	addiu	$5,$5,1
+
+	bne	$2,$4,$L16
+	nop
+
+$L19:
+	j	$31
+	move	$2,$0
+
+	.set	macro
+	.set	reorder
+	.end	tig_stringNotEqual
+	
+	.align	2
+	.globl	strcmp_test
+	.ent	strcmp_test
+strcmp_test:
+        addiu   $sp,$sp,-28
+        sw      $fp,20($sp)
+        move    $fp,$sp
+        sw      $4,24($fp)
+        sw      $5,28($fp)
+        sw      $0,8($fp)
+        b       $L2
+        nop
+
+$L6:
+        lw      $3,24($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $3,4($2)
+        lw      $4,28($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$4,$2
+        lbu     $2,4($2)
+        nop
+        beq     $3,$2,$L3
+        nop
+
+        lw      $3,24($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $2,4($2)
+        nop
+        move    $4,$2
+        lw      $3,28($fp)
+        lw      $2,8($fp)
+        nop
+        addu    $2,$3,$2
+        lbu     $2,4($2)
+        nop
+        subu    $2,$4,$2
+        b       $L4
+        nop
+
+$L3:
+        lw      $2,8($fp)
+        nop
+        addiu   $2,$2,1
+        sw      $2,8($fp)
+$L2:
+        lw      $2,24($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,8($fp)
+        nop
+        slt     $2,$2,$3
+        beq     $2,$0,$L5
+        nop
+
+        lw      $2,28($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,8($fp)
+        nop
+        slt     $2,$2,$3
+        bne     $2,$0,$L6
+        nop
+
+$L5:
+        lw      $2,24($fp)
+        nop
+        lw      $3,0($2)
+        lw      $2,28($fp)
+        nop
+        lw      $2,0($2)
+        nop
+        subu    $2,$3,$2
+$L4:
+        move    $sp,$fp
+        lw      $fp,20($sp)
+        addiu   $sp,$sp,28
+        j       $31
+        nop
+
+tig_stringGreaterThan:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
+
+        slt     $2,$0,$2
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
+
+tig_stringGreaterThanEqual:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
+
+        nor     $2,$0,$2
+        srl     $2,$2,31
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
+
+tig_stringLessThan:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
+
+        srl     $2,$2,31
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop
+
+tig_stringLessThanEqual:
+        addiu   $sp,$sp,-36
+        sw      $31,28($sp)
+        sw      $fp,24($sp)
+        move    $fp,$sp
+        sw      $4,32($fp)
+        sw      $5,36($fp)
+        lw      $5,36($fp)
+        lw      $4,32($fp)
+        jal     strcmp_test
+        nop
+
+        slt     $2,$2,1
+        andi    $2,$2,0x00ff
+        move    $sp,$fp
+        lw      $31,28($sp)
+        lw      $fp,24($sp)
+        addiu   $sp,$sp,36
+        j       $31
+        nop

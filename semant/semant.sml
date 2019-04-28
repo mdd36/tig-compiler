@@ -44,16 +44,16 @@ struct
 
     fun  checkInt({exp=exp', ty=ty'}: expty, pos, print_) =
         if checkSameType(ty', Types.INT) then true
-        else (if print_ then print(Int.toString(pos)^"Error: Expected int token ") else (); false)
+        else (if print_ then (handleFail(pos, "Error: Expected int token"); ()) else (); false)
 
     fun  checkStr({exp=exp', ty=ty'}: expty, pos, print_) =
         if  checkSameType(ty',Types.STRING) then true
-        else (if print_ then print(Int.toString(pos)^"Error: Expected string token ") else (); false)
+        else (if print_ then (handleFail(pos, "Error: Expected string token"); ()) else (); false)
 
 
 
 	fun searchTy(tenv,s,pos) = case Symbol.look(tenv, s) of SOME t => t
-													  | NONE   => (#ty (handleFail(pos, "Error: No such type defined  " ^ Symbol.name s^"")))
+													  | NONE   => (#ty (handleFail(pos, "Error: No such type defined  " ^ Symbol.name s)))
 	fun actual_ty (tenv,ty,pos) = case ty of Types.NAME(s,t) => (case (!t) of NONE => actual_ty (tenv,searchTy(tenv,s,pos),pos)
 															| SOME typ => actual_ty (tenv,typ,pos))
 											| Types.ARRAY(t,u) => Types.ARRAY(actual_ty (tenv,t,pos),u)
@@ -183,7 +183,7 @@ struct
 																								else (handleFail(pos, "Error: Illegal assign expression")))
 																							else (handleFail(pos, "Error: For loop id cannot be assigned"))
 														| SOME(Env.FunEntry _) => handleFail(pos,  "Cannot assing value to a function")
-                                                        | _ => handleFail(pos,  "Undefined variable name " ^ Symbol.name(getName var)^ "")
+                                                        | _ => handleFail(pos,  "Undefined variable name " ^ Symbol.name(getName var))
                 end
         |   trexp(A.RecordExp{fields, typ, pos}) = (
                 case Symbol.look(tenv, typ) of
@@ -206,10 +206,10 @@ struct
 										else (handleFail(pos, "Error: Record assignment field name unmatched error")))
 								else (handleFail(pos, "Error: Record assignment type error")))
 
-							else (handleFail(pos,  "Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)^""))
+							else (handleFail(pos,  "Error: Record error : expected " ^ Int.toString(length fieldTypes) ^ " fields, found " ^ Int.toString(length types)))
                         end
                     |   _ => (handleFail(pos, "Error: Type mismatch in record usage")))
-                |   NONE    => (handleFail(pos, "Error: Unknown type " ^ Symbol.name typ ^ ""))
+                |   NONE    => (handleFail(pos, "Error: Unknown type " ^ Symbol.name typ ))
 
             )
         |   trexp(A.SeqExp []) = {exp=TR.handleNil(), ty=Types.UNIT}
@@ -249,8 +249,8 @@ struct
                             case actual_ty(tenv,at,pos) of
                                 Types.ARRAY(t, u) =>
                                     if checkInt(size', pos, true) andalso checkSameType(actual_ty(tenv,t,pos), initTy) then {exp=TR.arrayExp(sizeExp, init'), ty=Types.ARRAY(actual_ty(tenv,t,pos),u)}
-                                    else (handleFail(pos, "Error: Invalid array expression "^Symbol.name typ ^""))
-                                | _ => (handleFail(pos, "Error: Type mismatch (should be array type): "^Symbol.name typ ^""))
+                                    else (handleFail(pos, "Error: Invalid array expression "^Symbol.name typ))
+                                | _ => (handleFail(pos, "Error: Type mismatch (should be array type): "^Symbol.name typ))
                             )
                     |   NONE => (handleFail(pos, "Error: Unknown type"))
                 )
@@ -265,13 +265,13 @@ struct
                         val argExps = map #exp args'
                     in
 						if (length argTys = length formals) then (
-							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps, result<>Types.UNIT), ty=result}
+							if (ListPair.foldr f true (formals, argTys)) then {exp=TR.callExp(level, lev, label, argExps), ty=result}
 							else (handleFail(pos, "Error: Type disagreement in function arguments")))
-							else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)^""))
+						else (handleFail(pos, "Error: Argument error, expected " ^ Int.toString(length formals) ^ " function arguments, found " ^ Int.toString(length args)))
 
                     end
                 |   SOME(Env.VarEntry(_)) => (handleFail(pos, "Error: Expected a function idenifier, found a variable: pos"))
-                |   NONE => (handleFail(pos, "Error: Unknown symbol " ^ Symbol.name func^""))
+                |   NONE => (handleFail(pos, "Error: Unknown symbol " ^ Symbol.name func))
             )
     in
       trexp(root)
@@ -285,8 +285,8 @@ struct
       let fun trvar (A.SimpleVar(id, pos)) =
   							(case Symbol.look(venv, id)
   							of SOME(Env.VarEntry{access, ty, write}) => {exp = TR.simpleVar(access, lev), ty = actual_ty (tenv,ty,pos)}
-                             | SOME(Env.FunEntry(_)) => (print(Int.toString(pos)^"Error: Expected variable symbol, found function : symbol name " ^ Symbol.name id^""); {exp=TR.handleNil(), ty=Types.BOTTOM})
-  							 | NONE => (handleFail(pos, "Error: undefined variable " ^ Symbol.name id^"")
+                             | SOME(Env.FunEntry(_)) => (handleFail(pos, "Error: Expected variable symbol, found function: " ^ Symbol.name id); {exp=TR.handleNil(), ty=Types.BOTTOM})
+  							 | NONE => (handleFail(pos, "Error: undefined variable " ^ Symbol.name id)
   										))
   			  | trvar (A.FieldVar(v, id, pos)) =
 							let val {exp=exp', ty=ty} = trvar(v)
@@ -297,7 +297,7 @@ struct
 																	in
 																		{exp = TR.fieldVar(exp', id, map #1 stl), ty = searchField stl id}
 																	end
-															 | _ => (handleFail(pos, "Error: Variable is not defined as a record: "^""))
+															 | _ => (handleFail(pos, "Error: Variable is not defined as a record; found type " ^ Types.ty2str ty))
 															)
 							end
 
@@ -311,75 +311,53 @@ struct
                                             val offsetExp = #exp translatedOffset
                                         in
                                             (if checkInt(translatedOffset, pos, true)
-                                                then {exp = TR.subscriptVar(exp', offsetExp ), ty = actual_ty (tenv,t,pos)}
-                                                else (handleFail(pos, "Provided index is not of type int"^"")))
+                                                then {exp = TR.subscriptVar(exp', offsetExp, pos), ty = actual_ty (tenv,t,pos)}
+                                                else (handleFail(pos, "Provided index is not of type int")))
                                         end
-									| _               => (handleFail(pos, "Error: Variable is not defined as an array: "^""))
+									| _               => (handleFail(pos, "Error: Variable is not defined as an array, found type " ^ Types.ty2str ty))
 								)
   							end
 		in
 		trvar node
 		end
     and transDec (venv, tenv, A.VarDec{name, escape, typ, init, pos}, lev, breakpoint) =
-
-    (let 
-        val acc = TR.allocLocal(lev)(!escape)
-        val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
-        val translatedVar = TR.simpleVar(acc, lev)
-		in
-            case typ of 
-                NONE => (if ty = Types.NIL then (handleFail(pos, "Illegal assignment of nil type"); ())
-                                          else ();
-                        {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.assign(translatedVar, exp)}
-                    )
-            |   SOME( (name',pos) ) => ( case Symbol.look(tenv, name') of 
-                        SOME(ty') => ( if checkSameType(ty', ty) then
-                                         {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=actual_ty(tenv, ty', pos), write=true}), exp=TR.assign(translatedVar, exp)}
-                                       else (handleFail(pos, "Type assignment mistach"); 
-                                        {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.handleNil()}
-                                        )
+        let 
+            val acc = TR.allocLocal(lev)(!escape)
+            val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
+            val translatedVar = TR.simpleVar(acc, lev)
+            val errorRet = {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), tenv=tenv, exp=TR.handleNil()}
+    		in
+                case ty of
+                    Types.NIL => (case typ of 
+                        NONE => (handleFail(pos, "Error: Cannot assign variable of type unit to type nil"); errorRet)
+                    |   SOME((name, pos)) => (case searchTy(tenv, name, pos) of
+                            Types.RECORD(tl, u) => {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.RECORD(tl,u), write=true}), tenv=tenv, exp=TR.assign(translatedVar, exp)}
+                        |   _ => (handleFail(pos, "Error: Illegal assignment of nil to " ^ Symbol.name name); errorRet)
+                            )
                         )
-                    |   NONE => (handleFail(pos, "Unknown type: " ^ Symbol.name name' ^ "");
-                                 {tenv=tenv, venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), exp=TR.handleNil()}
-                        )   
-
-                    )
-
-
-			(*case ty of Types.NIL => (case typ
-								of SOME((s,p)) => (case searchTy (tenv,s,p) of Types.RECORD(tl,u) => let val access = TR.allocLocal(lev)(!escape) in
-											{venv = Symbol.enter(venv,name,Env.VarEntry{access=access, ty=Types.RECORD(tl,u),write=true}), tenv=tenv,
-											exp = TR.getAssign(access, exp)} end
-										| _  => (handleFail(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-											{venv=venv,tenv=tenv, exp= TR.handleNil()}))
-								 | NONE =>
-									(handleFail(Int.toString(pos)^": Error: Initializing nil expressions not constrained by record type: " ^ Symbol.name name^"\n");
-										{venv=venv,tenv=tenv, exp= TR.handleNil()}))
-					| _ =>  let val access = TR.allocLocal(lev)(!escape) in
-							(case typ
-								of SOME((s,p)) => if checkSameType(actual_ty(tenv,searchTy(tenv,s,p),p), ty)
-														then {venv=Symbol.enter(venv,name,Env.VarEntry{access=access, ty=ty,write=true}), tenv=tenv,
-														exp = TR.getAssign(access, exp)}
-														else (handleFail(Int.toString(pos)^": Error: Unmatched defined variable type " ^ Symbol.name name^"\n");
-															  {venv=venv,tenv=tenv, exp= TR.handleNil()})
-								 | NONE =>
-									{venv=Symbol.enter(venv,name,Env.VarEntry{access=access,ty=ty,write=true}), tenv=tenv,
-									exp= TR.getAssign(access, exp)}) end*)
-
-		end
-		)
+                |   _ => (case typ of 
+                        NONE => {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=ty, write=true}), tenv=tenv, exp=TR.assign(translatedVar, exp)}
+                    |   SOME((name', pos)) => let 
+                                val actTy = actual_ty(tenv, searchTy(tenv, name', pos), pos) 
+                            in 
+                                if checkSameType(actTy, ty) then
+                                    {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=ty, write=true}), tenv=tenv, exp=TR.assign(translatedVar, exp)}
+                                else (handleFail(pos, "Error: incompadible type assignment for " ^ Symbol.name name ^ "\n\tExpected: " ^ Types.ty2str actTy^ "\n\tFound: " ^ Types.ty2str ty); errorRet)
+                            end
+                        )
+                end
 
 	  | transDec (venv, tenv, A.TypeDec(l), lev, breakpoint) =
 			let
 				fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 				val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
-				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Type redifined " ^ Symbol.name (#name a)^"");
+				val tenv' = foldl (fn (a,tenv) => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Type redifined " ^ Symbol.name (#name a));
 																								Symbol.enter(tenv,#name a,Types.BOTTOM))
 																else Symbol.enter(tenv,#name a,Types.NAME(#name a, ref NONE))) tenv l
-				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (#name a,Types.BOTTOM,#pos a) else (#name a, transTy(tenv',#ty a),#pos a)) l
+				val l' = map (fn a => if valOf(mymap.find(namemap,#name a)) then (handleFail(#pos a, "Error: Undefined type: " ^ (Symbol.name(#name a)));(#name a,Types.BOTTOM,#pos a)) else (#name a, transTy(tenv',#ty a),#pos a)) l
 				val tenv''=foldl (fn (a, tenv) => if valOf(mymap.find(namemap,#1 a)) then tenv else Symbol.enter(tenv,#1 a,#2 a)) tenv' l'
 				fun getRidOfCycle (a,(ty,pos,visited),tenv)= (case ty of Types.NAME(s,t) => (case (!t) of NONE => (if set.member(visited,s)
-																										then (#ty (handleFail(pos, "Error: Type decs deadlock " ^ Symbol.name a^"")))
+																										then (#ty (handleFail(pos, "Error: Type decs deadlock " ^ Symbol.name a)))
 																										else getRidOfCycle(a,(searchTy(tenv,s,pos),pos,set.add(visited,s)),tenv))
 																						| SOME typ => getRidOfCycle (a,(typ,pos,set.add(visited,s)),tenv))
 																| _ => ty)
@@ -396,17 +374,17 @@ struct
 			fun redefineCheck (s,{namemap=namemap,nameset=nameset}) = {namemap=mymap.insert(namemap,s,set.member(nameset,s)),nameset= set.add(nameset,s)}
 			val {namemap=namemap,nameset=nameset} = foldl redefineCheck {namemap=mymap.empty,nameset=set.empty} (map #name l)
 			fun passHeader ({name,params,body,pos,result}, {venv=venv,tenv=tenv}) =
-				if valOf(mymap.find(namemap,name)) then (handleFail(pos, "Error: Function name redefined " ^ Symbol.name name^"");{venv=venv,tenv=tenv})
+				if valOf(mymap.find(namemap,name)) then (handleFail(pos, "Error: Function name redefined " ^ Symbol.name name);{venv=venv,tenv=tenv})
 				else (
 					let
 						val result_ty = valOf(case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => SOME(t)
-																										 | NONE => (SOME (#ty (handleFail(pos, "Error: Undefined return type " ^ Symbol.name rt^"")))))
+																										 | NONE => (SOME (#ty (handleFail(pos, "Error: Undefined return type " ^ Symbol.name rt)))))
 
 														   | NONE => SOME Types.UNIT)
 						fun transparam {name, escape, typ, pos} =
 												case Symbol.look(tenv,typ)
 													of SOME t => {name=name, ty=t}
-													| NONE => (handleFail(pos, "Error: Undefined parameter type " ^ Symbol.name name^"");
+													| NONE => (handleFail(pos, "Error: Undefined parameter type for " ^ Symbol.name name);
 													  {name = name, ty = Types.BOTTOM})
 						val params' = map transparam params
 						val esc = map (fn x => !(#escape x)) params
@@ -426,13 +404,15 @@ struct
     				else (
     					let
     						val result_ty = (case result of SOME(rt,pos) => (case Symbol.look(tenv,rt) of SOME(t) => t
-    																										 | NONE => Types.BOTTOM)
+    																										 | NONE => (handleFail(pos, "Error: Return type " ^ Symbol.name rt ^ " is undefined");
+                                                                                                                         Types.BOTTOM))
     														   | NONE => Types.UNIT)
     						val (formals, levv) = case valOf(Symbol.look(venv'',name)) of Env.FunEntry({level, label, formals, result}) => (TR.getFormals(level), level) (* SML has a type issue here since not all Env.enventry have levels => type unsafe *)
     						fun transparam ({name, escape, typ, pos}, access) =(
     												case Symbol.look(tenv,typ)
     													of SOME t => {name=name, access=access, ty=t}
-    													| NONE =>  {name = name, access=access, ty = Types.BOTTOM})
+    													| NONE =>  (handleFail(pos, "Error: Param type " ^ Symbol.name typ ^ " is undefined");
+                                                                    {name = name, access=access, ty = Types.BOTTOM}))
     						val params' = ListPair.map transparam (params,formals)
 
     						fun enterparam ({name=name,access=access, ty=ty}, venv) =
@@ -443,7 +423,7 @@ struct
     					in
     						if checkLegacy({exp=expp, ty=ty'}, {exp=TR.handleNil(), ty=result_ty})
     										then (TR.procEntryExit {level = levv, body = expp}; {venv=venv,tenv=tenv,exp=TR.handleNil()})
-    										else  ( handleFail(pos, "Error: return type do not match " ^ Symbol.name name^"");
+    										else  ( handleFail(pos, "Error: Variable type and return type do not match: " ^ Symbol.name name );
 													TR.procEntryExit{level = levv, body = expp};
     												{venv=venv,tenv=tenv,exp=TR.handleNil()})
 

@@ -9,6 +9,7 @@ sig
     exception Error
     val impossible : string -> 'a   (* raises Error *)
     val reset : unit -> unit
+    val getLine : int -> string
 end
 
 structure ErrorMsg : ERRORMSG =
@@ -29,13 +30,14 @@ struct
   exception Error
 
   fun error pos (msg:string) =
-      let fun look(a::rest,n) =
-		if a<pos then app print [":",
+      let 
+        fun look(a::rest,n) =
+		      if a<pos then app print [":",
 				       Int.toString n,
 				       ".",
 				       Int.toString (pos-a)]
 		       else look(rest,n-1)
-	    | look _ = print "0.0"
+	      | look _ = print "0.0"
        in anyErrors := true;
 	  print (!fileName);
 	  look(!linePos,!lineNum);
@@ -48,6 +50,16 @@ struct
       (app print ["Error: Compiler bug: ",msg,"\n"];
        TextIO.flushOut TextIO.stdOut;
        raise Error)
+
+  fun getLine pos = 
+    let
+      fun look(a::rest,n) =
+          if a<pos then Int.toString n ^ ":" ^ Int.toString (pos-a)
+           else look(rest,n-1)
+        | look _ = "0:0"
+    in
+      look(!linePos, !lineNum)
+    end
 
 end  (* structure ErrorMsg *)
   
