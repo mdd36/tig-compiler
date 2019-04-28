@@ -98,7 +98,7 @@ struct
 					val _ = (j:= (!j)+1)
 					val node = assem2node (getname(assem,!j))
 					val outs = getlo node
-					val b = foldl (fn (d, bo) => bo andalso (not (contains(outs, d))) ) true dst
+					val b = foldl (fn (d, bo) => bo andalso ((not (contains(outs, d))) andalso (not (isSome(Temp.Table.look(MipsFrame.tempMap, d))))) ) true dst
 				in
 					if dst <> [] andalso b then al else a::al
 				end
@@ -107,9 +107,9 @@ struct
 					val _ = (j:= (!j)+1)
 					val node = assem2node (getname(assem,!j))
 					val outs = getlo node
-					val b = not (contains(outs, dst))
+					val b = contains(outs, dst) orelse isSome(Temp.Table.look(MipsFrame.tempMap, dst))
 				in
-					if b then al else a::al
+					if not b then al else a::al
 				end
 			|   check (a as (A.LABEL{assem, lab}), al) = (j:=(!j)+1 ; a :: al)
 		in
