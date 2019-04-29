@@ -55,7 +55,6 @@ end
 <STR> \\t => (s:=(!s)^"\t";   continue());
 <STR> \\a => (s:=(!s)^"\a";   continue());
 <STR> \\b => (s:=(!s)^"\b";   continue());
-<STR> \\f => (s:=(!s)^"\f";   continue());
 <STR> \\r => (s:=(!s)^"\r";   continue());
 <STR> \\v => (s:=(!s)^"\v";   continue());
 
