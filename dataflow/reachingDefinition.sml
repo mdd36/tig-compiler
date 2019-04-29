@@ -30,7 +30,7 @@ struct
 																			let
 																				val kill = foldl (fn (n, se) => NodeSet.union(se, NodeSet.addList(NodeSet.empty, getdefs n))) NodeSet.empty tl
 																			in																	
-																				(NodeMap.insert(g, node, NodeSet.singleton(node)), NodeMap.insert(k, node, kill))
+																				(NodeMap.insert(g, node, NodeSet.singleton(node)), NodeMap.insert(k, node, NodeSet.difference(kill,NodeSet.singleton(node))))
 																			end)
 						
 				in
@@ -200,13 +200,13 @@ struct
 					|   modifyt [] = []
 											
 				in
-					if cl=[] then (
-								if tml = [] then a::al
-								else (A.OPER{assem=assem, src=modifyt src, dst=dst, jump=jump})::al)
+					if cl=[] then ((A.OPER{assem=assem, src=modifyt src, dst=dst, jump=jump})::al)
 					else (
 						case String.substring(assem,0,4) of 
-							"sw '" => (nmap:= NodeMap.insert(!nmap, node, #2 (hd cl));
-									  (A.OPER{assem="li `d0, " ^ removeSquiggle (#2 (hd cl)) ^ "\n", src=[], dst=dst, jump=jump})::al)
+							(*"sw '" => (nmap:= NodeMap.insert(!nmap, node, #2 (hd cl));
+									  (A.OPER{assem="li `d0, " ^ removeSquiggle (#2 (hd cl)) ^ "\n", src=[], dst=dst, jump=jump})::al)*)
+							"sw `" => (A.OPER{assem=assem, src=modifyt src, dst=dst, jump=jump})::al 
+							
 						|	"addi" => (let val num = (#2 (hd cl)) + (getnumber assem 15)
 									   in 
 										(nmap:= NodeMap.insert(!nmap, node, num);
@@ -469,7 +469,7 @@ struct
 											  if b then (A.OPER{assem="j `j0\n", src=[], dst=[], jump=SOME [t]})::al else al
 										   end)
 									   else (A.OPER{assem=assem, src=modifyt src, dst=dst, jump=jump})::al)
-						|   _      => a::al 			   		
+						|   _      => (a::al) 			   		
 						)
 					
 				end
