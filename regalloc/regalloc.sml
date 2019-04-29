@@ -101,7 +101,7 @@ struct
 		 
 	fun alloc (assemlist', frame, b) =
 		let
-			val assemlist = (*dfanalysis*) assemlist'
+			val assemlist = dfanalysis assemlist'
 			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph assemlist
 			val (igraph, liveOut) = Liveness.interferenceGraph graph
 			val Liveness.IGRAPH{graph=graph', tnode=tnode, gtemp=gtemp, moves=moves} = igraph
