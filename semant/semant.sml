@@ -326,11 +326,11 @@ struct
             val {exp = exp, ty = ty} = transExp(venv, tenv, init, lev, breakpoint)
             val translatedVar = TR.simpleVar(acc, lev)
             val errorRet = {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.BOTTOM, write=true}), tenv=tenv, exp=TR.handleNil()}
-    		in
+            in
                 case ty of
                     Types.NIL => (case typ of 
                         NONE => (handleFail(pos, "Error: Cannot assign variable of type unit to type nil"); errorRet)
-                    |   SOME((name, pos)) => (case searchTy(tenv, name, pos) of
+                    |   SOME((name', pos)) => (case searchTy(tenv, name', pos) of
                             Types.RECORD(tl, u) => {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.RECORD(tl,u), write=true}), tenv=tenv, exp=TR.assign(translatedVar, exp)}
                         |   _ => (handleFail(pos, "Error: Illegal assignment of nil to " ^ Symbol.name name); errorRet)
                             )
