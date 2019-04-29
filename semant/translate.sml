@@ -373,7 +373,8 @@ struct
 	 |  simplifystm (Tree.JUMP(exp, llist)) = Tree.JUMP(getSimexp exp, llist)
 	 |  simplifystm (Tree.CJUMP(relop, exp1, exp2, label1, label2)) = Tree.CJUMP(relop, getSimexp exp1, getSimexp exp2, label1, label2)
 	 |  simplifystm (Tree.MOVE(Tree.MEM(exp1), exp2)) = Tree.MOVE(Tree.MEM(getSimexp exp1), simplifyexp exp2)
-     |  simplifystm (Tree.MOVE(exp1, exp2)) = Tree.MOVE(getSimexp exp1, simplifyexp exp2)
+	 |  simplifystm (Tree.MOVE(exp1, Tree.MEM(exp2))) = Tree.MOVE(getSimexp exp1, Tree.MEM(getSimexp exp2))
+	 |  simplifystm (Tree.MOVE(exp1, Tree.BINOP(binop, exp2, exp3))) = Tree.MOVE(getSimexp exp1, Tree.BINOP(binop, getSimexp exp2, getSimexp exp3))
 	 |  simplifystm (Tree.EXP(exp)) = Tree.EXP(simplifyexp exp)
 	 |  simplifystm T = T
 	 

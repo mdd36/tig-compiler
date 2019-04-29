@@ -88,20 +88,20 @@ struct
 			val assems = RD.propagation(assemlist, assem2node, graph, getRDin)
 			fun eliminate al = 
 				let 
-					val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph al
+					(*val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph al*)
 					val (igraph, liveOut) = Liveness.interferenceGraph graph
 				in
 					RD.eliminatedeadcode (al, assem2node, graph, liveOut) 
 				end				
 		in 
-			(*if isequal(assems, assemlist) then eliminate assems else dfanalysis assems*)
-			eliminate assems
+			if isequal(assems, assemlist) then eliminate assems else dfanalysis assems
+			
 		end
 			
 		 
 	fun alloc (assemlist', frame, b) =
 		let
-			val assemlist = dfanalysis assemlist'
+			val assemlist =  dfanalysis assemlist'
 			val (graph as Flow.FGRAPH{control=control, def=deft, use=uset, ismove=ism}, nodes, getdefs, assem2node) = MakeGraph.instr2graph assemlist
 			val (igraph, liveOut) = Liveness.interferenceGraph graph
 			val Liveness.IGRAPH{graph=graph', tnode=tnode, gtemp=gtemp, moves=moves} = igraph
