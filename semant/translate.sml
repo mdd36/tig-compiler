@@ -124,25 +124,26 @@ struct
                 ])
         end
 
-    fun forExp(iterVar, escape, low, high, b) =
+    fun forExp(iterVar, end', low, high, b) =
         let
             val bodyLabel = Temp.newlabel()
             val forLabel = Temp.newlabel()
             val lo = unEx low
             val hi = unEx high
-            val i = unEx iterVar
+            val i = unEx iterVar (* yeilds a temp *)
             val body = unNx b
+            val hiTmp = Temp.newtemp()
         in
             Nx(seq[
                 Tree.MOVE(i, lo),
-                Tree.CJUMP(Tree.LE, i, hi, bodyLabel, escape),
+                Tree.MOVE(Tree.TEMP hiTmp, hi),
+                Tree.CJUMP(Tree.LE, i, Tree.TEMP hiTmp, forLabel, end'),
                 Tree.LABEL bodyLabel,
-                body,
-                Tree.CJUMP (Tree.LT, i, hi, forLabel, escape),
+                Tree.MOVE(i, Tree.BINOP(Tree.PLUS, i, Tree.CONST 1)), (* ++i *)
                 Tree.LABEL forLabel,
-                Tree.MOVE(i, Tree.BINOP (Tree.PLUS, i, Tree.CONST 1)),
-                Tree.JUMP(Tree.NAME forLabel, [forLabel]),
-                Tree.LABEL escape
+                body,
+                Tree.CJUMP (Tree.LT, i, Tree.TEMP hiTmp, bodyLabel, end'),
+                Tree.LABEL end'
                 ]
             )
         end
