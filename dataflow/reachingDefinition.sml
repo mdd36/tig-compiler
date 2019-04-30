@@ -131,7 +131,8 @@ struct
 							if dst = src then (nm,mm)
 							else 
 							(i:=(!i)+1;
-							(nm, NodeMap.insert(mm, assem2node (getname(assem,!i)), src)))
+							if isSome(Temp.Table.look(MipsFrame.tempMap, src)) then (nm,mm)
+							else (nm, NodeMap.insert(mm, assem2node (getname(assem,!i)), src)))
 					  | cins (a, (nm,mm)) = (i:=(!i)+1;(nm,mm) )
 				in
 					foldl cins (NodeMap.empty, NodeMap.empty) assemlist
