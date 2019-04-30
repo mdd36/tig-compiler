@@ -166,8 +166,9 @@ struct
 			fun check (a as (A.MOVE{assem, dst, src}), al) = 
 				if (src=dst) then al
 				else (
-					if isSome(Temp.Table.look(MipsFrame.tempMap, dst)) then ((j:=(!j)+1);a::al)
+					(*if isSome(Temp.Table.look(MipsFrame.tempMap, dst)) orelse isSome(Temp.Table.look(MipsFrame.tempMap, src)) then ((j:=(!j)+1);a::al)
 					else(
+					*)
 					let 
 						val _ = (j:=(!j)+1)
 						val node = assem2node (getname(assem,!j))
@@ -177,7 +178,7 @@ struct
 									mmap:= #1 (NodeMap.remove(!mmap, node));
 									(A.OPER{assem="li `d0, " ^ removeSquiggle (valOf(c)) ^ "\n", src=[], dst=[dst], jump=NONE})::al)
 						else (a::al)
-					end))
+					end)
 					
 			|   check (a as (A.LABEL{assem, lab}), al) = (j:=(!j)+1 ; a :: al)
 			|   check (a as (A.OPER{assem, dst, src, jump}), al) = 
