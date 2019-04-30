@@ -101,11 +101,11 @@ struct
         val r: expty = trexp right
       in
         case actual_ty(tenv,(#ty l),pos) of
-            Types.INT => if checkInt(r, pos, true) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type "); {exp=TR.handleNil(), ty=Types.BOTTOM})
-          | Types.STRING => if checkStr(r, pos, true) then {exp=TR.strBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type "); {exp=TR.handleNil(), ty=Types.BOTTOM})
-          | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type "); {exp=TR.handleNil(), ty=Types.BOTTOM})
-          | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type "); {exp=TR.handleNil(), ty=Types.BOTTOM})
-          | Types.NIL => if checkSameType(Types.NIL, #ty r) then {exp=TR.handleInt 1, ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type "); {exp=TR.handleNil(), ty=Types.BOTTOM})
+            Types.INT => if checkInt(r, pos, true) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type of int "); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.STRING => if checkStr(r, pos, true) then {exp=TR.strBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type of string"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.ARRAY(ty', unique') => if checkSameType(Types.ARRAY(ty', unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type of array "); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.RECORD(fields, unique') => if checkSameType(Types.RECORD(fields, unique'), #ty r) then {exp=TR.intBinOps(oper, #exp l, #exp r), ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type of record"); {exp=TR.handleNil(), ty=Types.BOTTOM})
+          | Types.NIL => if checkSameType(Types.NIL, #ty r) then {exp=TR.handleInt 1, ty=Types.INT} else (handleFail(pos, "Error: Compared structures must be of same type of record or nil "); {exp=TR.handleNil(), ty=Types.BOTTOM})
 		  | _ => (handleFail(pos, "Error: Cannont campare structures: can only compare int, string, record, and array types "))
       end
 
@@ -332,6 +332,7 @@ struct
                         NONE => (handleFail(pos, "Error: Cannot assign variable of type unit to type nil"); errorRet)
                     |   SOME((name', pos)) => (case searchTy(tenv, name', pos) of
                             Types.RECORD(tl, u) => {venv=Symbol.enter(venv, name, Env.VarEntry{access=acc, ty=Types.RECORD(tl,u), write=true}), tenv=tenv, exp=TR.assign(translatedVar, exp)}
+
                         |   _ => (handleFail(pos, "Error: Illegal assignment of nil to " ^ Symbol.name name); errorRet)
                             )
                         )
